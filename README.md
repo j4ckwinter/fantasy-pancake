@@ -1,5 +1,7 @@
 # Fantasy Pancake
 
+[live app](https://fantasy-pancake.vercel.app) · [CI](https://github.com/j4ckwinter/fantasy-pancake/actions/workflows/verify.yml)
+
 fpl transfers are easy to overthink. bring your squad, compare a few moves, and see what happens to your starting XI over the next four gameweeks. sometimes the best move is to roll.
 
 built with Next.js, React, TypeScript and Pancake UI. no login, no automatic transfers. your settings stay in your browser.

@@ -26,6 +26,8 @@ No database or migration is needed. Settings stay in browser local storage, scop
 
 ## Vercel
 
+Production: https://fantasy-pancake.vercel.app. Project: `fantasy-pancake` in `jacks-projects-8a38ccc4`, connected to the private GitHub repository. Node 22 and Fluid compute are enabled.
+
 Import the private `j4ckwinter/fantasy-pancake` GitHub repository with the Next.js preset, repository root directory, `npm ci` install command and `npm run build` build command. No application environment variables are required. Vercel manages Node 22 patch versions; `.nvmrc` pins local and GitHub CI runs only.
 
 Use `main` for production and pull-request branches for previews. Check the GitHub Verify run before merging; private-repository required-check enforcement is unavailable on the current GitHub plan. Vercel Git deployments run independently of GitHub Actions. Roll back through Vercel’s deployment history if the live checks fail.
