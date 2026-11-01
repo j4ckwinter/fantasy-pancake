@@ -1,0 +1,80 @@
+:root {
+  --font-pancake: Inter, Arial, sans-serif;
+  --color-pancake-accent: #c6fa46;
+  --color-pancake-surface-accent: #b2ed28;
+  --color-pancake-control-border: #89918e;
+  --color-pancake-control-focus: #526b21;
+  --ink: #171c1b;
+  --muted: #5f6965;
+  --line: #dce1dd;
+  --paper: #f0f2ef;
+  --lime: #c6fa46;
+  --violet: #b6a5ff;
+  --radius-pancake-full: 9px;
+  --radius-pancake-28: 10px;
+  --radius-pancake-20: 10px;
+  --radius-pancake-16: 8px;
+  --radius-pancake-12: 7px;
+  --radius-pancake-8: 6px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-pancake);
+  font-size: 14px;
+  line-height: 1.6;
+}
+a {
+  color: inherit;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button,
+a,
+input,
+select,
+summary {
+  touch-action: manipulation;
+}
+main {
+  width: min(1360px, 100% - 64px);
+  margin: auto;
+  padding-bottom: 32px;
+}
+p {
+  margin: 0 0 14px;
+}
+h1,
+h2,
+h3 {
+  line-height: 1.15;
+  margin: 0;
+  letter-spacing: -0.8px;
+}
+h2 {
+  font-size: 27px;
+  margin: 9px 0 14px;
+}
+h3 {
+  font-size: 19px;
+  margin-bottom: 12px;
+}
+.muted {
+  color: var(--muted);
+}
+.eyebrow {
+  display: inline-block;
+  font-size: 10px;
+  line-height: 1.6;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #52634b;
+}

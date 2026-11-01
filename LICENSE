@@ -1,0 +1,14 @@
+Fantasy Pancake — Proprietary Software
+
+Copyright (c) 2026 Jack Winter. All rights reserved.
+
+No permission is granted to use, copy, modify, distribute, sublicense, or sell
+this software or its source code without prior written permission from
+Jack Winter.
+
+This notice applies to Fantasy Pancake application code and documentation.
+It does not replace the separate licenses of third-party components.
+The @jack.winter/pancake-ui dependency remains MIT licensed; its package
+includes LICENSE. Inter fonts retain their bundled SIL Open Font License 1.1
+and notices in dist/fonts/OFL.txt. Other dependencies retain their respective
+licenses.

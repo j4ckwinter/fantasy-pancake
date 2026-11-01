@@ -1,0 +1,81 @@
+.import-id-example {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.import-id-example strong {
+  color: var(--ink);
+  background: #eaf6d6;
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+.landing-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  gap: 24px;
+  padding: 0;
+  margin: 28px 0;
+}
+.landing-steps li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.landing-steps li > span {
+  color: #536647;
+  font: 12px monospace;
+}
+.landing-steps h2 {
+  font-size: 15px;
+  margin: 0 0 6px;
+  letter-spacing: -0.3px;
+}
+.landing-steps p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+@media (max-width: 780px) {
+  .landing-steps {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin: 24px 0;
+  }
+  .hero > .pitch-board {
+    padding: 14px 12px 10px;
+    max-width: 340px;
+    box-shadow: none;
+  }
+  .hero .pitch-board__header {
+    padding-bottom: 10px;
+  }
+  .hero .pitch-board__header h2 {
+    font-size: 17px;
+    margin-top: 4px;
+  }
+  .hero .pitch-board__formation {
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+  .hero .pitch-board__players {
+    min-height: 160px;
+    padding-block: 10px;
+    gap: 8px;
+  }
+  .hero .pitch-board__shirt {
+    width: 24px;
+    height: 22px;
+  }
+  .hero .pitch-board__field {
+    margin-bottom: 8px;
+  }
+  .hero .pitch-board__footer {
+    padding-top: 8px;
+  }
+  .hero .pitch-board__caption {
+    font-size: 9px;
+  }
+}

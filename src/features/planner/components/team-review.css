@@ -1,0 +1,215 @@
+.team-settings {
+  max-width: 720px;
+  margin: 0 auto 36px;
+}
+.team-settings .settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.team-settings .settings-grid > * {
+  min-width: 0;
+}
+.team-settings .settings-grid input,
+.team-settings .settings-grid select {
+  height: 44px;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: normal;
+  padding-inline: 12px;
+  background: #fff;
+  border: 1px solid #aeb8b0;
+  border-radius: 8px;
+}
+.team-settings .settings-grid select {
+  padding-right: 36px;
+}
+.team-settings .forecast-settings {
+  margin: 16px 0;
+}
+.team-settings .forecast-settings p {
+  font-size: 12px;
+  margin: 8px 0 0;
+}
+.team-settings .squad-summary-heading {
+  margin: 0;
+  padding: 20px 0;
+  border-block: 1px solid var(--line);
+  gap: 12px;
+}
+.team-settings .squad-summary-heading h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+.team-settings .squad-summary-heading h3 span {
+  display: inline-block;
+  margin-left: 6px;
+  border-radius: 6px;
+  padding: 3px 6px;
+  background: #e0e7dc;
+  font-size: 12px;
+  vertical-align: middle;
+}
+.team-settings .squad-summary-heading p {
+  font-size: 12px;
+}
+.team-settings .squad-summary-heading button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  flex-shrink: 0;
+}
+.team-settings-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 16px 0;
+}
+.team-settings .confirm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  align-items: center;
+  margin-top: 20px;
+}
+.team-settings .confirm-footer button[type="submit"] {
+  background: var(--ink);
+  color: #fff;
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  font-weight: 700;
+}
+.team-settings .confirm-footer button[type="submit"]:hover:not(:disabled) {
+  background: #304438;
+}
+@media (max-width: 540px) {
+  .team-settings .settings-grid label {
+    font-size: 11px;
+  }
+  .team-settings .squad-summary-heading {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  .team-settings .squad-summary-heading button {
+    padding-inline: 14px;
+  }
+  .team-settings .confirm-footer button[type="submit"] {
+    width: 100%;
+  }
+}
+.team-settings--expanded .confirm-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+  background: #eff2ee;
+  border-top: 1px solid var(--line);
+}
+.team-settings .squad-editor {
+  gap: 18px;
+  margin: 18px 0;
+}
+.team-settings .position-heading {
+  margin-bottom: 8px;
+}
+.team-settings .position-heading h3 {
+  font-size: 15px;
+}
+.team-settings .position-players {
+  gap: 6px 12px;
+}
+.team-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 24px 0 16px;
+}
+.team-settings-header h1 {
+  font-size: clamp(30px, 5vw, 40px);
+  letter-spacing: -1px;
+  margin: 6px 0 0;
+}
+.team-settings-header > button {
+  padding: 0;
+  flex-shrink: 0;
+  background: transparent;
+  font-size: 12px;
+}
+.team-settings .forecast-settings summary {
+  cursor: pointer;
+  padding: 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.team-settings .forecast-settings[open] {
+  padding-bottom: 12px;
+}
+.team-settings .team-settings-discard {
+  background: transparent;
+  color: var(--muted);
+  padding-inline: 10px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.squad-player-row {
+  min-width: 0;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  scroll-margin-block: 16px 96px;
+}
+.squad-player-row__summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.squad-player-row__summary strong {
+  display: block;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.squad-player-row__summary span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 3px;
+}
+.squad-player-row__summary button {
+  padding: 0;
+  min-height: 40px;
+  background: transparent;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.squad-player-row__search {
+  margin-top: 12px;
+}
+.squad-player-row__search .player-picker__popup {
+  position: relative;
+  top: auto;
+  margin-top: 6px;
+  box-shadow: none;
+}
+.squad-player-row__search > button {
+  margin-top: 8px;
+  padding: 0;
+  font-size: 12px;
+}
+@media (max-width: 540px) {
+  .team-settings .confirm-footer button[type="submit"] {
+    flex: 1;
+    width: auto;
+    padding-inline: 12px;
+    font-size: 13px;
+  }
+}
+.team-settings-header > div {
+  min-width: 0;
+}
+.team-settings-header .eyebrow {
+  overflow-wrap: anywhere;
+}

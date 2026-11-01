@@ -1,0 +1,29 @@
+.saved-plan-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.saved-plan-notice > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+.saved-plan-notice span {
+  color: var(--muted);
+}
+.saved-plan-notice button {
+  flex-shrink: 0;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+@media (max-width: 480px) {
+  .saved-plan-notice {
+    flex-wrap: wrap;
+  }
+}

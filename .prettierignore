@@ -1,0 +1,7 @@
+node_modules
+.next
+vendor
+package-lock.json
+brief.md
+playwright-report
+test-results

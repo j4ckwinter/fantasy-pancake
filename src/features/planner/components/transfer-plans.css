@@ -1,0 +1,106 @@
+.transfer-plan-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+.results-workspace .transfer-plan {
+  padding: 18px;
+}
+.transfer-plan.is-selected {
+  border-color: #9ab755;
+}
+.transfer-plan ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.transfer-plan li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.transfer-plan li .eyebrow {
+  display: block;
+  margin-bottom: 5px;
+}
+.plan-week {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--muted);
+}
+.plan-arrow {
+  color: var(--muted);
+}
+.plan-outcome {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.plan-outcome .alternative-gain {
+  text-align: left;
+}
+.plan-outcome .alternative-gain strong {
+  font-size: 23px;
+}
+.plan-cost {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+.plan-cost span {
+  color: var(--muted);
+  font-size: 11px;
+}
+@media (max-width: 700px) {
+  .results-workspace .transfer-plan {
+    padding: 14px;
+  }
+  .transfer-plan li {
+    grid-template-columns: minmax(0, 1fr) 14px minmax(0, 1fr);
+    gap: 8px;
+  }
+  .transfer-plan li .player-detail-link {
+    font-size: 14px;
+    overflow-wrap: anywhere;
+  }
+  .plan-outcome {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .plan-cost {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .plan-outcome .preview-toggle {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+}
+
+.transfer-plan .plan-multiple-weeks li {
+  grid-template-columns: 34px minmax(0, 1fr) 14px minmax(0, 1fr);
+}
+.plan-cost__balance strong {
+  color: var(--ink);
+  font-size: 12px;
+}
+.plan-cost__balance .plan-cost__hit {
+  color: #8a351d;
+}
+@media (max-width: 700px) {
+  .results-workspace .transfer-plan .transfer-group-heading {
+    margin-bottom: 8px;
+  }
+  .results-workspace .transfer-plan .transfer-group-heading h3 {
+    font-size: 21px;
+    margin-block: 0 4px;
+  }
+  .transfer-plan .plan-outcome {
+    gap: 6px 12px;
+  }
+}

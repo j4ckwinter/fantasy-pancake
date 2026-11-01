@@ -1,0 +1,149 @@
+.comparison-table-wrap {
+  overflow-x: auto;
+}
+.weekly-breakdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+.weekly-breakdown caption {
+  text-align: left;
+  padding: 0.8rem 0;
+  color: var(--muted);
+}
+.weekly-breakdown th,
+.weekly-breakdown td {
+  padding: 0.75rem 0.5rem;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+}
+.weekly-breakdown th:first-child {
+  text-align: left;
+  white-space: nowrap;
+}
+.weekly-breakdown thead {
+  background: #eaf0e0;
+}
+.comparison-gain {
+  font-weight: 750;
+  color: #31591b;
+}
+.weekly-breakdown__totals {
+  margin: 1rem 0;
+}
+.weekly-breakdown__totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  font-size: 0.85rem;
+}
+.weekly-breakdown__totals > div:last-child {
+  border-top: 1px solid var(--ink);
+  font-weight: 750;
+}
+.weekly-breakdown__totals dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.comparison-note {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.player-comparison__table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.player-comparison__table caption {
+  text-align: left;
+  padding: 1rem 0;
+  font-weight: 750;
+}
+.player-comparison__table caption span,
+.player-comparison__table small,
+.player-comparison__price {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 400;
+  margin-top: 0.25rem;
+}
+.player-comparison__table th,
+.player-comparison__table td {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.player-comparison__table th:first-child {
+  text-align: left;
+  width: 40%;
+}
+.player-comparison__table thead {
+  background: #f4f7ee;
+}
+.player-comparison__table thead strong {
+  display: block;
+  margin-top: 0.35rem;
+}
+.player-comparison__table td {
+  font-size: 1.2rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+.player-comparison__context {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.player-comparison__context summary {
+  cursor: pointer;
+  color: var(--ink);
+  padding-block: 0.5rem;
+}
+.player-comparison__context summary:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+.player-comparison__fixtures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.player-comparison__fixtures section {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+  min-width: 0;
+}
+.player-comparison__fixtures h4 {
+  font-size: 0.8rem;
+  margin: 0 0 0.5rem;
+  overflow-wrap: anywhere;
+}
+.player-comparison__fixtures .fixture-strip {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 480px) {
+  .player-comparison__table th,
+  .player-comparison__table td {
+    padding: 0.65rem 0.3rem;
+  }
+  .player-comparison__table .eyebrow {
+    font-size: 0.6rem;
+    letter-spacing: 0.03em;
+  }
+  .player-comparison__fixtures {
+    gap: 0.5rem;
+  }
+  .weekly-breakdown th,
+  .weekly-breakdown td {
+    padding-inline: 0.3rem;
+    font-size: 0.75rem;
+  }
+}

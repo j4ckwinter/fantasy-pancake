@@ -1,0 +1,67 @@
+.workspace-mobile-nav {
+  display: none;
+}
+@media (max-width: 780px) {
+  .workspace-mobile-nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    position: fixed;
+    inset: auto 12px calc(10px + env(safe-area-inset-bottom));
+    z-index: 20;
+    max-width: 420px;
+    margin-inline: auto;
+    padding: 6px;
+    border: 1px solid #42513d;
+    border-radius: 20px;
+    background: #172820;
+    box-shadow: 0 6px 24px #10201930;
+  }
+  .workspace-mobile-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 52px;
+    padding: 6px 10px;
+    border-radius: 14px;
+    color: #e7efdf;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.2;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .workspace-mobile-nav svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: var(--lime);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .workspace-mobile-nav a[aria-current="location"],
+  .workspace-mobile-nav a:active {
+    background: #30432c;
+    color: var(--lime);
+  }
+  .workspace-mobile-nav a:focus-visible {
+    outline: 2px solid var(--lime);
+    outline-offset: -2px;
+    background: #30432c;
+  }
+  .planner-workspace:has(.workspace-mobile-nav) {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+  }
+  html:has(.workspace-mobile-nav) {
+    scroll-padding-bottom: calc(100px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 780px) {
+  body:has(.custom-transfer-form:focus-within) .workspace-mobile-nav {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
