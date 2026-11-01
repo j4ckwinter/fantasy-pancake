@@ -37,6 +37,13 @@ export function ImportTeam({
             <form
               onSubmit={(event) => {
                 event.preventDefault();
+                const focused = document.activeElement;
+                if (
+                  focused instanceof HTMLElement &&
+                  event.currentTarget.contains(focused)
+                ) {
+                  focused.blur();
+                }
                 onImport();
               }}
               className="import-form"
