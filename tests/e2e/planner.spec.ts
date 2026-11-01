@@ -139,6 +139,42 @@ test.beforeEach(async ({ page }) => {
     }),
   );
 });
+test("keyboard import releases the input before replacing the form", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const input = page.getByLabel("FPL team ID");
+  await input.fill("123");
+  await input.evaluate((element) => {
+    element.addEventListener("blur", () => {
+      document.documentElement.dataset.importBlurConnected = String(
+        element.isConnected,
+      );
+    });
+  });
+  await input.press("Enter");
+  const heading = page.getByRole("heading", {
+    name: "Your transfer shortlist",
+    exact: true,
+  });
+  await expect(heading).toBeFocused();
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-import-blur-connected",
+    "true",
+  );
+  await expect
+    .poll(() =>
+      page
+        .locator(".workspace-heading")
+        .evaluate((element) => element.getBoundingClientRect().top),
+    )
+    .toBeGreaterThanOrEqual(0);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(
+    page.getByRole("link", { name: "Fantasy Pancake home" }),
+  ).toBeInViewport();
+});
+
 test("import, correct, confirm, compare and restore settings", async ({
   page,
 }) => {
