@@ -11,6 +11,8 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Planning session state and actions                                | `src/features/planner/use-planner.ts`                   |
 | Browser HTTP requests and response validation                     | `src/features/planner/api.ts`                           |
 | Saved-settings compatibility, import defaults and price estimates | `src/features/planner/settings.ts`                      |
+| Selections, their labels and plan categories                      | `src/features/planner/selection.ts`                     |
+| Planner messages that more than one place shows or checks         | `src/features/planner/messages.ts`                      |
 | Rendering and local UI interactions                               | `src/features/planner/components/`                      |
 | Planner styling                                                   | `src/features/planner/planner.css` and component styles |
 | Recommendation orchestration and public model exports             | `src/lib/model.ts`                                      |
