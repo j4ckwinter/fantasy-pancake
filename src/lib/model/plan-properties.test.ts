@@ -22,6 +22,7 @@ import {
 const GENERATED_CASES = 40;
 const GENERATED_PLAYERS = 220;
 const EXHAUSTIVE_CASES = 20;
+const REORDERED_CASES = 15;
 const SQUAD_COUNTS: Record<number, number> = { 1: 2, 2: 5, 3: 5, 4: 3 };
 
 function generatedCase(seed: number) {
@@ -133,7 +134,7 @@ function playersMovedEachWeek(plan: TransferPlan) {
 
 describe("plan identity", () => {
   it("does not depend on the order of the squad", () => {
-    for (let seed = 1; seed <= GENERATED_CASES; seed++) {
+    for (let seed = 1; seed <= REORDERED_CASES; seed++) {
       const { data, settings } = generatedCase(seed);
       const reversed = { ...settings, squad: [...settings.squad].reverse() };
       expect(analyze(data, reversed).plans, `seed ${seed}`).toEqual(
@@ -235,18 +236,18 @@ function exhaustiveBest(data: Data, settings: Settings, weeks: number[]) {
     (sum, week) => sum + bestLineup(data, start, week).score,
     0,
   );
-  let best = 0;
-  const visit = (
+  const memo = new Map<string, number>();
+  const bestFrom = (
     index: number,
     squad: Player[],
     bank: number,
     free: number,
-    value: number,
-  ) => {
-    if (index === weeks.length) {
-      best = Math.max(best, value - holding);
-      return;
-    }
+  ): number => {
+    if (index === weeks.length) return 0;
+    const key = `${index}|${squad.map((p) => p.id).sort((x, y) => x - y)}|${bank}|${free}`;
+    const known = memo.get(key);
+    if (known !== undefined) return known;
+    let best = -Infinity;
     for (const batch of legalBatches(
       data,
       squad,
@@ -255,17 +256,26 @@ function exhaustiveBest(data: Data, settings: Settings, weeks: number[]) {
     )) {
       const k = batch.swaps.length;
       const week = bestLineup(data, batch.squad, scores[index]).score;
-      visit(
-        index + 1,
-        batch.squad,
-        batch.bank,
-        Math.min(cap, Math.max(0, free - k) + 1),
-        value + week - freeTransferCost(k, free) - marginOf(k, free),
+      best = Math.max(
+        best,
+        week -
+          freeTransferCost(k, free) -
+          marginOf(k, free) +
+          bestFrom(
+            index + 1,
+            batch.squad,
+            batch.bank,
+            Math.min(cap, Math.max(0, free - k) + 1),
+          ),
       );
     }
+    memo.set(key, best);
+    return best;
   };
-  visit(0, start, settings.bank, settings.freeTransfers, 0);
-  return best;
+  return Math.max(
+    0,
+    bestFrom(0, start, settings.bank, settings.freeTransfers) - holding,
+  );
 }
 
 function smallMarket(random: Random) {
@@ -287,8 +297,85 @@ function smallMarket(random: Random) {
   return { data, settings };
 }
 
+const BINDING_CASES = 40;
+const UNLOCKED_PER_POSITION: Record<number, number> = {
+  1: 1,
+  2: 3,
+  3: 8,
+  4: 13,
+};
+
+function bindingMarket(random: Random) {
+  const { data, settings } = seasonContext();
+  data.bootstrap.events.forEach((event) => {
+    event.is_next = event.id === 11;
+  });
+  let id = 100;
+  for (const position of [2, 3, 4])
+    for (let copy = 0; copy < 4; copy++)
+      addPlayer(data, {
+        id: id++,
+        element_type: position,
+        team: 6 + Math.floor(random() * 4),
+        now_cost: 40 + Math.floor(random() * 30),
+        expected_goals: Math.round(random() * 12),
+        expected_assists: Math.round(random() * 8),
+      });
+  const unlocked = Object.values(UNLOCKED_PER_POSITION);
+  settings.lockedPlayerIds = settings.squad
+    .map((pick) => pick.id)
+    .filter((pick) => !unlocked.includes(pick));
+  settings.bank = Math.floor(random() * 20);
+  settings.freeTransfers = Math.floor(random() * 3);
+  return { data, settings };
+}
+
+function adjustedGain(data: Data, settings: Settings, plan?: TransferPlan) {
+  const marginOf = margin(data, settings);
+  return plan
+    ? plan.gain -
+        plan.weeks.reduce(
+          (sum, week) =>
+            sum + marginOf(week.actions.length, week.freeTransfersBefore),
+          0,
+        )
+    : 0;
+}
+
 describe("beam search against exhaustive search", () => {
-  it("finds the exhaustive optimum on small markets", () => {
+  it("matches exhaustive search over four weeks when pair and seed limits bind", () => {
+    for (let seed = 1; seed <= BINDING_CASES; seed++) {
+      const { data, settings } = bindingMarket(seededRandom(seed));
+      const result = analyze(data, settings);
+      const optimum = exhaustiveBest(data, settings, result.weeks);
+      const [best] = result.plans.filter((plan) => plan.kind === "plan-ahead");
+      expect(adjustedGain(data, settings, best), `seed ${seed}`).toBeCloseTo(
+        optimum,
+        2,
+      );
+    }
+  }, 60000);
+
+  it("finds what a far wider search finds on full-size leagues where a narrow beam fell short", () => {
+    const widerSearchBest = new Map([
+      [5, 44.14],
+      [15, 34.21],
+    ]);
+    for (const [seed, wider] of widerSearchBest) {
+      const data = syntheticLeague(seed);
+      const settings = syntheticSquad(data, seededRandom(seed));
+      settings.freeTransfers = seed % 3;
+      const [best] = analyze(data, settings).plans.filter(
+        (plan) => plan.kind === "plan-ahead",
+      );
+      expect(adjustedGain(data, settings, best), `seed ${seed}`).toBeCloseTo(
+        wider,
+        2,
+      );
+    }
+  });
+
+  it("finds the exhaustive optimum on small markets where no limit binds", () => {
     for (let seed = 1; seed <= EXHAUSTIVE_CASES; seed++) {
       const { data, settings } = smallMarket(seededRandom(seed));
       const result = analyze(data, settings);

@@ -14,7 +14,7 @@ import {
 import { positionOf } from "./position";
 import type { CandidatePool } from "./plan-candidates";
 
-export const PLAN_BEAM_WIDTH = 6;
+export const PLAN_BEAM_WIDTH = 20;
 export const PAIR_SEED_SWAPS = 8;
 export const PAIRS_EVALUATED_PER_STATE = 16;
 export type WeekTransfers = 0 | 1 | 2;
@@ -77,11 +77,17 @@ function firstMoveWeek(candidate: PlanCandidate): number {
   return candidate.actions[0]?.week ?? Infinity;
 }
 
+const squadKeys = new WeakMap<Player[], string>();
+
 function squadKey(squad: Player[]): string {
-  return squad
+  const known = squadKeys.get(squad);
+  if (known !== undefined) return known;
+  const key = squad
     .map((player) => player.id)
     .sort((a, b) => a - b)
     .join(",");
+  squadKeys.set(squad, key);
+  return key;
 }
 
 function holdScorer(space: SearchSpace): Scorer {
@@ -160,26 +166,37 @@ function bestPairs(
       a.swap.outId - b.swap.outId ||
       a.swap.inId - b.swap.inId,
   );
-  const seen = new Set<string>();
-  const ranked: { swaps: Swap[]; estimate: number; key: string }[] = [];
-  for (const seed of byDelta.slice(0, PAIR_SEED_SWAPS)) {
-    for (const partner of byDelta) {
+  const ranked: { seed: number; partner: number; estimate: number }[] = [];
+  const seeds = Math.min(PAIR_SEED_SWAPS, byDelta.length);
+  for (let seed = 0; seed < seeds; seed++)
+    for (let partner = 0; partner < byDelta.length; partner++) {
+      const first = byDelta[seed].swap;
+      const second = byDelta[partner].swap;
       if (
-        partner.swap.outId === seed.swap.outId ||
-        partner.swap.inId === seed.swap.inId
+        partner === seed ||
+        (partner < seeds && partner < seed) ||
+        first.outId === second.outId ||
+        first.inId === second.inId
       )
         continue;
-      const swaps = [seed.swap, partner.swap].sort(byPlayerIds);
-      const key = exchangedPlayers(swaps);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      ranked.push({ swaps, estimate: seed.delta + partner.delta, key });
+      ranked.push({
+        seed,
+        partner,
+        estimate: byDelta[seed].delta + byDelta[partner].delta,
+      });
     }
-  }
-  ranked.sort((a, b) => b.estimate - a.estimate || (a.key < b.key ? -1 : 1));
+  ranked.sort(
+    (a, b) =>
+      b.estimate - a.estimate || a.seed - b.seed || a.partner - b.partner,
+  );
+  const seen = new Set<string>();
   const pairs: { swaps: Swap[]; state: SquadState }[] = [];
-  for (const { swaps } of ranked) {
+  for (const { seed, partner } of ranked) {
     if (pairs.length >= PAIRS_EVALUATED_PER_STATE) break;
+    const swaps = [byDelta[seed].swap, byDelta[partner].swap].sort(byPlayerIds);
+    const key = exchangedPlayers(swaps);
+    if (seen.has(key)) continue;
+    seen.add(key);
     const check = checkTransfers(space.rules, state, swaps);
     if (check.legal) pairs.push({ swaps, state: check.state });
   }
