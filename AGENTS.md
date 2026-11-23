@@ -4,30 +4,38 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 
 ## Where changes belong
 
-| Responsibility                                                    | Owner                                                      |
-| ----------------------------------------------------------------- | ---------------------------------------------------------- |
-| Next.js routes, layouts and global foundations                    | `src/app/`                                                 |
-| Planner screen composition                                        | `src/features/planner/planner.tsx`                         |
-| Planning session state and its transitions                        | `src/features/planner/session.ts`                          |
-| Import, comparison and refresh flows                              | `src/features/planner/use-planner.ts`                      |
-| Restoring a saved team on load                                    | `src/features/planner/restore-session.ts`                  |
-| Which operation is running and whether a result is still current  | `src/features/planner/use-operation.ts`                    |
-| Loaded FPL data and when it expires                               | `src/features/planner/use-planner-data.ts`, `freshness.ts` |
-| Player details dialog data                                        | `src/features/planner/use-player-details.ts`               |
-| Player and club lookups                                           | `src/features/planner/players.ts`                          |
-| Money, gain and label formatting                                  | `src/features/planner/format.ts`                           |
-| Browser HTTP requests and response validation                     | `src/features/planner/api.ts`                              |
-| Saved-settings compatibility, import defaults and price estimates | `src/features/planner/settings.ts`                         |
-| Selections, their labels and plan categories                      | `src/features/planner/selection.ts`                        |
-| Planner status, notice and error messages                         | `src/features/planner/messages.ts`                         |
-| Rendering and local UI interactions                               | `src/features/planner/components/`                         |
-| Planner styling                                                   | `src/features/planner/planner.css` and component styles    |
-| Recommendation orchestration and public model exports             | `src/lib/model.ts`                                         |
-| Scoring, squad rules, scheduling and lineup selection             | `src/lib/model/`                                           |
-| Server-side FPL access and caching                                | `src/lib/fpl.ts`                                           |
-| Validated data contracts                                          | `src/lib/schemas.ts`                                       |
+| Responsibility                                                    | Owner                                                            |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Next.js routes, layouts and global foundations                    | `src/app/`                                                       |
+| Planner screen composition                                        | `src/features/planner/planner.tsx`                               |
+| Planning session state and its transitions                        | `src/features/planner/session.ts`                                |
+| Import, comparison and refresh flows                              | `src/features/planner/use-planner.ts`                            |
+| Restoring a saved team on load                                    | `src/features/planner/restore-session.ts`                        |
+| Which operation is running and whether a result is still current  | `src/features/planner/use-operation.ts`                          |
+| Loaded FPL data and when it expires                               | `src/features/planner/use-planner-data.ts`, `freshness.ts`       |
+| Player details dialog data                                        | `src/features/planner/use-player-details.ts`                     |
+| Player and club lookups                                           | `src/features/planner/players.ts`                                |
+| Money, gain and label formatting                                  | `src/features/planner/format.ts`                                 |
+| Browser HTTP requests and response validation                     | `src/features/planner/api.ts`                                    |
+| Saved-settings compatibility, import defaults and price estimates | `src/features/planner/settings.ts`                               |
+| Selections, their labels and plan categories                      | `src/features/planner/selection.ts`                              |
+| Planner status, notice and error messages                         | `src/features/planner/messages.ts`                               |
+| Rendering and local UI interactions                               | `src/features/planner/components/`                               |
+| Planner styling                                                   | `src/features/planner/planner.css` and component styles          |
+| Recommendation orchestration and public model exports             | `src/lib/model.ts`                                               |
+| Scoring, squad rules, scheduling and lineup selection             | `src/lib/model/`                                                 |
+| Hit cost, free-transfer cap and weekly accrual                    | `src/lib/model/transfer-rules.ts`                                |
+| Whether a transfer or batch is legal, and the squad it leaves     | `src/lib/model/transfer-legality.ts`                             |
+| Reasons shown for a single transfer                               | `src/lib/model/transfer-reasons.ts`                              |
+| Risk messages shown for an incoming player                        | `src/lib/model/player-risks.ts`                                  |
+| Rounding of reported score units                                  | `src/lib/model/round-score.ts`                                   |
+| Position ids; per-position scoring weights and attacking priors   | `src/lib/model/position.ts`; `scoring.ts`, `forecast-history.ts` |
+| Match length, 60-minute appearances and recency half-life         | `src/lib/model/match-minutes.ts`, `recency.ts`                   |
+| Server-side FPL access and caching                                | `src/lib/fpl.ts`                                                 |
+| API route error responses and FPL id parsing                      | `src/app/api/error-response.ts`, `fpl-id.ts`                     |
+| Validated data contracts                                          | `src/lib/schemas.ts`                                             |
 
-Snapshot capture and outcome accounting belong in `src/lib/evaluation.ts`, and the offline evaluation entry point is `scripts/evaluate-snapshot.ts`. The planner UI offers no snapshot download. Keep evaluation decisions frozen before outcomes and version material model changes.
+`src/lib/evaluation.ts` is the public evaluation entry point. Snapshot and outcome file contracts belong in `src/lib/evaluation/snapshot-schema.ts`, capture safeguards in `capture-checks.ts`, snapshot capture in `capture.ts`, the simple baseline policies in `baseline-policies.ts` and outcome accounting in `outcomes.ts`. The offline evaluation entry point is `scripts/evaluate-snapshot.ts`; the planner UI offers no snapshot download. Keep evaluation decisions frozen before outcomes and version material model changes.
 
 ## Rules for iteration
 
