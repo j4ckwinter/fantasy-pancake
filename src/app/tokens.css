@@ -1,5 +1,5 @@
 :root {
-  --font-pancake: Inter, Arial, sans-serif;
+  --font-pancake: "Geist Variable", Arial, sans-serif;
   --color-pancake-accent: var(--color-brand);
   --color-pancake-surface-accent: var(--color-brand-strong);
   --color-pancake-control-border: var(--color-input-border);

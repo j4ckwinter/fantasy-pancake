@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "@jack.winter/pancake-ui/styles.css";
-import "@jack.winter/pancake-ui/fonts.css";
 import "./globals.css";
 import "@/features/planner/shared.css";
 export const metadata: Metadata = {

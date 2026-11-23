@@ -76,4 +76,4 @@ keep fetching and persistence out of presentation components, and browser code o
 
 Fantasy Pancake is proprietary. keep this repository private; see [LICENSE](LICENSE). `private: true` prevents npm publication, not public GitHub access.
 
-Pancake UI remains [MIT licensed](https://github.com/j4ckwinter/pancake-ui/blob/main/LICENSE). Inter fonts retain their SIL Open Font License; other dependencies keep their own licenses.
+Pancake UI remains [MIT licensed](https://github.com/j4ckwinter/pancake-ui/blob/main/LICENSE). the Geist font (installed from npm as `@fontsource-variable/geist`) keeps its SIL Open Font License; other dependencies keep their own licenses.
