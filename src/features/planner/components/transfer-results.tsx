@@ -106,6 +106,7 @@ export function TransferResults({
   }
   const customPanel = useRef<HTMLDetailsElement>(null);
   const plans = result.plans;
+  const squadIds = settings.squad.map((pick) => pick.id);
   const categoryPlans = plans.filter((plan) => plan.kind === category);
   const incomingCount = new Set(result.moves.map((move) => move.inId)).size;
   return (
@@ -190,7 +191,7 @@ export function TransferResults({
                 {result.moves.length ? (
                   <GroupedTransfers
                     data={data}
-                    settings={settings}
+                    squadIds={squadIds}
                     moves={result.moves}
                     weeks={result.weeks}
                     selectedKey={selection?.key ?? null}
@@ -260,7 +261,11 @@ export function TransferResults({
                     }
                   }}
                   onCompare={onCompare}
-                  selection={selection}
+                  customMove={
+                    selection?.kind === "move" && selection.custom
+                      ? selection.move
+                      : null
+                  }
                   previewError={previewError}
                   threshold={result.threshold}
                 />
@@ -305,8 +310,9 @@ export function TransferResults({
                 : "baseline"
             }
             data={data}
-            settings={settings}
-            result={result}
+            squadIds={squadIds}
+            weeks={result.weeks}
+            baseline={result.baseline}
             preview={preview}
             selectedLabel={selection?.label ?? "Your current squad"}
             onBackToOptions={returnToOptions}

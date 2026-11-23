@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import type { Analysis, Lineup } from "@/lib/model";
-import type { Data, Settings } from "@/lib/schemas";
+import type { Lineup } from "@/lib/model";
+import type { Data } from "@/lib/schemas";
 import { PreviewMetrics } from "./preview-metrics";
 import { PitchBoard } from "./pitch-board";
 import { PlayerLink } from "./player-link";
@@ -11,8 +11,9 @@ import { findPlayer } from "../players";
 export function LineupPreview({
   transferDetails,
   data,
-  settings,
-  result,
+  squadIds,
+  weeks,
+  baseline: baselines,
   preview,
   selectedLabel,
   onBackToOptions,
@@ -27,8 +28,9 @@ export function LineupPreview({
 }: {
   transferDetails: ReactNode;
   data: Data;
-  settings: Settings;
-  result: Analysis;
+  squadIds: number[];
+  weeks: number[];
+  baseline: Lineup[];
   preview: Lineup[] | null;
   selectedLabel: string;
   onBackToOptions: () => void;
@@ -53,7 +55,7 @@ export function LineupPreview({
       });
     }
   }, [hasPreview]);
-  const baseline = result.baseline[lineupIndex];
+  const baseline = baselines[lineupIndex];
   const changed = preview?.[lineupIndex];
   const after = mode === "after" && !!changed;
   const lineup = after ? changed : baseline;
@@ -64,10 +66,8 @@ export function LineupPreview({
   const exited = baseline.ids.filter(
     (id) => changed && !changed.ids.includes(id),
   );
-  const squadIds = after
-    ? previewSquadIdsByWeek[lineupIndex]
-    : settings.squad.map((pick) => pick.id);
-  const bench = squadIds?.filter((id) => !lineup.ids.includes(id));
+  const shownSquad = after ? previewSquadIdsByWeek[lineupIndex] : squadIds;
+  const bench = shownSquad?.filter((id) => !lineup.ids.includes(id));
   return (
     <aside
       ref={previewPanel}
@@ -100,7 +100,7 @@ export function LineupPreview({
         role="group"
         aria-label="Lineup gameweek"
       >
-        {result.weeks.map((week, index) => (
+        {weeks.map((week, index) => (
           <button
             type="button"
             key={week}
@@ -137,7 +137,7 @@ export function LineupPreview({
       <PitchBoard
         data={data}
         lineup={lineup}
-        week={result.weeks[lineupIndex]}
+        week={weeks[lineupIndex]}
         variant={after ? "after" : "before"}
         highlightIds={after ? entered : []}
         onPlayerSelect={onPlayerSelect}
@@ -152,7 +152,7 @@ export function LineupPreview({
         <div className="lineup-preview__summary">
           <PreviewMetrics
             {...option}
-            weeks={result.weeks}
+            weeks={weeks}
             pricesChecked={pricesChecked}
           />
         </div>

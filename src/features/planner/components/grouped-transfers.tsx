@@ -1,6 +1,6 @@
 import { Button } from "@jack.winter/pancake-ui";
 import { playerForecast, type Move } from "@/lib/model";
-import type { Data, Settings } from "@/lib/schemas";
+import type { Data } from "@/lib/schemas";
 import { minus, money, signed, scoreGainLabel } from "../format";
 import { FixtureStrip } from "./fixture-strip";
 import { findClub, findPlayer } from "../players";
@@ -9,7 +9,7 @@ import "./exploration.css";
 
 export function GroupedTransfers({
   data,
-  settings,
+  squadIds,
   moves,
   weeks,
   selectedKey,
@@ -19,7 +19,7 @@ export function GroupedTransfers({
   onPlayerSelect,
 }: {
   data: Data;
-  settings: Settings;
+  squadIds: number[];
   moves: Move[];
   weeks: number[];
   selectedKey: string | null;
@@ -74,8 +74,7 @@ export function GroupedTransfers({
                   data.bootstrap.elements,
                   move.outId,
                 );
-                const owned = settings.squad.find((p) => p.id === move.outId);
-                if (!outgoing || !owned) return null;
+                if (!outgoing || !squadIds.includes(move.outId)) return null;
                 const key = `${move.outId}-${move.inId}`;
                 const selected = selectedKey === key;
                 return (
