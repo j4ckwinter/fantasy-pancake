@@ -6,12 +6,16 @@ export function useOperation() {
   const pending = useRef<number | null>(null);
   const [busy, setBusy] = useState(loadingPlannerData);
   const [customBusy, setCustomBusy] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   return {
     busy,
     customBusy,
+    refreshing,
     setBusy,
     setCustomBusy,
-    blocked: () => !!busy || customBusy || pending.current !== null,
+    setRefreshing,
+    blocked: () =>
+      !!busy || customBusy || refreshing || pending.current !== null,
     begin() {
       const id = ++revision.current;
       pending.current = id;

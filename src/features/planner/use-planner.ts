@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { settingsSchema, type Settings } from "@/lib/schemas";
+import { settingsSchema, type Data, type Settings } from "@/lib/schemas";
 import {
   analyze,
   evaluateTransfer,
   validateSquad,
+  type Analysis,
   type Move,
   type TransferPlan,
 } from "@/lib/model";
@@ -18,9 +19,11 @@ import { restoreSavedTeam } from "./restore-session";
 import {
   emptyPreview,
   planSelection,
+  reselect,
   selectedPreview,
   transferSelection,
   type PlanCategory,
+  type Selection,
 } from "./selection";
 import {
   checkTeamSettings,
@@ -161,8 +164,56 @@ export function usePlanner() {
     }
   }
 
+  async function refresh({
+    next = settings,
+    checkedPrices = confirmedPrices,
+    choose = (fresh: Analysis, freshData: Data, freshSettings: Settings) =>
+      reselect(selection, fresh, freshData, freshSettings),
+  }: {
+    next?: Settings | null;
+    checkedPrices?: number[];
+    choose?: (
+      fresh: Analysis,
+      freshData: Data,
+      freshSettings: Settings,
+    ) => Selection | null;
+  } = {}) {
+    if (!data || !next || operation.blocked()) return;
+    const id = operation.begin();
+    operation.setRefreshing(true);
+    try {
+      const fresh = await planner.current();
+      const comparison = await prepareComparison(
+        fresh.data,
+        refreshEstimatedPrices(fresh.data, next, checkedPrices),
+      );
+      if (!operation.isCurrent(id)) return;
+      planner.loaded(comparison.data, fresh.loadedAt);
+      dispatch({
+        type: "refreshed",
+        settings: comparison.settings,
+        confirmedPrices: checkedPrices,
+        result: comparison.result,
+        selection: choose(
+          comparison.result,
+          comparison.data,
+          comparison.settings,
+        ),
+      });
+      persist(comparison.settings);
+    } catch (reason) {
+      if (operation.isCurrent(id))
+        dispatch({
+          type: "failed",
+          error: errorMessage(reason, checkTeamSettings),
+        });
+    } finally {
+      operation.finish(id, () => operation.setRefreshing(false));
+    }
+  }
+
   function confirmSellingPrice(id: number, sellingPrice: number) {
-    if (!data || !settings || busy || customBusy) return;
+    if (!data || !settings || operation.blocked()) return;
     try {
       const next = settingsSchema.parse({
         ...settings,
@@ -171,8 +222,10 @@ export function usePlanner() {
         ),
       });
       if (planner.expired()) {
-        dispatch({ type: "price-confirmed-on-stale-data", settings: next, id });
-        void evaluate(next, [...new Set([...confirmedPrices, id])]);
+        void refresh({
+          next,
+          checkedPrices: [...new Set([...confirmedPrices, id])],
+        });
         return;
       }
       operation.invalidate();
@@ -201,7 +254,7 @@ export function usePlanner() {
   }
 
   function toggleLock(id: number) {
-    if (!data || !settings || busy || customBusy) return;
+    if (!data || !settings || operation.blocked()) return;
     operation.invalidate();
     const locks = settings.lockedPlayerIds ?? [];
     const next = {
@@ -211,8 +264,7 @@ export function usePlanner() {
         : [...locks, id],
     };
     if (planner.expired()) {
-      dispatch({ type: "lock-toggled", settings: next, result: null });
-      void evaluate(next);
+      void refresh({ next, choose: () => null });
       return;
     }
     dispatch({
@@ -225,7 +277,15 @@ export function usePlanner() {
 
   function selectMove(move: Move) {
     if (planner.expired()) {
-      void evaluate();
+      void refresh({
+        choose: (fresh, freshData, freshSettings) =>
+          reselect(
+            transferSelection(freshData.bootstrap.elements, 0, move, false),
+            fresh,
+            freshData,
+            freshSettings,
+          ),
+      });
       return;
     }
     operation.invalidate();
@@ -243,7 +303,10 @@ export function usePlanner() {
 
   function selectPlan(plan: TransferPlan) {
     if (planner.expired()) {
-      void evaluate();
+      void refresh({
+        choose: (fresh, freshData, freshSettings) =>
+          reselect(planSelection(plan), fresh, freshData, freshSettings),
+      });
       return;
     }
     operation.invalidate();
@@ -328,7 +391,7 @@ export function usePlanner() {
   }
 
   useEffect(() => {
-    const refresh = () => {
+    const refreshWhenStale = () => {
       if (
         document.visibilityState !== "hidden" &&
         !busy &&
@@ -340,14 +403,14 @@ export function usePlanner() {
         settings &&
         planner.expired()
       ) {
-        void evaluate();
+        void refresh();
       }
     };
-    window.addEventListener("focus", refresh);
-    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("focus", refreshWhenStale);
+    document.addEventListener("visibilitychange", refreshWhenStale);
     return () => {
-      window.removeEventListener("focus", refresh);
-      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("focus", refreshWhenStale);
+      document.removeEventListener("visibilitychange", refreshWhenStale);
     };
   });
 
@@ -373,7 +436,8 @@ export function usePlanner() {
     result,
     busy,
     customBusy,
-    idle: !busy && !customBusy,
+    idle: !busy && !customBusy && !operation.refreshing,
+    refreshing: operation.refreshing,
     error: session.error,
     customError: session.customError,
     notice: session.notice,

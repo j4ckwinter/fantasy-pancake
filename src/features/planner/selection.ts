@@ -3,6 +3,7 @@ import { findPlayer } from "./players";
 import {
   evaluateTransfer,
   previewTransfers,
+  type Analysis,
   type Lineup,
   type Move,
   type TransferPlan,
@@ -75,6 +76,52 @@ export function planSelection(plan: TransferPlan): Selection {
     actions: plan.actions,
     plan,
   };
+}
+
+function sameTransfers(a: TransferPlan, b: TransferPlan) {
+  const pairs = (plan: TransferPlan) =>
+    plan.actions
+      .map((action) => `${action.outId}:${action.inId}`)
+      .sort()
+      .join(",");
+  return a.kind === b.kind && pairs(a) === pairs(b);
+}
+
+function reselectMove(
+  previous: Extract<Selection, { kind: "move" }>,
+  result: Analysis,
+  data: Data,
+  settings: Settings,
+): Selection | null {
+  const { outId, inId } = previous.move;
+  const players = data.bootstrap.elements;
+  const week = result.weeks[0];
+  const listed = result.moves.find(
+    (move) => move.outId === outId && move.inId === inId,
+  );
+  if (listed) return transferSelection(players, week, listed, previous.custom);
+  if (!previous.custom) return null;
+  try {
+    const { move } = evaluateTransfer(data, settings, outId, inId);
+    return transferSelection(players, week, move, true);
+  } catch {
+    return null;
+  }
+}
+
+export function reselect(
+  previous: Selection | null,
+  result: Analysis,
+  data: Data,
+  settings: Settings,
+): Selection | null {
+  if (!previous || !result.weeks.length) return null;
+  if (previous.kind === "move")
+    return reselectMove(previous, result, data, settings);
+  const plan = (result.plans ?? []).find((candidate) =>
+    sameTransfers(candidate, previous.plan),
+  );
+  return plan ? planSelection(plan) : null;
 }
 
 export function selectedPreview(

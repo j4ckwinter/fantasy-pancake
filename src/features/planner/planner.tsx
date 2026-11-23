@@ -39,6 +39,7 @@ export default function Planner() {
           loading={!!busy && !planner.reviewOpen}
           balancesFromImport={notice === "import-caveat"}
           canEdit={planner.idle}
+          refreshing={planner.refreshing}
           onEditTeam={planner.editTeam}
         />
       ) : !settings && !busy ? (

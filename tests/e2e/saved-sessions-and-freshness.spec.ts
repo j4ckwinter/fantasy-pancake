@@ -12,6 +12,7 @@ import {
 } from "./support/fixtures";
 import {
   expireData,
+  gate,
   focusWindow,
   importTeam,
   savedSettings,
@@ -183,7 +184,7 @@ test("expired data refresh waits for edited settings and failures can be retried
   expect(dataRequests).toBe(initialDataRequests + 2);
 });
 
-test("failed focus refresh does not save subsequent team edits on focus", async ({
+test("a failed focus refresh keeps the shortlist and later team edits wait for an explicit save", async ({
   page,
 }) => {
   let failRefresh = false;
@@ -203,6 +204,8 @@ test("failed focus refresh does not save subsequent team edits on focus", async 
   await expect(
     page.getByText("Refresh unavailable", { exact: true }),
   ).toBeVisible();
+  await expect(shortlistHeading(page)).toBeVisible();
+  await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByLabel("Bank balance (£m)").fill("1.2");
   failRefresh = false;
   const requestsBeforeFocus = dataRequests;
@@ -215,7 +218,51 @@ test("failed focus refresh does not save subsequent team edits on focus", async 
   expect(dataRequests).toBe(requestsBeforeFocus + 1);
 });
 
-test("previewing an expired option refreshes the shortlist before using the move", async ({
+test("returning to an expired tab refreshes in place and keeps the chosen plan, tab and gameweek", async ({
+  page,
+}) => {
+  const refresh = gate();
+  let expired = false;
+  await page.route("**/api/data", async (route) => {
+    const data = fixtureData();
+    withPlayer(data, NEW_STAR_INDEX, newDefender);
+    if (expired) await refresh.opened;
+    return route.fulfill({ json: data });
+  });
+  await importTeam(page);
+  await page
+    .getByRole("button", { name: "Two transfers", exact: true })
+    .click();
+  await page.locator(".transfer-plan .preview-toggle").first().click();
+  await page
+    .getByRole("button", { name: "Show lineup GW10", exact: true })
+    .click();
+  expired = true;
+  await expireData(page);
+  await focusWindow(page);
+  await expect(page.locator(".workspace-heading .eyebrow")).toContainText(
+    "REFRESHING",
+  );
+  await expect(shortlistHeading(page)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Edit team details" }),
+  ).toBeDisabled();
+  refresh.release();
+  await expect(page.locator(".workspace-heading .eyebrow")).toContainText(
+    "THE NEXT MOVE",
+  );
+  await expect(
+    page.getByRole("button", { name: "Two transfers", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.locator(".transfer-plan .preview-toggle[aria-pressed=true]"),
+  ).toHaveCount(1);
+  await expect(
+    page.getByRole("button", { name: "Show lineup GW10", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+});
+
+test("previewing an expired option refreshes first, then shows that option in the same tab", async ({
   page,
 }) => {
   let dataRequests = 0;
@@ -232,13 +279,13 @@ test("previewing an expired option refreshes the shortlist before using the move
     await page.getByRole("button", { name: category, exact: true }).click();
     await expireData(page, index + 1);
     await page.locator(".preview-toggle").first().click();
-    await expect(page.locator(".workspace-horizon")).toBeVisible();
     await expect.poll(() => dataRequests).toBe(initialRequests + index + 1);
     await expect(
-      page.getByRole("button", { name: "Singles", exact: true }),
+      page.getByRole("button", { name: category, exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
-    await expect(
-      page.locator(".preview-toggle[aria-pressed=true]"),
-    ).toHaveCount(0);
+    await expect(page.locator(".preview-toggle").first()).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   }
 });

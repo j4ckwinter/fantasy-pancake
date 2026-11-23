@@ -47,6 +47,13 @@ export type SessionAction =
       freeHit: boolean;
     }
   | { type: "evaluation-started" }
+  | {
+      type: "refreshed";
+      settings: Settings;
+      confirmedPrices: number[];
+      result: Analysis;
+      selection: Selection | null;
+    }
   | { type: "evaluated"; settings: Settings; result: Analysis }
   | { type: "custom-comparison-started"; expired: boolean }
   | {
@@ -64,8 +71,7 @@ export type SessionAction =
       id: number;
       result: Analysis;
     }
-  | { type: "price-confirmed-on-stale-data"; settings: Settings; id: number }
-  | { type: "lock-toggled"; settings: Settings; result: Analysis | null }
+  | { type: "lock-toggled"; settings: Settings; result: Analysis }
   | { type: "selected"; selection: Selection }
   | { type: "selection-cleared" }
   | { type: "category-changed"; category: PlanCategory }
@@ -157,6 +163,16 @@ export function sessionReducer(
         notice: action.freeHit ? "free-hit" : "import-caveat",
       };
     }
+    case "refreshed":
+      return {
+        ...session,
+        settings: action.settings,
+        confirmedPrices: action.confirmedPrices,
+        result: action.result,
+        selection: action.selection,
+        lineupIndex: lineupWithin(session.lineupIndex, action.result),
+        priceConfirmed: session.priceConfirmed && action.selection !== null,
+      };
     case "evaluation-started":
       return { ...session, error: "", result: null, selection: null };
     case "evaluated":
@@ -229,23 +245,15 @@ export function sessionReducer(
         error: "",
         priceConfirmed: true,
       };
-    case "price-confirmed-on-stale-data":
+    case "lock-toggled":
       return {
         ...session,
         settings: action.settings,
-        confirmedPrices: withPrice(session.confirmedPrices, action.id),
+        result: action.result,
+        lineupIndex: lineupWithin(session.lineupIndex, action.result),
+        selection: null,
+        customError: "",
       };
-    case "lock-toggled":
-      return action.result
-        ? {
-            ...session,
-            settings: action.settings,
-            result: action.result,
-            lineupIndex: lineupWithin(session.lineupIndex, action.result),
-            selection: null,
-            customError: "",
-          }
-        : { ...session, settings: action.settings };
     case "selected":
       return { ...session, selection: action.selection, priceConfirmed: false };
     case "selection-cleared":

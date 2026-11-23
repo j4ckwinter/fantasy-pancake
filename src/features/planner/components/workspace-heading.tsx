@@ -10,8 +10,10 @@ export function WorkspaceHeading({
   loading = false,
   balancesFromImport,
   canEdit,
+  refreshing,
   onEditTeam,
 }: {
+  refreshing: boolean;
   balancesFromImport: boolean;
   canEdit: boolean;
   loading?: boolean;
@@ -38,7 +40,8 @@ export function WorkspaceHeading({
       <div>
         <span className="eyebrow">
           {teamLabel(settings)}
-          {!editing && ` / ${result ? "THE NEXT MOVE" : "SQUAD CHECK"}`}
+          {!editing &&
+            ` / ${refreshing ? "REFRESHING…" : result ? "THE NEXT MOVE" : "SQUAD CHECK"}`}
         </span>
         <h1 ref={workspaceHeading} tabIndex={-1}>
           {result
