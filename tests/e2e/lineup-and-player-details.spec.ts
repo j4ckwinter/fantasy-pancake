@@ -285,7 +285,7 @@ test("the XI panel uses the page scroll rather than a nested scrollbar", async (
   page,
 }) => {
   await importTeam(page);
-  const squad = page.locator(".workspace-squad");
+  const squad = page.getByRole("region", { name: "Your squad and locks" });
   await expect(squad).toBeVisible();
   const scrollStyles = await squad.evaluate((element) => ({
     overflowY: getComputedStyle(element).overflowY,

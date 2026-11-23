@@ -1,9 +1,12 @@
+import type { Page } from "@playwright/test";
 import {
   expect,
   failHistory,
   fixtureData,
+  NEW_STAR_INDEX,
   routeData,
   test,
+  withPlayer,
 } from "./support/fixtures";
 import {
   chooseIncoming,
@@ -16,6 +19,12 @@ import {
   saveAndViewShortlist,
 } from "./support/planner";
 
+function customTransferError(page: Page) {
+  return page
+    .getByRole("group", { name: "Custom transfer comparison" })
+    .getByRole("alert");
+}
+
 test("custom comparisons preview below-threshold moves without changing the squad", async ({
   page,
 }) => {
@@ -23,12 +32,7 @@ test("custom comparisons preview below-threshold moves without changing the squa
   data.bootstrap.events.forEach((event) => {
     event.deadline_time = "2030-11-01T12:00:00Z";
   });
-  data.bootstrap.elements.push({
-    ...data.bootstrap.elements[7],
-    id: 17,
-    team: 6,
-    web_name: "Steady Midfielder",
-  });
+  withPlayer(data, 7, { id: 17, team: 6, web_name: "Steady Midfielder" });
   await routeData(page, data);
   await importTeam(page);
   await compareTransfer(page, "8", "Steady Midfielder");
@@ -154,8 +158,7 @@ test("custom errors follow the submitted players and weekly gains deduct the hit
   page,
 }) => {
   const data = fixtureData();
-  data.bootstrap.elements.push({
-    ...data.bootstrap.elements[15],
+  withPlayer(data, NEW_STAR_INDEX, {
     id: 17,
     web_name: "Expensive Midfielder",
     now_cost: 100,
@@ -166,11 +169,9 @@ test("custom errors follow the submitted players and weekly gains deduct the hit
   await page.getByLabel("Free transfers remaining").selectOption("0");
   await saveAndViewShortlist(page);
   await compareTransfer(page, "8", "Expensive Midfielder");
-  await expect(page.locator(".custom-transfer-error")).toContainText(
-    "unaffordable",
-  );
+  await expect(customTransferError(page)).toContainText("unaffordable");
   await chooseIncoming(page, "New Star");
-  await expect(page.locator(".custom-transfer-error")).toHaveCount(0);
+  await expect(customTransferError(page)).toHaveCount(0);
   await page.getByRole("button", { name: "Compare my transfer" }).click();
   await expect(
     page.locator(".lineup-preview__summary .metric").nth(1),

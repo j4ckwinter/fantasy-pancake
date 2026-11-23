@@ -125,7 +125,11 @@ test("the landing import form stays compact and aligned without overflow", async
   await expect(
     page.getByText("Where’s my team ID?", { exact: true }),
   ).toHaveCount(0);
-  await expect(page.locator(".landing-steps li")).toHaveCount(3);
+  await expect(
+    page
+      .getByRole("list", { name: "How the planner works" })
+      .getByRole("listitem"),
+  ).toHaveCount(3);
   if (test.info().project.use.isMobile) {
     await expect
       .poll(() => heightOf(page.locator(".hero > .pitch-board")))
@@ -210,8 +214,9 @@ test("loading panel follows real requests and respects reduced motion", async ({
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  const loading = page.locator(".planner-loading");
-  await expect(loading).toHaveAttribute("role", "status");
+  const loading = page
+    .getByRole("status")
+    .filter({ hasText: "Loading players and fixtures" });
   await expect(loading).toContainText("Loading players and fixtures");
   expect(
     await page
