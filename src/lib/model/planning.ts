@@ -1,4 +1,4 @@
-import type { Data, Player, Settings } from "../schemas";
+import type { AvailabilityScenario, Data, Player, Settings } from "../schemas";
 import type { Lineup, TransferPlan } from "./types";
 import { bestLineup } from "./lineup";
 import { excessClubIds } from "./squad-rules";
@@ -9,6 +9,14 @@ import {
   nextWeekFreeTransfers,
   transferHit,
 } from "./transfer-rules";
+import { DEFAULT_AVAILABILITY_SCENARIO } from "./scoring";
+
+const SCENARIO_ASSUMPTION: Record<AvailabilityScenario, string> = {
+  persistent:
+    "Assumes current availability persists; short absences could make this plan less attractive.",
+  "recover-next-week":
+    "Assumes injured, suspended and doubtful players recover from week two; this is a scenario, not a predicted return date.",
+};
 
 export function planTransfers(
   data: Data,
@@ -86,9 +94,9 @@ export function planTransfers(
     }
   }
   const assumptions = [
-    settings.availabilityScenario === "recover-next-week"
-      ? "Assumes injured, suspended and doubtful players recover from week two; this is a scenario, not a predicted return date."
-      : "Assumes current availability persists; short absences could make this plan less attractive.",
+    SCENARIO_ASSUMPTION[
+      settings.availabilityScenario ?? DEFAULT_AVAILABILITY_SCENARIO
+    ],
     "Bounded search: four strongest and two cheapest candidates per position; this is not an exhaustive transfer plan.",
     "Uses today's purchase and selling prices throughout; confirm outgoing prices and recheck future prices before acting.",
     "No chips, further transfers, automatic substitutions or changing injury news are simulated.",

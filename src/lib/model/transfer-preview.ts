@@ -1,8 +1,9 @@
-import type { Data, Player, Settings } from "../schemas";
+import type { AvailabilityScenario, Data, Player, Settings } from "../schemas";
 import type { Lineup, Move, TransferAction } from "./types";
 import { excessClubIds, validateSquad } from "./squad-rules";
 import { fixturesFor, upcomingWeeks } from "./schedule";
 import {
+  DEFAULT_AVAILABILITY_SCENARIO,
   availability,
   expectedMinutes,
   playerRisks,
@@ -11,6 +12,15 @@ import {
 import { bestLineup } from "./lineup";
 import { roundScore } from "./round-score";
 import { transferHit } from "./transfer-rules";
+
+const ALTERNATE_SCENARIO: Record<AvailabilityScenario, AvailabilityScenario> = {
+  persistent: "recover-next-week",
+  "recover-next-week": "persistent",
+};
+const KEEP_SCORE_SCENARIO_LABEL: Record<AvailabilityScenario, string> = {
+  persistent: "persistent absence",
+  "recover-next-week": "recovery from the second week",
+};
 
 export function transferContext(data: Data, settings: Settings) {
   const errors = validateSquad(data, settings);
@@ -159,7 +169,7 @@ export function evaluatePreparedTransfer(
     );
   if (availability(outgoing) < 1)
     reasons.push(
-      `${outgoing.web_name}'s availability affects the keep score under the selected ${settings.availabilityScenario === "recover-next-week" ? "recovery from the second week" : "persistent absence"} scenario; no return date is inferred.`,
+      `${outgoing.web_name}'s availability affects the keep score under the selected ${KEEP_SCORE_SCENARIO_LABEL[settings.availabilityScenario ?? DEFAULT_AVAILABILITY_SCENARIO]} scenario; no return date is inferred.`,
     );
   const move: Move = {
     outId,
@@ -188,9 +198,9 @@ export function addAvailabilitySensitivity(
   moves: Move[],
 ): void {
   const { data, settings, weeks, squad, byId } = context;
-  const selected = settings.availabilityScenario ?? "persistent";
-  const alternate =
-    selected === "persistent" ? "recover-next-week" : "persistent";
+  const selected =
+    settings.availabilityScenario ?? DEFAULT_AVAILABILITY_SCENARIO;
+  const alternate = ALTERNATE_SCENARIO[selected];
   const scores = weeks.map(
     (week) =>
       new Map(

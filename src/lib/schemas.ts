@@ -113,6 +113,10 @@ export const picksSchema = z.object({
   entry_history: z.object({ event: z.number().int(), bank: nonnegative.int() }),
   picks: z.array(z.object({ element: z.number().int() })).length(15),
 });
+export const availabilityScenarioSchema = z.enum([
+  "persistent",
+  "recover-next-week",
+]);
 export const settingsSchema = z.object({
   version: z.literal(1),
   entryId: z.number().int().positive(),
@@ -126,7 +130,7 @@ export const settingsSchema = z.object({
       "Locked players must be unique",
     )
     .optional(),
-  availabilityScenario: z.enum(["persistent", "recover-next-week"]).optional(),
+  availabilityScenario: availabilityScenarioSchema.optional(),
   bank: nonnegative.int().max(1000),
   freeTransfers: nonnegative.int().max(5),
   squad: z
@@ -144,7 +148,7 @@ export const dataSchema = z.object({
   fetchedAt: z.string(),
   histories: z.record(z.string(), historySchema.shape.history).optional(),
 });
-export type AvailabilityScenario = "persistent" | "recover-next-week";
+export type AvailabilityScenario = z.infer<typeof availabilityScenarioSchema>;
 export type Player = z.infer<typeof playerSchema>;
 export type Fixture = z.infer<typeof fixtureSchema>;
 export type Bootstrap = z.infer<typeof bootstrapSchema>;

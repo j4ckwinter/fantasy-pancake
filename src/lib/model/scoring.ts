@@ -9,27 +9,38 @@ export function expectedMinutes(data: Data, player: Player): number {
   return playerForecast(data, player).minutes;
 }
 
+export const DEFAULT_AVAILABILITY_SCENARIO: AvailabilityScenario = "persistent";
+const AVAILABLE_STATUS = "a";
+const UNAVAILABLE_STATUSES: ReadonlySet<string> = new Set(["u", "i", "s", "n"]);
+const RECOVERABLE_STATUSES: ReadonlySet<string> = new Set(["i", "s", "d"]);
+const FLAGGED_WITHOUT_CHANCE_AVAILABILITY = 0.5;
+
 export function availability(player: Player): number {
-  if (["u", "i", "s", "n"].includes(player.status)) return 0;
+  if (UNAVAILABLE_STATUSES.has(player.status)) return 0;
   return player.chance_of_playing_next_round === null
-    ? player.status === "a"
+    ? player.status === AVAILABLE_STATUS
       ? 1
-      : 0.5
+      : FLAGGED_WITHOUT_CHANCE_AVAILABILITY
     : player.chance_of_playing_next_round / 100;
+}
+
+function recoversUnder(scenario: AvailabilityScenario, player: Player) {
+  return (
+    scenario === "recover-next-week" && RECOVERABLE_STATUSES.has(player.status)
+  );
 }
 
 export function weekAvailability(
   data: Data,
   player: Player,
   week: number,
-  scenario: AvailabilityScenario = "persistent",
+  scenario: AvailabilityScenario = DEFAULT_AVAILABILITY_SCENARIO,
 ): number {
   const firstWeek = upcomingWeeks(data)[0];
   if (
-    scenario === "recover-next-week" &&
+    recoversUnder(scenario, player) &&
     firstWeek !== undefined &&
-    week > firstWeek &&
-    ["i", "s", "d"].includes(player.status)
+    week > firstWeek
   )
     return 1;
   return availability(player);
@@ -63,7 +74,7 @@ export function scorePlayer(
   data: Data,
   player: Player,
   week: number,
-  scenario: AvailabilityScenario = "persistent",
+  scenario: AvailabilityScenario = DEFAULT_AVAILABILITY_SCENARIO,
 ): number {
   const forecast = playerForecast(data, player);
   const playing = weekAvailability(data, player, week, scenario);
@@ -134,7 +145,7 @@ export function scorePlayer(
 export function playerRisks(
   data: Data,
   player: Player,
-  scenario: AvailabilityScenario = "persistent",
+  scenario: AvailabilityScenario = DEFAULT_AVAILABILITY_SCENARIO,
 ): string[] {
   const forecast = playerForecast(data, player);
   const result = [
@@ -168,8 +179,7 @@ export function playerRisks(
   if (availability(player) < 1) {
     result.push(`Availability flag: ${player.news || player.status}.`);
     result.push(
-      scenario === "recover-next-week" &&
-        ["i", "s", "d"].includes(player.status)
+      recoversUnder(scenario, player)
         ? "Scenario assumes full availability from the second planning week; this is not a predicted recovery date."
         : "Current availability is held constant across the horizon; a short absence may be overstated.",
     );
