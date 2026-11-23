@@ -96,6 +96,11 @@ test.describe("on a touch screen", () => {
     await importTeam(page);
     await expect(shortlistHeading(page)).toBeVisible();
     expect(await smallTouchTargets(page)).toEqual([]);
+    await page.getByRole("button", { name: "Plan ahead", exact: true }).click();
+    await expect(
+      page.getByRole("article", { name: "Recommended plan" }),
+    ).toBeVisible();
+    expect(await smallTouchTargets(page)).toEqual([]);
     await page.getByRole("button", { name: "Edit team details" }).click();
     await page.getByRole("button", { name: "Edit team", exact: true }).click();
     expect(await smallTouchTargets(page)).toEqual([]);
@@ -119,6 +124,12 @@ for (const scheme of ["light", "dark"] as const) {
     expect(await lowContrastText(page)).toEqual([]);
     await page.getByText("Bench and XI changes", { exact: true }).click();
     await expect(page.locator(".lineup-preview__bench")).toBeVisible();
+    expect(await lowContrastText(page)).toEqual([]);
+    await page.getByRole("button", { name: "Plan ahead", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Preview plan: Recommended plan" })
+      .click();
+    await page.getByText("How this plan was found · limits").click();
     expect(await lowContrastText(page)).toEqual([]);
     await page.getByRole("button", { name: "Edit team details" }).click();
     await page.getByRole("button", { name: "Edit team", exact: true }).click();

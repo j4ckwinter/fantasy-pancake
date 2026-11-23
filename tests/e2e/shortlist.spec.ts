@@ -336,7 +336,12 @@ test("shortlist and saved-plan controls fit a 320px viewport", async ({
 }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await importTeam(page);
-  for (const name of ["Singles", "Two transfers", "Roll then move"]) {
+  for (const name of [
+    "Singles",
+    "Plan ahead",
+    "Two transfers",
+    "Roll then move",
+  ]) {
     await page.getByRole("button", { name, exact: true }).click();
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth))

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   accuracyNote,
   displayedLead,
+  planOptimismNote,
   expectedGainLabel,
   expectedPoints,
   freeTransfersLabel,
@@ -58,6 +59,26 @@ describe("expected points", () => {
       }),
     ).toBe(
       "Gains are expected FPL points. Checked against GW7–10 of 2026/27 on 23 Nov 2026, forecasts for players who played were off by 1.9 pts a gameweek on average. Treat big gains with care: replaying the GW3–7 deadlines, top transfers forecast +7.6 pts over four gameweeks but realised +1.4 pts over holding, which is not reliably above zero.",
+    );
+  });
+});
+
+describe("plan optimism", () => {
+  it("quotes the dated replay when warning that plans stack optimism", () => {
+    expect(
+      planOptimismNote({
+        measuredOn: "2026-11-23",
+        season: "2026/27",
+        firstValidationGameweek: 7,
+        lastValidationGameweek: 10,
+        firstReplayDeadline: 3,
+        lastReplayDeadline: 7,
+        meanAbsoluteErrorWhenPlaying: 1.9,
+        replayedTopTransferForecastGain: 7.6,
+        replayedTopTransferRealisedGain: 1.4,
+      }),
+    ).toBe(
+      "Plans run optimistic. Replaying the GW3–7 deadlines of 2026/27 on 23 Nov 2026, the best single transfer forecast +7.6 pts over four gameweeks and realised +1.4 pts. Several moves stack that optimism, so make this week's moves and rerun the plan next week.",
     );
   });
 });

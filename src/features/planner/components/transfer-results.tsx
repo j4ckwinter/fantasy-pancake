@@ -24,6 +24,7 @@ import {
 import { noticeText, type Notice } from "../messages";
 import { accuracyNote, expectedPoints } from "../format";
 import { TransferPlans } from "./transfer-plans";
+import { PlanAhead } from "./plan-ahead";
 import { GroupedTransfers } from "./grouped-transfers";
 import { PlayerLocks } from "./player-locks";
 import { CustomTransferForm } from "./custom-transfer-form";
@@ -214,6 +215,19 @@ export function TransferResults({
                   </p>
                 )}
               </>
+            ) : category === "plan-ahead" ? (
+              <PlanAhead
+                data={data}
+                weeks={result.weeks}
+                plans={categoryPlans}
+                threshold={result.threshold}
+                confirmedPrices={confirmedPrices}
+                selection={selection}
+                onSelect={onSelectPlan}
+                onClearSelection={onClearSelection}
+                onPlayerSelect={onPlayerSelect}
+                onShowWeek={onLineupChange}
+              />
             ) : (
               <TransferPlans
                 weeks={result.weeks}

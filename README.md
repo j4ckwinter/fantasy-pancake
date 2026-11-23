@@ -21,7 +21,7 @@ open http://localhost:3000 and enter your FPL team ID. the server needs access t
 
 ## use it
 
-import your team, then compare singles, two transfers, or rolling before a later move. preview an option to see its effect on your XI. each gameweek also gets a captain pick with the next two options, and a numbered bench order, and both follow whatever you preview. you can also try your own transfer or lock players you want to keep.
+import your team, then compare singles, a plan for the next few gameweeks, two transfers, or rolling before a later move. **plan ahead** lays out week by week when to move, when to bank a free transfer and when a hit pays, with a couple of alternatives. it asks each extra move to clear a margin, because big forecast gains run optimistic, so only act on this week’s moves and rerun it next week. preview an option to see its effect on your XI, week by week. each gameweek also gets a captain pick with the next two options, and a numbered bench order, and both follow whatever you preview. you can also try your own transfer or lock players you want to keep.
 
 imports use your last published deadline squad and bank, with one free transfer by default. check your balances in **Edit team details** and confirm selling prices when previewing a move. saved plans stay yours until you choose **Refresh from FPL**. Free Hit squads need correcting before comparison.
 
