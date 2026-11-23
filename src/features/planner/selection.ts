@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/error-message";
 import {
   evaluateTransfer,
   previewTransfers,
@@ -85,10 +86,7 @@ export function selectedPreview(
     return {
       selection,
       preview: null,
-      previewError:
-        reason instanceof Error
-          ? reason.message
-          : "This option is no longer available.",
+      previewError: errorMessage(reason, "This option is no longer available."),
       previewSquadIdsByWeek: [],
     };
   }
