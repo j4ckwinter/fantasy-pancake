@@ -1,8 +1,8 @@
 import { z } from "zod";
 import {
   dataSchema,
-  picksSchema,
   historySchema,
+  importedTeamSchema,
   type Data,
 } from "@/lib/schemas";
 import { requestFailed, unexpectedResponse } from "./messages";
@@ -30,7 +30,7 @@ export function loadPlannerData() {
 export function loadTeamPicks(teamId: string) {
   return read(
     `/api/import?id=${encodeURIComponent(teamId)}`,
-    picksSchema.extend({ fetchedAt: z.string() }),
+    importedTeamSchema,
   );
 }
 

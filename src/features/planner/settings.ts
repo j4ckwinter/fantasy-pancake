@@ -1,8 +1,9 @@
-import { z } from "zod";
 import {
+  chipNameSchema,
   settingsSchema,
-  picksSchema,
   type Data,
+  type ImportedTeam,
+  type PlayedChip,
   type Settings,
 } from "@/lib/schemas";
 
@@ -40,7 +41,7 @@ export function refreshEstimatedPrices(
 export function settingsFromImport(
   data: Data,
   entryId: number,
-  imported: z.infer<typeof picksSchema>,
+  imported: Omit<ImportedTeam, "fetchedAt">,
 ): Settings {
   return {
     version: 1,
@@ -50,8 +51,16 @@ export function settingsFromImport(
     season: data.bootstrap.events[0].deadline_time.slice(0, 4),
     bank: imported.entry_history.bank,
     freeTransfers: 1,
+    chipsPlayed: imported.chipsPlayed && knownChips(imported.chipsPlayed),
     squad: imported.picks.map((pick) => marketPricePick(data, pick.element)),
   };
+}
+
+function knownChips(chips: NonNullable<ImportedTeam["chipsPlayed"]>) {
+  return chips.flatMap((chip): PlayedChip[] => {
+    const name = chipNameSchema.safeParse(chip.name);
+    return name.success ? [{ name: name.data, event: chip.event }] : [];
+  });
 }
 
 function parseJson(text: string): unknown {
