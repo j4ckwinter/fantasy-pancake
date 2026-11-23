@@ -112,10 +112,6 @@ test("pair plans show combined transfers and correct hits", async ({
   }
 
   await expect(page.locator(".roll-option")).toHaveCount(0);
-  await page.screenshot({
-    path: `test-results/plan-cards-${test.info().project.name}.png`,
-    fullPage: true,
-  });
   await expectNoHorizontalOverflow(page);
 });
 
@@ -244,11 +240,6 @@ test("results keep optional tools collapsed and the first recommendation easy to
       .poll(() => bottomOf(firstPreview))
       .toBeLessThanOrEqual(page.viewportSize()!.height);
   }
-  await page.screenshot({
-    path: `test-results/compact-results-${test.info().project.name}.png`,
-    fullPage: true,
-    animations: "disabled",
-  });
   if (test.info().project.use.isMobile) {
     await page
       .getByRole("navigation", { name: "Planner sections" })
@@ -287,10 +278,6 @@ test("preview buttons toggle singles and plans back to the current XI", async ({
     page.getByText("THE EFFECT ON YOUR XI", { exact: true }),
   ).toHaveCount(0);
   await expect(page.locator("#selected-option")).toBeVisible();
-  await page.screenshot({
-    path: `test-results/preview-toggle-${test.info().project.name}.png`,
-    animations: "disabled",
-  });
   await single.click();
   await expect(single).toHaveText("Preview");
   await expect(single).toHaveAttribute("aria-pressed", "false");

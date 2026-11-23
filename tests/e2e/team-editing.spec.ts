@@ -77,11 +77,6 @@ test("import, correct, confirm, compare and restore settings", async ({
   await expect(
     page.getByRole("article", { name: "Selected transfer option" }),
   ).toContainText("season averages can miss recent changes");
-  await page.screenshot({
-    path: `test-results/journey-${test.info().project.name}.png`,
-    fullPage: true,
-    animations: "disabled",
-  });
   await expectNoHorizontalOverflow(page);
   await page.reload();
   await page.getByRole("button", { name: "Edit team details" }).click();
@@ -177,10 +172,6 @@ test("team updates clear import guidance and keep the expanded action reachable"
     .poll(() => bottomOf(action))
     .toBeLessThanOrEqual(page.viewportSize()!.height);
   await expectNoHorizontalOverflow(page);
-  await page.screenshot({
-    path: `test-results/team-expanded-${test.info().project.name}.png`,
-    fullPage: true,
-  });
   await page.getByRole("button", { name: "Hide players" }).click();
   await expect(page.locator(".squad-editor")).toHaveCount(0);
   await page.getByLabel("Free transfers remaining").selectOption("2");
@@ -239,10 +230,6 @@ test("squad replacement supports keyboard search, cancellation and touch selecti
   ).toHaveCount(0);
   await replace.click();
   await search.fill("New Star");
-  await page.screenshot({
-    path: `test-results/team-replacement-${testInfo.project.name}.png`,
-    animations: "disabled",
-  });
   if (testInfo.project.use.isMobile) {
     await page.getByRole("option", { name: /New Star/ }).tap();
   } else {

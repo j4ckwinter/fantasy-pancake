@@ -75,10 +75,6 @@ test("recent histories and availability scenario are connected", async ({
   await expect(
     page.getByText("Evaluate this decision later", { exact: true }),
   ).toHaveCount(0);
-  await page.screenshot({
-    path: `test-results/forecasts-${test.info().project.name}.png`,
-    fullPage: true,
-  });
   await expectNoHorizontalOverflow(page);
   await page.reload();
   await page.getByRole("button", { name: "Edit team details" }).click();
@@ -106,10 +102,6 @@ test("pitch players open details and Escape returns keyboard focus", async ({
   await expect(
     dialog.getByRole("button", { name: "Close player details" }),
   ).toBeFocused();
-  await page.screenshot({
-    path: `test-results/player-details-${test.info().project.name}.png`,
-    animations: "disabled",
-  });
   await expect
     .poll(() =>
       dialog.evaluate((element) => element.scrollWidth <= element.clientWidth),
@@ -207,10 +199,6 @@ test("preview preserves desktop position and takes mobile users to the new XI", 
   await expect(page.getByLabel("Preview starting lineup")).toContainText(
     "New Star",
   );
-  await page.screenshot({
-    path: `test-results/preview-position-${test.info().project.name}.png`,
-    animations: "disabled",
-  });
 });
 
 test("the XI panel uses the page scroll rather than a nested scrollbar", async ({
@@ -243,11 +231,6 @@ test("the XI panel uses the page scroll rather than a nested scrollbar", async (
   await expect
     .poll(() => squad.evaluate((element) => element.scrollTop))
     .toBe(0);
-  await page.screenshot({
-    path: `test-results/direct-import-${test.info().project.name}.png`,
-    fullPage: true,
-    animations: "disabled",
-  });
   await expectNoHorizontalOverflow(page);
 });
 
@@ -304,10 +287,6 @@ test("returning starters distinguish expected minutes from recent starting minut
   await expect(dialog).toContainText(
     "4 starts in the latest four completed matches",
   );
-  await page.screenshot({
-    path: `test-results/adaptive-minutes-${test.info().project.name}.png`,
-    animations: "disabled",
-  });
 });
 
 test("mobile navigation reaches each section and opens comparison", async ({
@@ -341,9 +320,5 @@ test("mobile navigation reaches each section and opens comparison", async ({
   await expect(
     nav.getByRole("link", { name: "Squad", exact: true }),
   ).toHaveAttribute("aria-current", "location");
-  await page.screenshot({
-    path: `test-results/mobile-navigation-${test.info().project.name}.png`,
-    animations: "disabled",
-  });
   await expectNoHorizontalOverflow(page);
 });

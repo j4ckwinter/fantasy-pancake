@@ -90,11 +90,6 @@ test("custom comparisons preview below-threshold moves without changing the squa
   await context
     .getByText("Recent usage and forecast context", { exact: true })
     .click();
-  await page.screenshot({
-    path: `test-results/comparison-details-${test.info().project.name}.png`,
-    fullPage: true,
-    animations: "disabled",
-  });
   await expectNoHorizontalOverflow(page);
   if (test.info().project.use.isMobile) {
     await expect(
@@ -227,10 +222,6 @@ test("incoming picker requires a choice and supports keyboard search", async ({
     page.getByRole("option", { name: /New Star.*T6.*£5.0m/ }),
   ).toBeVisible();
   await expect(compare).toBeDisabled();
-  await page.screenshot({
-    path: `test-results/player-picker-${test.info().project.name}.png`,
-    animations: "disabled",
-  });
   if (test.info().project.use.isMobile) {
     await expect(
       page.getByRole("navigation", { name: "Planner sections" }),

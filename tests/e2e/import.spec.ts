@@ -129,10 +129,6 @@ test("import controls align without overflow", async ({ page }) => {
       .toBeLessThan(2);
   }
   await expectNoHorizontalOverflow(page);
-  await page.screenshot({
-    path: `test-results/import-${test.info().project.name}.png`,
-    fullPage: true,
-  });
 });
 
 test("normal import opens recommendations directly and keeps assumptions editable", async ({
@@ -157,18 +153,10 @@ test("normal import opens recommendations directly and keeps assumptions editabl
   ).toHaveCount(0);
   await expect(page.locator(".results-support")).toHaveCount(0);
   await shortlistHeading(page).scrollIntoViewIfNeeded();
-  await page.screenshot({
-    path: `test-results/workspace-overview-${test.info().project.name}.png`,
-    animations: "disabled",
-  });
   await expectNoHorizontalOverflow(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await expect(page.locator(".squad-editor")).toHaveCount(0);
   await expect(saveShortlistButton(page)).toBeVisible();
-  await page.screenshot({
-    path: `test-results/team-settings-${test.info().project.name}.png`,
-    fullPage: true,
-  });
   await page.getByLabel("Bank balance (£m)").fill("1.2");
   await page.getByLabel("Free transfers remaining").selectOption("2");
   await saveAndViewShortlist(page);
@@ -220,10 +208,6 @@ test("loading panel follows real requests and respects reduced motion", async ({
       .locator(".planner-loading__track span")
       .evaluate((el) => getComputedStyle(el).animationName),
   ).toBe("none");
-  await page.screenshot({
-    path: `test-results/loading-${test.info().project.name}.png`,
-    fullPage: true,
-  });
   data.release();
   await expect(loading).toHaveCount(0);
   await expect(page.getByLabel("FPL team ID")).toBeVisible();
