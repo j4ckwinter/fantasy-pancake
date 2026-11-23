@@ -1,6 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import {
   expect,
+  failHistory,
   fixtureData,
   NEW_STAR_INDEX,
   routeData,
@@ -411,4 +412,30 @@ test("mobile navigation reaches each section and opens comparison", async ({
     nav.getByRole("link", { name: "Squad", exact: true }),
   ).toHaveAttribute("aria-current", "location");
   await expectNoHorizontalOverflow(page);
+});
+
+test("reopening a player's details reuses the history already loaded", async ({
+  page,
+}) => {
+  await failHistory(page);
+  await importTeam(page);
+  await expect(shortlistHeading(page)).toBeVisible();
+  let playerHistoryRequests = 0;
+  await page.route("**/api/history/1", (route) => {
+    playerHistoryRequests++;
+    return route.fulfill({ json: { history: [] } });
+  });
+  const player = page
+    .getByLabel("Baseline starting lineup")
+    .getByRole("button", { name: "View Player 1 details", exact: false });
+  const dialog = page.getByRole("dialog");
+  for (let open = 0; open < 2; open++) {
+    await player.click();
+    await expect(dialog).toContainText(
+      "No eligible completed history is available",
+    );
+    await dialog.getByRole("button", { name: "Close player details" }).click();
+    await expect(dialog).toHaveCount(0);
+  }
+  expect(playerHistoryRequests).toBe(1);
 });

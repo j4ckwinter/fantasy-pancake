@@ -53,7 +53,7 @@ export function TransferResults({
   data: Data;
   category: PlanCategory;
   onCategoryChange: (category: PlanCategory) => void;
-  playerData?: Data;
+  playerData: Data;
   settings: Settings;
   result: Analysis;
   notice: Notice | null;
@@ -327,7 +327,7 @@ export function TransferResults({
         />
       )}
       <PlayerDetails
-        data={playerData ?? data}
+        data={playerData}
         playerId={playerId}
         onClose={onClosePlayer}
       />
