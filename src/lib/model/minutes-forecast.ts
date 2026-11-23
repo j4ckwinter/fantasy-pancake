@@ -2,6 +2,7 @@ import type { Data, History, Player } from "../schemas";
 import { finishedTeamFixtures, upcomingWeeks } from "./schedule";
 import { FULL_MATCH_MINUTES, LONG_APPEARANCE_MINUTES } from "./match-minutes";
 import { recencyWeight } from "./recency";
+import type { EligibleHistory } from "./forecast-history";
 
 export type MinuteOutcome = { minutes: number; probability: number };
 export type MinutesForecast = {
@@ -10,7 +11,6 @@ export type MinutesForecast = {
   sixtyProbability: number;
   startProbability: number;
   outcomes: MinuteOutcome[];
-  /** Observed mean among starts in the latest four eligible matches. */
   recentStartMinutes: number | null;
   recentStartCount: number;
   minutesBasis: "recent-starts" | "blended" | "season";
@@ -79,19 +79,16 @@ function seasonMinuteOutcomes(
   return { outcomes, startProbability };
 }
 
-function recentStarts(rows: History): History {
+function recentStarts(rows: EligibleHistory): History {
   return rows
     .slice(0, RECENT_ROLE_MATCHES)
     .filter((row) => row.starts >= 1 && row.minutes > 0);
 }
 
-// Four consecutive starts provide evidence of a current role. Older absences
-// still contribute; a new absence or cameo restores the conservative blend.
-// Zero minutes alone cannot tell us whether a player was injured or dropped.
 function hasEstablishedRecentRole(
   data: Data,
   player: Player,
-  rows: History,
+  rows: EligibleHistory,
 ): boolean {
   const cutoff = Date.parse(data.fetchedAt);
   const nextWeek = upcomingWeeks(data)[0] ?? Infinity;
@@ -118,11 +115,10 @@ function hasEstablishedRecentRole(
   );
 }
 
-/** Rows must be eligible completed matches, newest first (see usableHistory). */
 export function forecastMinutes(
   data: Data,
   player: Player,
-  rows: History,
+  rows: EligibleHistory,
 ): MinutesForecast {
   const { outcomes: fallback, startProbability } = seasonMinuteOutcomes(
     data,

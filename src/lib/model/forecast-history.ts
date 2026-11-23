@@ -32,7 +32,9 @@ const SEASON_PRIOR_MATCHES = 5;
 const RECENT_RATE_SEASON_WEIGHT = 2;
 const RARE_EVENT_PRIOR_MATCHES = 20;
 
-export function usableHistory(data: Data, player: Player): History {
+export type EligibleHistory = History & { readonly eligibleHistory: true };
+
+export function usableHistory(data: Data, player: Player): EligibleHistory {
   const cutoff = Date.parse(data.fetchedAt);
   const nextWeek = upcomingWeeks(data)[0] ?? Infinity;
   const completed = new Set(
@@ -41,7 +43,7 @@ export function usableHistory(data: Data, player: Player): History {
       .map((fixture) => fixture.id),
   );
   const seen = new Set<number>();
-  return [...(data.histories?.[String(player.id)] ?? [])]
+  const rows = [...(data.histories?.[String(player.id)] ?? [])]
     .filter(
       (row) =>
         Number.isFinite(cutoff) &&
@@ -60,6 +62,7 @@ export function usableHistory(data: Data, player: Player): History {
       return true;
     })
     .slice(0, MAX_HISTORY_MATCHES);
+  return rows as EligibleHistory;
 }
 
 export function playerForecast(data: Data, player: Player): PlayerForecast {
