@@ -1,6 +1,6 @@
 import type { Data, Player } from "../schemas";
 import type { Lineup } from "./types";
-import { positionOf, type Position } from "./position";
+import { POSITIONS, positionOf, type Position } from "./position";
 import { roundScore } from "./round-score";
 
 export type CaptainOption = {
@@ -98,8 +98,9 @@ function captainOptions(
 
 function formation(rules: FormationRules, starters: Player[]): Formation {
   return new Map(
-    rules.bootstrap.element_types.map((type) => {
-      const position = positionOf({ element_type: type.id });
+    rules.bootstrap.element_types.flatMap((type) => {
+      const position = POSITIONS.find((id) => id === type.id);
+      if (position === undefined) return [];
       const count = starters.filter(
         (player) => positionOf(player) === position,
       ).length;
@@ -108,7 +109,7 @@ function formation(rules: FormationRules, starters: Player[]): Formation {
         min: type.squad_min_play,
         max: type.squad_max_play,
       };
-      return [position, limits] as const;
+      return [[position, limits] as const];
     }),
   );
 }

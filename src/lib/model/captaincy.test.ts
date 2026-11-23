@@ -117,6 +117,19 @@ describe("captaincy", () => {
     expect(week.bench.map((slot) => slot.playerId)).not.toContain(2);
   });
 
+  it("ignores position types no player can hold, such as FPL's manager type", () => {
+    const { data, settings } = seasonContext();
+    data.bootstrap.element_types.push({
+      ...data.bootstrap.element_types[3],
+      id: 5,
+      singular_name_short: "AM",
+      squad_select: 0,
+      squad_min_play: 0,
+      squad_max_play: 0,
+    });
+    expect(analyze(data, settings).captaincy[0].bench).toHaveLength(3);
+  });
+
   it("orders the bench by cover for starters a substitute can legally replace", () => {
     const { data, settings } = seasonContext();
     fiveFourOneWithDoubtfulStriker(data);
