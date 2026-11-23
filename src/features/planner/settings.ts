@@ -54,13 +54,21 @@ export function settingsFromImport(
   };
 }
 
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
 export function restoreSettings(
   storage: SettingsStorage,
   data: Data,
 ): RestoredSettings {
   const saved = storage.getItem(STORAGE_KEY);
   if (!saved) return { status: "empty" };
-  const parsed = settingsSchema.safeParse(JSON.parse(saved));
+  const parsed = settingsSchema.safeParse(parseJson(saved));
   if (
     !parsed.success ||
     parsed.data.season !== data.bootstrap.events[0]?.deadline_time.slice(0, 4)
