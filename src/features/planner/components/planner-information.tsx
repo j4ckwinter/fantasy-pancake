@@ -1,3 +1,5 @@
+import "./planner-information.css";
+
 export function PlannerPrinciples() {
   return (
     <ol className="landing-steps" aria-label="How the planner works">

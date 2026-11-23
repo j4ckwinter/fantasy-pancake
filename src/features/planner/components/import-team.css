@@ -126,23 +126,10 @@
   }
 }
 @media (max-width: 780px) {
-  .hero {
-    grid-template-columns: 1fr;
-    padding: var(--space-28) var(--space-22);
-    gap: var(--space-28);
-  }
   .hero-copy h1 {
     font-size: var(--text-58);
     letter-spacing: -3px;
     margin: var(--space-20) 0;
-  }
-  .hero-description {
-    font-size: var(--text-14);
-  }
-  .hero > .pitch-board {
-    transform: none;
-    max-width: 460px;
-    justify-self: center;
   }
   .import-card {
     padding: var(--space-18);
@@ -150,9 +137,6 @@
   }
   .import-card h2 {
     font-size: var(--text-18);
-  }
-  .hero .pitch-board__players {
-    min-height: 260px;
   }
 }
 @media (max-width: 380px) {
@@ -178,6 +162,7 @@
 }
 @media (max-width: 780px) {
   .hero {
+    grid-template-columns: 1fr;
     padding: var(--space-22) var(--space-18);
     gap: var(--space-24);
   }
@@ -198,5 +183,56 @@
   .hero-copy > .eyebrow {
     font-size: var(--text-9);
     letter-spacing: 0.06em;
+  }
+}
+
+.import-id-example {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-11);
+  overflow-wrap: anywhere;
+}
+.import-id-example strong {
+  color: var(--color-ink);
+  background: var(--color-surface-selected);
+  border-radius: var(--radius-3);
+  padding: var(--space-2) var(--space-4);
+}
+@media (max-width: 780px) {
+  .hero > .pitch-board {
+    transform: none;
+    justify-self: center;
+    padding: var(--space-14) var(--space-12) var(--space-10);
+    max-width: 340px;
+    box-shadow: none;
+  }
+  .hero .pitch-board__header {
+    padding-bottom: var(--space-10);
+  }
+  .hero .pitch-board__header h2 {
+    font-size: var(--text-17);
+    margin-top: var(--space-4);
+  }
+  .hero .pitch-board__formation {
+    font-size: var(--text-13);
+    padding: var(--space-6) var(--space-8);
+  }
+  .hero .pitch-board__players {
+    min-height: 160px;
+    padding-block: var(--space-10);
+    gap: var(--space-8);
+  }
+  .hero .pitch-board__shirt {
+    width: 24px;
+    height: 22px;
+  }
+  .hero .pitch-board__field {
+    margin-bottom: var(--space-8);
+  }
+  .hero .pitch-board__footer {
+    padding-top: var(--space-8);
+  }
+  .hero .pitch-board__caption {
+    font-size: var(--text-9);
   }
 }
