@@ -268,6 +268,10 @@
   --shadow-hero-card: 0 18px 40px var(--color-hero-card-shadow);
   --shadow-focus-on-night: 0 0 0 3px var(--color-brand);
   --segment-height: 32px;
+  --color-segment-on: #ffffff;
+  --color-brand-tint: #c6fa4633;
+  --color-night-pill-line: #c6fa4640;
+  --shadow-selected-edge-brand: inset 3px 0 var(--color-brand);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -345,6 +349,10 @@
     --color-hero-card: #17221c;
     --color-hero-card-border: #2d3d34;
     --color-hero-card-shadow: #00000080;
+
+    --color-segment-on: #1f2b24;
+    --color-brand-tint: #c6fa461f;
+    --color-night-pill-line: #c6fa4640;
   }
 }
 
