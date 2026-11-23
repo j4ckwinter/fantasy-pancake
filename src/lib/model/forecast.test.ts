@@ -1,21 +1,14 @@
 import { describe, expect, it } from "vitest";
-import type { Data, History, Player } from "../schemas";
-import { playerForecast, usableHistory } from "./forecast-history";
+import type { Data, History } from "../schemas";
+import { playerForecast, scorePlayer, usableHistory } from "../model";
 import { opponentFactors } from "./opponent-strength";
-import { scorePlayer, weekAvailability } from "./scoring";
+import { gameSettings, player as fixturePlayer } from "./test-fixtures";
+
+const SEASON_MINUTES_PER_MATCH = 45;
 
 function context() {
-  const player: Player = {
-    id: 1,
+  const player = fixturePlayer(1, 3, 1, {
     web_name: "Example",
-    team: 1,
-    element_type: 3,
-    now_cost: 50,
-    status: "a",
-    news: "",
-    can_select: true,
-    can_transact: true,
-    chance_of_playing_next_round: 100,
     minutes: 360,
     starts: 4,
     expected_goals: 2,
@@ -24,10 +17,7 @@ function context() {
     defensive_contribution: 40,
     saves: 0,
     creativity: 0,
-    penalties_order: null,
-    corners_and_indirect_freekicks_order: null,
-    direct_freekicks_order: null,
-  };
+  });
   const data: Data = {
     fetchedAt: "2026-10-10T12:00:00Z",
     bootstrap: {
@@ -45,12 +35,7 @@ function context() {
         finished: false,
       })),
       element_types: [],
-      game_settings: {
-        squad_squadsize: 15,
-        squad_squadplay: 11,
-        squad_team_limit: 3,
-        max_extra_free_transfers: 4,
-      },
+      game_settings: gameSettings(),
     },
     fixtures: Array.from({ length: 10 }, (_, index) => ({
       id: index + 1,
@@ -65,6 +50,25 @@ function context() {
   };
   return { data, player };
 }
+
+function twoMatchSeasonBlend(oldestFirst: number[], seasonMinutes: number) {
+  const newestFirst = [...oldestFirst].reverse();
+  const threeMatchHalfLife = newestFirst.map((_, index) => 2 ** (-index / 3));
+  const seasonMatches = 2;
+  const weightedRecent = newestFirst.reduce(
+    (sum, value, index) => sum + value * threeMatchHalfLife[index],
+    0,
+  );
+  const recentWeight = threeMatchHalfLife.reduce(
+    (sum, value) => sum + value,
+    0,
+  );
+  return (
+    (seasonMatches * seasonMinutes + weightedRecent) /
+    (seasonMatches + recentWeight)
+  );
+}
+
 function history(minutes: number[]): History {
   return minutes.map((value, index) => ({
     fixture: index + 1,
@@ -263,19 +267,9 @@ describe("adaptive minutes", () => {
       const { data, player } = context();
       data.histories = { "1": history(minutes) };
       const forecast = playerForecast(data, player);
-      // Freeze the previous model's result: two season-equivalent observations
-      // combined with an eight-match history having a three-match half-life.
-      const ordered = [...minutes].reverse();
-      const weights = ordered.map((_, index) => 2 ** (-index / 3));
-      const denominator = 2 + weights.reduce((sum, value) => sum + value, 0);
-      const expected =
-        (2 * 45 +
-          ordered.reduce(
-            (sum, value, index) => sum + value * weights[index],
-            0,
-          )) /
-        denominator;
-      expect(forecast.minutes).toBeCloseTo(expected);
+      expect(forecast.minutes).toBeCloseTo(
+        twoMatchSeasonBlend(minutes, SEASON_MINUTES_PER_MATCH),
+      );
       expect(forecast.minutesBasis).toBe("blended");
     },
   );
@@ -300,12 +294,10 @@ describe("adaptive minutes", () => {
     expect(playerForecast(data, player).minutesBasis).toBe("recent-starts");
   });
 
-  it("changes usage without reweighting performance rates", () => {
+  it("changes usage without reweighting performance rates when only starts change", () => {
     const { data, player } = context();
     data.histories = { "1": history([0, 0, 0, 27, 71, 85, 71, 65]) };
     const adaptive = playerForecast(data, player);
-    // Change only starting-role evidence; identical minutes and events must
-    // retain identical per-90 performance rates.
     data.histories["1"][7].starts = 0;
     const blended = playerForecast(data, player);
     expect(adaptive.minutes).toBeGreaterThan(blended.minutes);
@@ -401,6 +393,6 @@ describe("opponents and availability", () => {
       0,
     );
     player.status = "u";
-    expect(weekAvailability(data, player, 10, "recover-next-week")).toBe(0);
+    expect(scorePlayer(data, player, 10, "recover-next-week")).toBe(0);
   });
 });
