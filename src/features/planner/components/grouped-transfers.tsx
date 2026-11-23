@@ -6,6 +6,7 @@ import { FixtureStrip } from "./fixture-strip";
 import { findClub, findPlayer } from "../players";
 import { PlayerLink } from "./player-link";
 import "./exploration.css";
+import "./grouped-transfers.css";
 
 export function GroupedTransfers({
   data,

@@ -27,7 +27,6 @@ import { PlayerDetails } from "./player-details";
 import { RollOption } from "./roll-option";
 import { MobilePlannerNav } from "./mobile-planner-nav";
 import "./transfer-results.css";
-import "./results-workspace.css";
 
 export function TransferResults({
   data,

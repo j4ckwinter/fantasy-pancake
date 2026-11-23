@@ -1,5 +1,6 @@
 import { Button, StatusChip } from "@jack.winter/pancake-ui";
 import { freeTransfersLabel } from "../format";
+import "./roll-option.css";
 
 export function RollOption({
   nextFreeTransfers,

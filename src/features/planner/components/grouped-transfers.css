@@ -1,0 +1,4 @@
+.alternative-gain > .alternative-hit {
+  color: var(--color-text-cost);
+  font-weight: 700;
+}

@@ -6,6 +6,7 @@ import { money } from "../format";
 import { PlayerPicker } from "./player-picker";
 import { findClub } from "../players";
 import "./exploration.css";
+import "./custom-transfer-form.css";
 
 export function CustomTransferForm({
   data,

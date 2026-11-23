@@ -1,0 +1,14 @@
+.custom-comparison-result {
+  padding: var(--space-1rem);
+  border-left: 3px solid var(--color-ink);
+  background: var(--color-surface-selected);
+  font-size: var(--text-0-9rem);
+}
+.custom-comparison-result p {
+  margin: var(--space-0-5rem) 0;
+}
+.custom-comparison-result a {
+  color: var(--color-ink);
+  font-weight: 700;
+  text-underline-offset: 0.2em;
+}
