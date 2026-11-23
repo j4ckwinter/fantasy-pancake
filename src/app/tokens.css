@@ -261,6 +261,12 @@
   --z-sticky-footer: 5;
   --z-popover: 10;
   --z-mobile-nav: 20;
+
+  --color-hero-card: #ffffff;
+  --color-hero-card-border: #ffffff;
+  --color-hero-card-shadow: #0000004d;
+  --shadow-hero-card: 0 18px 40px var(--color-hero-card-shadow);
+  --shadow-focus-on-night: 0 0 0 3px var(--color-brand);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -335,6 +341,9 @@
     --color-popover-shadow: #00000080;
     --color-sheet-shadow: #00000080;
     --color-sheet-backdrop: #000000b3;
+    --color-hero-card: #17221c;
+    --color-hero-card-border: #2d3d34;
+    --color-hero-card-shadow: #00000080;
   }
 }
 
