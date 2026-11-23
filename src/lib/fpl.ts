@@ -10,6 +10,9 @@ const ROOT = "https://fantasy.premierleague.com/api/";
 const TTL = 300_000;
 const REQUEST_TIMEOUT_MS = 12_000;
 const MAX_CACHED_RESPONSES = 200;
+const TEAM_NOT_FOUND =
+  "No published FPL data was found for that team or gameweek.";
+const PLAYER_HISTORY_NOT_FOUND = "No FPL history was found for that player.";
 
 export class FplError extends Error {
   constructor(
@@ -35,6 +38,7 @@ export function createFplClient({ fetch, now }: FplClientOptions) {
   async function load<T>(
     path: string,
     schema: z.ZodType<T>,
+    notFoundMessage: string,
   ): Promise<Fetched<T>> {
     const response = await fetch(ROOT + path, {
       cache: "no-store",
@@ -44,7 +48,7 @@ export function createFplClient({ fetch, now }: FplClientOptions) {
     if (!response.ok)
       throw new FplError(
         response.status === 404
-          ? "No published FPL data was found for that team or gameweek."
+          ? notFoundMessage
           : "FPL is temporarily unavailable. Please try again shortly.",
         response.status === 404 ? 404 : 502,
       );
@@ -59,13 +63,14 @@ export function createFplClient({ fetch, now }: FplClientOptions) {
   async function request<T>(
     path: string,
     schema: z.ZodType<T>,
+    notFoundMessage: string,
   ): Promise<Fetched<T>> {
     const cached = cache.get(path);
     if (cached && cached.expires > now())
       return { value: cached.value as T, fetchedAt: cached.fetchedAt };
     let promise = pending.get(path);
     if (!promise) {
-      promise = load(path, schema);
+      promise = load(path, schema, notFoundMessage);
       pending.set(path, promise);
     }
     try {
@@ -77,8 +82,8 @@ export function createFplClient({ fetch, now }: FplClientOptions) {
 
   async function getData() {
     const [bootstrap, fixtures] = await Promise.all([
-      request("bootstrap-static/", bootstrapSchema),
-      request("fixtures/", z.array(fixtureSchema)),
+      request("bootstrap-static/", bootstrapSchema, TEAM_NOT_FOUND),
+      request("fixtures/", z.array(fixtureSchema), TEAM_NOT_FOUND),
     ]);
     return {
       bootstrap: bootstrap.value,
@@ -95,6 +100,7 @@ export function createFplClient({ fetch, now }: FplClientOptions) {
         current_event: z.number().int().nullable(),
         started_event: z.number().int(),
       }),
+      TEAM_NOT_FOUND,
     );
     const latest = entry.value.current_event;
     if (!latest)
@@ -108,6 +114,7 @@ export function createFplClient({ fetch, now }: FplClientOptions) {
         const picks = await request(
           `entry/${id}/event/${gameweek}/picks/`,
           picksSchema,
+          TEAM_NOT_FOUND,
         );
         return {
           ...picks.value,
@@ -122,7 +129,11 @@ export function createFplClient({ fetch, now }: FplClientOptions) {
   }
 
   async function getHistory(id: number) {
-    const result = await request(`element-summary/${id}/`, historySchema);
+    const result = await request(
+      `element-summary/${id}/`,
+      historySchema,
+      PLAYER_HISTORY_NOT_FOUND,
+    );
     return { ...result.value, fetchedAt: result.fetchedAt };
   }
 

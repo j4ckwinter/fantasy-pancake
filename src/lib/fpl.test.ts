@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { FplError, getHistory, importTeam } from "./fpl";
+import { FplError, createFplClient, getHistory, importTeam } from "./fpl";
 afterEach(() => vi.unstubAllGlobals());
 describe("FPL boundary", () => {
   it("imports the latest published squad, skipping only 404s", async () => {
@@ -57,5 +57,15 @@ describe("FPL boundary", () => {
     expect(a).toEqual(b);
     expect(await getHistory(8888)).toEqual(a);
     expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+  it("reports a missing player history as a missing player, not a missing team", async () => {
+    const client = createFplClient({
+      fetch: async () => new Response("", { status: 404 }),
+      now: () => 0,
+    });
+    await expect(client.getHistory(5)).rejects.toMatchObject({
+      status: 404,
+      message: "No FPL history was found for that player.",
+    });
   });
 });
