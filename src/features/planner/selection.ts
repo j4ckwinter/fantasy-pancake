@@ -111,12 +111,16 @@ export function planSelection(plan: TransferPlan): Selection {
 }
 
 function sameTransfers(a: TransferPlan, b: TransferPlan) {
-  const pairs = (plan: TransferPlan) =>
+  const timed = a.kind === "plan-ahead";
+  const moves = (plan: TransferPlan) =>
     plan.actions
-      .map((action) => `${action.outId}:${action.inId}`)
+      .map(
+        (action) =>
+          `${timed ? `${action.week}:` : ""}${action.outId}:${action.inId}`,
+      )
       .sort()
       .join(",");
-  return a.kind === b.kind && pairs(a) === pairs(b);
+  return a.kind === b.kind && moves(a) === moves(b);
 }
 
 function reselectMove(

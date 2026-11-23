@@ -99,6 +99,26 @@ describe("reselecting after a refresh", () => {
     ).toBeNull();
   });
 
+  it("keeps a plan-ahead alternative rather than switching to a plan with the same moves in other weeks", () => {
+    const ahead = (
+      variant: "best" | "bank-first",
+      week: number,
+    ): TransferPlan => ({
+      ...plan(week),
+      kind: "plan-ahead",
+      variant,
+    });
+    const refreshed = [ahead("best", 10), ahead("bank-first", 11)];
+    expect(
+      reselect(
+        planSelection(ahead("bank-first", 11)),
+        analysis({ plans: refreshed }),
+        data,
+        settings,
+      ),
+    ).toEqual(planSelection(refreshed[1]));
+  });
+
   it("selects nothing when the horizon is empty", () => {
     expect(
       reselect(
