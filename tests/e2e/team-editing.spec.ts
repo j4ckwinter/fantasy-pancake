@@ -1,0 +1,261 @@
+import { expect, failHistory, test } from "./support/fixtures";
+import {
+  expectNoHorizontalOverflow,
+  gate,
+  importTeam,
+  replaceSquadPlayer,
+  saveAndViewShortlist,
+  saveShortlistButton,
+  shortlistHeading,
+} from "./support/planner";
+
+test("import, correct, confirm, compare and restore settings", async ({
+  page,
+}) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (e) => pageErrors.push(e.message));
+  await importTeam(page);
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await expect(page.getByText("Team #123 · GW8 picks")).toBeVisible();
+  await expect(page.getByRole("checkbox")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Replace Player 8", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Edit team", exact: true }).click();
+  await replaceSquadPlayer(page, "Player 8", "New Star");
+  await replaceSquadPlayer(page, "New Star", "Player 8");
+  await page.getByLabel("Bank balance (£m)").fill("0.4");
+  await page.getByLabel("Free transfers remaining").selectOption("0");
+  await saveAndViewShortlist(page);
+  await expect(shortlistHeading(page)).toBeFocused();
+  await expect(
+    page.getByText("Roll the transfer", { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("New Star", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Heuristic score improvements", { exact: false }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: /Preview Player .* to New Star/ })
+    .first()
+    .click();
+  await expect(
+    page.locator(".transfer-alternative .alternative-hit").first(),
+  ).toHaveText("−4 hit");
+  const summary = page.locator(".lineup-preview__summary");
+  await expect(summary.getByText("4 pts", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Clear preview", exact: true }),
+  ).toHaveCount(1);
+  await page.getByRole("button", { name: "Before", exact: true }).click();
+  await expect(page.getByLabel("Baseline starting lineup")).toBeVisible();
+  await expect(
+    page.getByLabel("Baseline starting lineup").locator(".pitch-board__player"),
+  ).toHaveCount(11);
+  await page
+    .getByRole("button", { name: "Show lineup GW10", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Show lineup GW10", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByLabel("Baseline starting lineup")).toContainText(
+    "GW10 · Baseline, before a transfer",
+  );
+  await page
+    .getByRole("button", { name: "Show lineup GW9", exact: true })
+    .click();
+  await expect(page.locator(".fixture-strip").first()).toContainText("GW9");
+  await expect(page.locator(".fixture-strip").first()).toContainText("T16 (H)");
+  await page.locator("#selected-option > summary").click();
+  await page
+    .getByText("Why this option · risks and assumptions", { exact: true })
+    .click();
+  await expect(
+    page.getByRole("article", { name: "Selected transfer option" }),
+  ).toContainText("season averages can miss recent changes");
+  await page.screenshot({
+    path: `test-results/journey-${test.info().project.name}.png`,
+    fullPage: true,
+    animations: "disabled",
+  });
+  await expectNoHorizontalOverflow(page);
+  await page.reload();
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await expect(page.getByLabel("Bank balance (£m)")).toHaveValue("0.4");
+  await expect(page.getByRole("checkbox")).toHaveCount(0);
+  await saveAndViewShortlist(page);
+  await expect(page.locator(".transfer-price-note")).toHaveCount(0);
+  expect(pageErrors).toEqual([]);
+});
+
+test("editing inputs during history loading cannot publish stale results", async ({
+  page,
+}) => {
+  await failHistory(page);
+  await importTeam(page);
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await page.getByLabel("Bank balance (£m)").fill("0.6");
+  const history = gate();
+  await page.route("**/api/history/*", async (route) => {
+    await history.opened;
+    await route.fulfill({ json: { history: [] } });
+  });
+  await saveAndViewShortlist(page);
+  await expect(saveShortlistButton(page)).toBeDisabled();
+  await page.getByLabel("Bank balance (£m)").fill("1.2");
+  history.release();
+  await expect(saveShortlistButton(page)).toBeEnabled();
+  await expect(
+    page.getByRole("heading", { name: "Your team", exact: true }),
+  ).toBeVisible();
+  await saveAndViewShortlist(page);
+  await expect(shortlistHeading(page)).toBeVisible();
+  await expect(page.locator(".workspace-figures")).toContainText("£1.2m");
+});
+
+test("team editing can return or discard without recalculating or saving drafts", async ({
+  page,
+}) => {
+  await importTeam(page);
+  await page
+    .getByRole("button", { name: /Preview Player .* to New Star/ })
+    .first()
+    .click();
+  await expect(
+    page.locator('.preview-toggle[aria-pressed="true"]'),
+  ).toHaveCount(1);
+  let historyRequests = 0;
+  page.on("request", (request) => {
+    if (request.url().includes("/api/history/")) historyRequests++;
+  });
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await page.getByRole("button", { name: "View shortlist" }).click();
+  await expect(shortlistHeading(page)).toBeVisible();
+  await expect(
+    page.locator('.preview-toggle[aria-pressed="true"]'),
+  ).toHaveCount(1);
+  expect(historyRequests).toBe(0);
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await page.getByLabel("Bank balance (£m)").fill("1.2");
+  await page.getByLabel("Free transfers remaining").selectOption("2");
+  await page.getByRole("button", { name: "Edit team", exact: true }).click();
+  await replaceSquadPlayer(page, "Player 8", "New Star");
+  await page.getByRole("button", { name: "Discard changes" }).click();
+  await expect(page.locator(".workspace-figures")).toContainText("£0.5m");
+  await expect(
+    page.locator('.preview-toggle[aria-pressed="true"]'),
+  ).toHaveCount(1);
+  expect(historyRequests).toBe(0);
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await expect(page.getByLabel("Free transfers remaining")).toHaveValue("1");
+  await page.getByRole("button", { name: "Edit team", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Replace Player 8", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await expect(page.getByLabel("Bank balance (£m)")).toHaveValue("0.5");
+});
+
+test("team updates clear import guidance and keep the expanded action reachable", async ({
+  page,
+}) => {
+  await importTeam(page);
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await page.getByRole("button", { name: "Edit team", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Replace Player 8", exact: true })
+    .scrollIntoViewIfNeeded();
+  const action = await saveShortlistButton(page).boundingBox();
+  expect(action).not.toBeNull();
+  expect(action!.y).toBeGreaterThanOrEqual(0);
+  expect(action!.y + action!.height).toBeLessThanOrEqual(
+    page.viewportSize()!.height,
+  );
+  await expectNoHorizontalOverflow(page);
+  await page.screenshot({
+    path: `test-results/team-expanded-${test.info().project.name}.png`,
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Hide players" }).click();
+  await expect(page.locator(".squad-editor")).toHaveCount(0);
+  await page.getByLabel("Free transfers remaining").selectOption("2");
+  await saveAndViewShortlist(page);
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await expect(page.getByLabel("Free transfers remaining")).toHaveValue("2");
+  await expect(
+    page.getByText("Free transfers default to 1", { exact: false }),
+  ).toHaveCount(0);
+});
+
+test("returning from team editing preserves the plan category and selected plan", async ({
+  page,
+}) => {
+  await importTeam(page);
+  await page
+    .getByRole("button", { name: "Roll then move", exact: true })
+    .click();
+  await page.locator(".transfer-plan .preview-toggle").first().click();
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await page.getByRole("button", { name: "View shortlist" }).click();
+  await expect(
+    page.getByRole("button", { name: "Roll then move", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.locator('.transfer-plan .preview-toggle[aria-pressed="true"]'),
+  ).toHaveCount(1);
+});
+
+test("squad replacement supports keyboard search, cancellation and touch selection", async ({
+  page,
+}, testInfo) => {
+  await importTeam(page);
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await expect(page.getByLabel("Availability assumption")).not.toBeVisible();
+  await page.getByRole("button", { name: "Edit team", exact: true }).click();
+  const replace = page.getByRole("button", {
+    name: "Replace Player 8",
+    exact: true,
+  });
+  await replace.click();
+  const search = page.getByRole("combobox", {
+    name: "Replacement for Player 8",
+    exact: true,
+  });
+  await expect(search).toBeFocused();
+  await search.fill("Player 9");
+  await expect(
+    page.getByRole("listbox", { name: "Matching players" }).getByRole("option"),
+  ).toHaveCount(0);
+  await search.press("Escape");
+  await expect(replace).toBeFocused();
+  await expect(search).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Discard changes" }),
+  ).toHaveCount(0);
+  await replace.click();
+  await search.fill("New Star");
+  await page.screenshot({
+    path: `test-results/team-replacement-${testInfo.project.name}.png`,
+    animations: "disabled",
+  });
+  if (testInfo.project.use.isMobile) {
+    await page.getByRole("option", { name: /New Star/ }).tap();
+  } else {
+    await search.press("Enter");
+  }
+  await expect(
+    page.getByRole("button", { name: "Replace New Star", exact: true }),
+  ).toBeFocused();
+  await expect(
+    page.getByRole("button", { name: "Save & view shortlist" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Save & view shortlist" }).click();
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await page.getByRole("button", { name: "Edit team", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Replace New Star", exact: true }),
+  ).toBeVisible();
+});
