@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
+import { ChevronRightIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { playerForecast, upcomingWeeks, usableHistory } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
@@ -66,15 +67,17 @@ export function PlayerDetails({
         <div>
           <span className="eyebrow">PLAYER INTELLIGENCE</span>
           <h2 id={titleId}>{player.web_name}</h2>
-          <p>
+          <p className="player-details__club">
             {team?.name} · {money(player.now_cost)}
           </p>
         </div>
         <Button
-          variant="outline"
+          variant="ghost"
+          className="player-details__close"
           onClick={onClose}
           aria-label="Close player details"
         >
+          <XIcon aria-hidden="true" className="size-4" />
           Close
         </Button>
       </header>
@@ -106,7 +109,13 @@ export function PlayerDetails({
               : "Model estimates from season data; recent history is unavailable."}
           </p>
           <details className="player-details__context">
-            <summary>Playing time and forecast context</summary>
+            <summary>
+              <ChevronRightIcon
+                aria-hidden="true"
+                className="player-details__chevron size-4"
+              />
+              Playing time and forecast context
+            </summary>
             <dl className="player-details__supporting-metrics">
               <div>
                 <dt>Start estimate</dt>
@@ -194,7 +203,13 @@ export function PlayerDetails({
           />
         </section>
         <details className="player-details__assumptions">
-          <summary>What this forecast cannot know</summary>
+          <summary>
+            <ChevronRightIcon
+              aria-hidden="true"
+              className="player-details__chevron size-4"
+            />
+            What this forecast cannot know
+          </summary>
           <p>
             Recent appearances do not establish future selection, a new tactical
             role or a recovery date. Fixture difficulty describes the schedule,
