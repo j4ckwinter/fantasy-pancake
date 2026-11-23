@@ -117,6 +117,9 @@
   --color-fixture-blank-border: #b6c0b2;
   --color-fixture-label: #515b53;
   --color-shadow-soft: #0002;
+  --color-card-shadow: #11201a0f;
+  --color-card-shadow-edge: #11201a0a;
+  --color-focus-ring: #526b2166;
   --color-shadow-strong: #0004;
   --color-shirt-shadow: #0b141a70;
   --color-sheet-shadow: #10191430;
@@ -239,6 +242,9 @@
   --radius-999: 999px;
 
   --shadow-import-card: 0 9px 0 var(--color-shadow-soft);
+  --shadow-card:
+    0 1px 2px var(--color-card-shadow), 0 1px 0 var(--color-card-shadow-edge);
+  --shadow-focus: 0 0 0 3px var(--color-focus-ring);
   --shadow-hero-pitch: 12px 14px 0 var(--color-shadow-strong);
   --shadow-switcher-pressed: 0 2px 4px var(--color-shadow-soft);
   --shadow-mobile-nav: 0 6px 24px var(--color-nav-shadow);
@@ -320,6 +326,9 @@
     --color-success-surface: #1f2e14;
     --color-success-text: #b9dd8f;
     --color-shadow-soft: #0006;
+    --color-card-shadow: #00000066;
+    --color-card-shadow-edge: #00000033;
+    --color-focus-ring: #a6d93a66;
     --color-shadow-strong: #0009;
     --color-pitch-shadow: #00000066;
     --color-nav-shadow: #00000080;
