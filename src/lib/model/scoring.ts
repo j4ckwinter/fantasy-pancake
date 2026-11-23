@@ -3,7 +3,7 @@ import { playerForecast, type PlayerForecast } from "./forecast-history";
 import { opponentFactors, type OpponentFactors } from "./opponent-strength";
 import { LONG_APPEARANCE_MINUTES, fullMatches } from "./match-minutes";
 import { positionOf, type Position } from "./position";
-import { upcomingWeeks } from "./schedule";
+import { scheduledTeamFixtures, upcomingWeeks } from "./schedule";
 
 type PositionScoring = {
   goalPoints: number;
@@ -140,14 +140,8 @@ export function scorePlayer(
   const forecast = playerForecast(data, player);
   const playing = weekAvailability(data, player, week, scenario);
   if (!playing || !forecast.minutes) return 0;
-  return data.fixtures
-    .filter(
-      (fixture) =>
-        fixture.event === week &&
-        !fixture.finished &&
-        (fixture.team_h === player.team || fixture.team_a === player.team),
-    )
-    .reduce((sum, fixture) => {
+  return scheduledTeamFixtures(data.fixtures, player.team, week).reduce(
+    (sum, fixture) => {
       const factors = opponentFactors(data, player, fixture);
       const rules = POSITION_SCORING[positionOf(player)];
       const matchScore = forecast.outcomes.reduce(
@@ -160,7 +154,9 @@ export function scorePlayer(
         0,
       );
       return sum + playing * matchScore;
-    }, 0);
+    },
+    0,
+  );
 }
 
 function outcomePoints(

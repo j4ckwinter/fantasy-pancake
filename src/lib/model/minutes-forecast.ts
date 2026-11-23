@@ -1,5 +1,5 @@
 import type { Data, History, Player } from "../schemas";
-import { upcomingWeeks } from "./schedule";
+import { finishedTeamFixtures, upcomingWeeks } from "./schedule";
 import { FULL_MATCH_MINUTES, LONG_APPEARANCE_MINUTES } from "./match-minutes";
 import { recencyWeight } from "./recency";
 
@@ -24,25 +24,26 @@ const OLDER_USAGE_WEIGHT_IN_RECENT_ROLE = 0.25;
 const SEASON_MINUTES_PRIOR_MATCHES = 2;
 const RECENT_ROLE_SEASON_MINUTES_PRIOR_MATCHES = 0.5;
 
+function completedMatches(data: Data, player: Player): number {
+  return Math.max(1, finishedTeamFixtures(data.fixtures, player.team).length);
+}
+
+export function seasonMinutesPerMatch(data: Data, player: Player): number {
+  return clamp(
+    player.minutes / completedMatches(data, player),
+    0,
+    FULL_MATCH_MINUTES,
+  );
+}
+
 /** Rows must be eligible completed matches, newest first (see usableHistory). */
 export function forecastMinutes(
   data: Data,
   player: Player,
   rows: History,
 ): MinutesForecast {
-  const completed = Math.max(
-    1,
-    data.fixtures.filter(
-      (fixture) =>
-        fixture.finished &&
-        (fixture.team_h === player.team || fixture.team_a === player.team),
-    ).length,
-  );
-  const seasonMinutes = clamp(
-    player.minutes / completed,
-    0,
-    FULL_MATCH_MINUTES,
-  );
+  const completed = completedMatches(data, player);
+  const seasonMinutes = seasonMinutesPerMatch(data, player);
   const startProbability = clamp(
     Math.min(
       player.starts / completed,
@@ -85,11 +86,9 @@ export function forecastMinutes(
   // Zero minutes alone cannot tell us whether a player was injured or dropped.
   const cutoff = Date.parse(data.fetchedAt);
   const nextWeek = upcomingWeeks(data)[0] ?? Infinity;
-  const recentTeamFixtures = data.fixtures
+  const recentTeamFixtures = finishedTeamFixtures(data.fixtures, player.team)
     .filter(
       (fixture) =>
-        fixture.finished &&
-        (fixture.team_h === player.team || fixture.team_a === player.team) &&
         fixture.event !== null &&
         fixture.event < nextWeek &&
         fixture.kickoff_time !== null &&

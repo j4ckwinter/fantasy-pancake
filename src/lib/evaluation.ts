@@ -9,6 +9,8 @@ import {
   type Settings,
 } from "./schemas";
 import { bestLineup, scorePlayer, upcomingWeeks, type Analysis } from "./model";
+import { playsIn, scheduledTeamFixtures } from "./model/schedule";
+import { seasonMinutesPerMatch } from "./model/minutes-forecast";
 
 export const MODEL_VERSION = "forecast-v5";
 const actionSchema = z.object({
@@ -192,12 +194,7 @@ export function createSnapshot(
         ),
     );
   const fixtures = (player: Player, week: number) =>
-    data.fixtures.filter(
-      (fixture) =>
-        fixture.event === week &&
-        !fixture.finished &&
-        (fixture.team_h === player.team || fixture.team_a === player.team),
-    );
+    scheduledTeamFixtures(data.fixtures, player.team, week);
   policies.push(
     policy(
       "minutes-fixtures-hold",
@@ -205,12 +202,7 @@ export function createSnapshot(
       [],
       0,
       simpleScores((player, week) => {
-        const completed = data.fixtures.filter(
-          (fixture) =>
-            fixture.finished &&
-            (fixture.team_h === player.team || fixture.team_a === player.team),
-        ).length;
-        const minutes = Math.min(90, player.minutes / Math.max(1, completed));
+        const minutes = seasonMinutesPerMatch(data, player);
         return fixtures(player, week).reduce(
           (sum, fixture) =>
             sum +
@@ -305,8 +297,7 @@ export function evaluateSnapshot(
         if (!player) throw new Error(`Unknown frozen player ${id}.`);
         const fixtures = outcomes.fixtures.filter(
           (fixture) =>
-            fixture.event === lineup.week &&
-            (fixture.team_h === player.team || fixture.team_a === player.team),
+            fixture.event === lineup.week && playsIn(fixture, player.team),
         );
         for (const fixture of fixtures) {
           const rows = (outcomes.histories[String(id)] ?? []).filter(
