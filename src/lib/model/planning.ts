@@ -2,8 +2,13 @@ import type { Data, Player, Settings } from "../schemas";
 import type { Lineup, TransferPlan } from "./types";
 import { bestLineup } from "./lineup";
 import { excessClubIds } from "./squad-rules";
-
-const round = (value: number) => Math.round(value * 100) / 100;
+import { roundScore } from "./round-score";
+import {
+  freeTransferCap,
+  freeTransfersLeft,
+  nextWeekFreeTransfers,
+  transferHit,
+} from "./transfer-rules";
 
 export function planTransfers(
   data: Data,
@@ -57,9 +62,12 @@ export function planTransfers(
     lineupCache.set(key, values);
     return values;
   }
-  const cap = 1 + data.bootstrap.game_settings.max_extra_free_transfers;
-  const pairHit = 4 * Math.max(0, 2 - settings.freeTransfers);
-  const deferredFreeTransfers = Math.min(cap, settings.freeTransfers + 1);
+  const cap = freeTransferCap(data.bootstrap.game_settings);
+  const pairHit = transferHit(2, settings.freeTransfers);
+  const deferredFreeTransfers = nextWeekFreeTransfers(
+    settings.freeTransfers,
+    cap,
+  );
   const salePrice = new Map(
     settings.squad.map((pick) => [pick.id, pick.sellingPrice]),
   );
@@ -99,20 +107,20 @@ export function planTransfers(
           !excessClubIds(changed, data.bootstrap.game_settings.squad_team_limit)
             .length
         ) {
-          const hit = 4 * Math.max(0, 1 - deferredFreeTransfers);
+          const hit = transferHit(1, deferredFreeTransfers);
           keep({
             kind: "roll-then-transfer",
             actions: [
               { week: weeks[1], outId: outgoing.id, inId: incoming.id },
             ],
-            gain: round(
+            gain: roundScore(
               gains(changed)
                 .slice(1)
                 .reduce((sum, value) => sum + value, 0) - hit,
             ),
             hit,
             remainingBank,
-            freeTransfersAfterPlan: Math.max(0, deferredFreeTransfers - 1),
+            freeTransfersAfterPlan: freeTransfersLeft(1, deferredFreeTransfers),
             reasons: [
               `Keep your squad in GW${weeks[0]}, accrue one free transfer up to the ${cap}-transfer cap, then move in GW${weeks[1]}.`,
               "Gain compares the remaining horizon with keeping today's squad; the first gameweek contributes no change.",
@@ -163,12 +171,15 @@ export function planTransfers(
                 inId: secondIncoming.id,
               },
             ],
-            gain: round(
+            gain: roundScore(
               gains(changed).reduce((sum, value) => sum + value, 0) - pairHit,
             ),
             hit: pairHit,
             remainingBank: pairBank,
-            freeTransfersAfterPlan: Math.max(0, settings.freeTransfers - 2),
+            freeTransfersAfterPlan: freeTransfersLeft(
+              2,
+              settings.freeTransfers,
+            ),
             reasons: [
               "Two simultaneous transfers use the combined sale proceeds; a cheaper replacement can fund the other move.",
               "Free transfers shown are those left immediately after the two moves, before next week's accrual.",

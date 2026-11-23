@@ -9,8 +9,8 @@ import {
   scorePlayer,
 } from "./scoring";
 import { bestLineup } from "./lineup";
-
-const round = (value: number) => Math.round(value * 100) / 100;
+import { roundScore } from "./round-score";
+import { transferHit } from "./transfer-rules";
 
 export function transferContext(data: Data, settings: Settings) {
   const errors = validateSquad(data, settings);
@@ -115,7 +115,7 @@ export function previewTransfers(
       actions.filter((action) => action.week === week),
     ));
     const lineup = bestLineup(data, squad, scores[index]);
-    return { ...lineup, score: round(lineup.score) };
+    return { ...lineup, score: roundScore(lineup.score) };
   });
 }
 
@@ -140,10 +140,10 @@ export function evaluatePreparedTransfer(
   const baselineTotal = baseline.reduce((sum, lineup) => sum + lineup.score, 0);
   const grossGain =
     lineups.reduce((sum, lineup) => sum + lineup.score, 0) - baselineTotal;
-  const hit = settings.freeTransfers > 0 ? 0 : 4;
+  const hit = transferHit(1, settings.freeTransfers);
   const gain = grossGain - hit;
   const reasons = [
-    `Changes the optimised starting XI and captain total by ${round(grossGain)} score units across ${weeks.length} gameweeks before the hit.`,
+    `Changes the optimised starting XI and captain total by ${roundScore(grossGain)} score units across ${weeks.length} gameweeks before the hit.`,
     `${Math.round(expectedMinutes(data, incoming))} estimated minutes per match from recent history where available, blended with season usage; venue and opponent strengths adjust attacking and clean-sheet scores.`,
   ];
   if (incoming.penalties_order === 1)
@@ -167,9 +167,9 @@ export function evaluatePreparedTransfer(
     cost: incoming.now_cost,
     remainingBank,
     hit,
-    gain: round(gain),
-    immediateGain: round(lineups[0].score - baseline[0].score - hit),
-    grossGain: round(grossGain),
+    gain: roundScore(gain),
+    immediateGain: roundScore(lineups[0].score - baseline[0].score - hit),
+    grossGain: roundScore(grossGain),
     reasons,
     risks: playerRisks(data, incoming, settings.availabilityScenario),
     fixtures: fixturesFor(data, incoming, weeks),
@@ -178,7 +178,7 @@ export function evaluatePreparedTransfer(
     move,
     lineups: lineups.map((lineup) => ({
       ...lineup,
-      score: round(lineup.score),
+      score: roundScore(lineup.score),
     })),
   };
 }
@@ -208,7 +208,7 @@ export function addAvailabilitySensitivity(
     const changed = squad.map((player) =>
       player.id === move.outId ? byId.get(move.inId)! : player,
     );
-    const gain = round(
+    const gain = roundScore(
       scores.reduce(
         (sum, values) => sum + bestLineup(data, changed, values).score,
         0,

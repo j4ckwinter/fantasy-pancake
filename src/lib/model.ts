@@ -8,6 +8,8 @@ import {
   evaluatePreparedTransfer,
   addAvailabilitySensitivity,
 } from "./model/transfer-preview";
+import { freeTransferCap } from "./model/transfer-rules";
+import { roundScore } from "./model/round-score";
 
 export { evaluateTransfer, previewTransfers } from "./model/transfer-preview";
 export { playerForecast, usableHistory } from "./model/forecast-history";
@@ -22,17 +24,22 @@ export { overLimitClubs, validateSquad } from "./model/squad-rules";
 export { upcomingWeeks } from "./model/schedule";
 export { scorePlayer } from "./model/scoring";
 export { bestLineup } from "./model/lineup";
+export {
+  TRANSFER_HIT_POINTS,
+  freeTransferCap,
+  nextWeekFreeTransfers,
+} from "./model/transfer-rules";
 
-const round = (value: number) => Math.round(value * 100) / 100;
+const NET_GAIN_THRESHOLD = 2;
+const AT_CAP_NET_GAIN_THRESHOLD = 1;
 
 export function analyze(data: Data, settings: Settings): Analysis {
   const errors = validateSquad(data, settings);
   if (errors.length) throw new Error(errors.join(" "));
   const weeks = upcomingWeeks(data);
   const atCap =
-    settings.freeTransfers >=
-    1 + data.bootstrap.game_settings.max_extra_free_transfers;
-  const threshold = atCap ? 1 : 2;
+    settings.freeTransfers >= freeTransferCap(data.bootstrap.game_settings);
+  const threshold = atCap ? AT_CAP_NET_GAIN_THRESHOLD : NET_GAIN_THRESHOLD;
   if (!weeks.length)
     return {
       weeks,
@@ -109,7 +116,7 @@ export function analyze(data: Data, settings: Settings): Analysis {
     weeks,
     baseline: baseline.map((lineup) => ({
       ...lineup,
-      score: round(lineup.score),
+      score: roundScore(lineup.score),
     })),
     moves: shortlisted,
     plans,

@@ -4,6 +4,7 @@ import {
   type Player,
   type Settings,
 } from "../schemas";
+import { freeTransferCap } from "./transfer-rules";
 
 export function excessClubIds(players: Player[], limit: number): number[] {
   const counts = new Map<number, number>();
@@ -70,10 +71,7 @@ export function validateSquad(data: Data, settings: Settings): string[] {
       );
     }
   }
-  if (
-    settings.freeTransfers >
-    1 + bootstrap.game_settings.max_extra_free_transfers
-  )
+  if (settings.freeTransfers > freeTransferCap(bootstrap.game_settings))
     errors.push("Free transfers exceed the current game limit.");
   return errors;
 }
