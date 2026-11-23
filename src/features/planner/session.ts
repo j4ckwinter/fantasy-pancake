@@ -104,8 +104,13 @@ function withPrice(ids: number[], id: number) {
   return [...new Set([...ids, id])];
 }
 
-function lineupWithin(index: number, result: Analysis) {
-  return Math.max(0, Math.min(index, result.weeks.length - 1));
+function lineupFor(session: Session, result: Analysis) {
+  const week = session.result?.weeks[session.lineupIndex];
+  const same = week === undefined ? -1 : result.weeks.indexOf(week);
+  if (same >= 0) return same;
+  return week === undefined
+    ? Math.max(0, Math.min(session.lineupIndex, result.weeks.length - 1))
+    : 0;
 }
 
 function inSquad(settings: Settings) {
@@ -139,7 +144,7 @@ export function sessionReducer(
       return {
         ...session,
         result: action.result,
-        lineupIndex: lineupWithin(session.lineupIndex, action.result),
+        lineupIndex: lineupFor(session, action.result),
       };
     case "import-started":
       return { ...session, error: "" };
@@ -166,11 +171,13 @@ export function sessionReducer(
     case "refreshed":
       return {
         ...session,
+        error: "",
+        customError: "",
         settings: action.settings,
         confirmedPrices: action.confirmedPrices,
         result: action.result,
         selection: action.selection,
-        lineupIndex: lineupWithin(session.lineupIndex, action.result),
+        lineupIndex: lineupFor(session, action.result),
         priceConfirmed: session.priceConfirmed && action.selection !== null,
       };
     case "evaluation-started":
@@ -201,7 +208,7 @@ export function sessionReducer(
         priceConfirmed: false,
         settings: action.settings,
         result: action.result,
-        lineupIndex: lineupWithin(session.lineupIndex, action.result),
+        lineupIndex: lineupFor(session, action.result),
         selection: action.selection,
       };
     case "custom-comparison-failed":
@@ -242,7 +249,7 @@ export function sessionReducer(
         settings: action.settings,
         confirmedPrices: withPrice(session.confirmedPrices, action.id),
         result: action.result,
-        lineupIndex: lineupWithin(session.lineupIndex, action.result),
+        lineupIndex: lineupFor(session, action.result),
         error: "",
         priceConfirmed: true,
       };
@@ -251,7 +258,7 @@ export function sessionReducer(
         ...session,
         settings: action.settings,
         result: action.result,
-        lineupIndex: lineupWithin(session.lineupIndex, action.result),
+        lineupIndex: lineupFor(session, action.result),
         selection: null,
         customError: "",
       };

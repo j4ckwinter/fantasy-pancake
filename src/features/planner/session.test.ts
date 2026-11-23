@@ -99,7 +99,10 @@ describe("planner session", () => {
   });
 
   it("keeps the chosen gameweek inside a shorter refreshed horizon", () => {
-    const lastWeek = session({ lineupIndex: 3 });
+    const lastWeek = session({
+      lineupIndex: 3,
+      result: analysis([35, 36, 37, 38]),
+    });
     const shorter = analysis([37, 38]);
     const results = [
       { type: "restore-compared", result: shorter },
@@ -108,6 +111,43 @@ describe("planner session", () => {
     ] as const;
     for (const action of results)
       expect(sessionReducer(lastWeek, action).lineupIndex).toBe(1);
+  });
+
+  it("clears an earlier refresh error once a refresh succeeds", () => {
+    const failed = session({ error: "Refresh unavailable", customError: "x" });
+    const next = sessionReducer(failed, {
+      type: "refreshed",
+      settings,
+      confirmedPrices: [],
+      result: analysis([9, 10, 11, 12]),
+      selection: null,
+    });
+    expect(next.error).toBe("");
+    expect(next.customError).toBe("");
+  });
+
+  it("keeps the same gameweek when the horizon moves on", () => {
+    const onGw10 = session({ lineupIndex: 1 });
+    const next = sessionReducer(onGw10, {
+      type: "refreshed",
+      settings,
+      confirmedPrices: [],
+      result: analysis([10, 11, 12, 13]),
+      selection: null,
+    });
+    expect(next.lineupIndex).toBe(0);
+  });
+
+  it("shows the first gameweek when the chosen one has passed", () => {
+    const onGw9 = session({ lineupIndex: 0 });
+    const next = sessionReducer(onGw9, {
+      type: "refreshed",
+      settings,
+      confirmedPrices: [],
+      result: analysis([10, 11, 12, 13]),
+      selection: null,
+    });
+    expect(next.lineupIndex).toBe(0);
   });
 
   it("drops the price confirmation when a custom comparison replaces the preview", () => {
