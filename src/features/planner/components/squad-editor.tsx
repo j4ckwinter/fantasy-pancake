@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ArrowLeftRightIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { marketPricePick } from "../settings";
 import { money } from "../format";
@@ -46,7 +47,7 @@ export function SquadEditor({
           <section className="position-group" key={group.id}>
             <header className="position-heading">
               <h3>{group.name}</h3>
-              <span>{picks.length} PLAYERS</span>
+              <span className="eyebrow">{picks.length} players</span>
             </header>
             <div className="position-players">
               {picks.map(({ index }) => (
@@ -112,6 +113,8 @@ function SquadPlayerRow({
   return (
     <div
       className="squad-player-row"
+      data-replacing={replacing || undefined}
+      data-unavailable={!current || undefined}
       onKeyDown={(event) => {
         if (replacing && event.key === "Escape") {
           event.preventDefault();
@@ -121,7 +124,7 @@ function SquadPlayerRow({
       }}
     >
       <div className="squad-player-row__summary">
-        <div>
+        <div className="squad-player-row__player">
           <strong>{name}</strong>
           {current && (
             <span>
@@ -137,6 +140,7 @@ function SquadPlayerRow({
           aria-expanded={replacing}
           onClick={() => (replacing ? close() : setReplacing(true))}
         >
+          <ArrowLeftRightIcon aria-hidden="true" className="size-4" />
           Replace
         </Button>
       </div>
@@ -160,7 +164,13 @@ function SquadPlayerRow({
               close();
             }}
           />
-          <Button type="button" variant="outline" onClick={close}>
+          <Button
+            type="button"
+            variant="ghost"
+            className="squad-player-row__cancel"
+            onClick={close}
+          >
+            <XIcon aria-hidden="true" className="size-4" />
             Cancel replacement
           </Button>
         </div>
