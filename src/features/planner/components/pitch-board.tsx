@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import type { Lineup } from "@/lib/model";
-import type { Data } from "@/lib/schemas";
+import type { ChipName, Data } from "@/lib/schemas";
 import { findClub, findPlayer } from "../players";
+import { chipLabels } from "../chips";
 import { PlayerLink } from "./player-link";
 import "./pitch-board.css";
 
@@ -37,6 +38,11 @@ function Shirt({ goalkeeper = false }: { goalkeeper?: boolean }) {
 const positionRows = ["GK", "DEF", "MID", "FWD"];
 const illustratedShirts = [1, 4, 4, 2];
 
+type CaptainMark = { mark: string; name: string };
+
+const CAPTAIN: CaptainMark = { mark: "C", name: "Captain" };
+const TRIPLE_CAPTAIN: CaptainMark = { mark: "×3", name: "Triple captain" };
+
 function PitchFrame({
   actual,
   label,
@@ -45,6 +51,7 @@ function PitchFrame({
   formation,
   rows,
   caption,
+  captainMark = CAPTAIN,
 }: {
   actual: boolean;
   label: string;
@@ -53,6 +60,7 @@ function PitchFrame({
   formation: string;
   rows: ReactNode[];
   caption: string;
+  captainMark?: CaptainMark;
 }) {
   return (
     <aside
@@ -102,8 +110,10 @@ function PitchFrame({
       <div className="pitch-board__footer">
         <p className="pitch-board__caption">{caption}</p>
         {actual && (
-          <span className="pitch-board__legend">
-            <b>C</b> Captain
+          <span
+            className={`pitch-board__legend${captainMark === TRIPLE_CAPTAIN ? " pitch-board__legend--triple" : ""}`}
+          >
+            <b>{captainMark.mark}</b> {captainMark.name}
           </span>
         )}
       </div>
@@ -134,6 +144,34 @@ export function PitchIllustration() {
   );
 }
 
+function frameText(variant: "before" | "after", chip: ChipName | null) {
+  if (chip)
+    return {
+      label: `${chipLabels[chip]} preview lineup`,
+      eyebrow: `${chipLabels[chip]} / Matchday ${chip === "bboost" ? "XV" : "XI"}`,
+      title:
+        chip === "bboost"
+          ? "All 15 play"
+          : chip === "freehit"
+            ? "Your Free Hit XI"
+            : "Your starting XI",
+      caption: `${chipLabels[chip]} preview`,
+    };
+  return variant === "after"
+    ? {
+        label: "Preview starting lineup",
+        eyebrow: "PREVIEW / MATCHDAY XI",
+        title: "Your starting XI",
+        caption: "Preview after selected transfers",
+      }
+    : {
+        label: "Baseline starting lineup",
+        eyebrow: "BASELINE / MATCHDAY XI",
+        title: "Your starting XI",
+        caption: "Baseline, before a transfer",
+      };
+}
+
 export function PitchBoard({
   data,
   lineup,
@@ -141,6 +179,7 @@ export function PitchBoard({
   variant,
   highlightIds,
   onPlayerSelect,
+  chip = null,
 }: {
   data: Data;
   lineup: Lineup;
@@ -148,6 +187,7 @@ export function PitchBoard({
   variant: "before" | "after";
   highlightIds: number[];
   onPlayerSelect: (id: number) => void;
+  chip?: ChipName | null;
 }) {
   const selected = lineup.ids.flatMap((id) => {
     const player = findPlayer(data.bootstrap.elements, id);
@@ -157,16 +197,16 @@ export function PitchBoard({
   const rows = positionRows.map((_, index) =>
     selected.filter((player) => player.element_type === index + 1),
   );
+  const text = frameText(variant, chip);
+  const captainMark = chip === "3xc" ? TRIPLE_CAPTAIN : CAPTAIN;
+  const boosted = chip === "bboost";
   return (
     <PitchFrame
       actual
-      label={
-        variant === "after"
-          ? "Preview starting lineup"
-          : "Baseline starting lineup"
-      }
-      eyebrow={`${variant === "after" ? "PREVIEW" : "BASELINE"} / MATCHDAY XI`}
-      title="Your starting XI"
+      label={text.label}
+      eyebrow={text.eyebrow}
+      title={text.title}
+      captainMark={captainMark}
       formation={rows
         .slice(1)
         .map((row) => row.length)
@@ -177,17 +217,20 @@ export function PitchBoard({
           const entered = highlightIds.includes(player.id);
           return (
             <PlayerLink
-              className={`pitch-board__player${entered ? " pitch-board__player--entered" : ""}`}
+              className={`pitch-board__player${entered ? (boosted ? " pitch-board__player--boosted" : " pitch-board__player--entered") : ""}`}
               key={player.id}
               playerId={player.id}
               onSelect={onPlayerSelect}
-              label={`View ${player.web_name} details${captain ? ", captain" : ""}${entered ? ", enters starting XI" : ""}`}
+              label={`View ${player.web_name} details${captain ? `, ${captainMark.name.toLowerCase()}` : ""}${entered ? (boosted ? ", plays from the bench" : ", enters starting XI") : ""}`}
             >
               <div className="pitch-board__kit">
                 <Shirt goalkeeper={index === 0} />
                 {captain && (
-                  <span className="pitch-board__captain" aria-label="Captain">
-                    C
+                  <span
+                    className={`pitch-board__captain${chip === "3xc" ? " pitch-board__captain--triple" : ""}`}
+                    aria-label={captainMark.name}
+                  >
+                    {captainMark.mark}
                   </span>
                 )}
               </div>
@@ -199,7 +242,7 @@ export function PitchBoard({
           );
         }),
       )}
-      caption={`GW${week} · ${variant === "after" ? "Preview after selected transfers" : "Baseline, before a transfer"}`}
+      caption={`GW${week} · ${text.caption}`}
     />
   );
 }

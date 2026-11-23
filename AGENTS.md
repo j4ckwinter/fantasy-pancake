@@ -18,6 +18,7 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Money, expected-points gain, accuracy note and label formatting   | `src/features/planner/format.ts`                                 |
 | Browser HTTP requests and response validation                     | `src/features/planner/api.ts`                                    |
 | Saved-settings compatibility, import defaults and price estimates | `src/features/planner/settings.ts`                               |
+| Chip names, advice wording and which chip week is previewed       | `src/features/planner/chips.ts`                                  |
 | Selections, their labels and plan categories                      | `src/features/planner/selection.ts`                              |
 | Planner status, notice and error messages                         | `src/features/planner/messages.ts`                               |
 | Rendering and local UI interactions                               | `src/features/planner/components/`                               |

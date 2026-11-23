@@ -1,4 +1,9 @@
-import { expectedGainLabel, money, signedPoints } from "../format";
+import {
+  expectedGainLabel,
+  expectedPoints,
+  money,
+  signedPoints,
+} from "../format";
 import "./preview-metrics.css";
 
 export function PreviewMetrics({
@@ -27,6 +32,29 @@ export function PreviewMetrics({
       <div className="metric">
         <strong>{money(remainingBank)}</strong>
         <span>{pricesChecked ? "Bank after move" : "Estimated bank"}</span>
+      </div>
+    </div>
+  );
+}
+
+export function ChipMetrics({
+  gain,
+  week,
+  threshold,
+}: {
+  gain: number;
+  week: number;
+  threshold: number;
+}) {
+  return (
+    <div className="metrics metrics--pair">
+      <div className="metric">
+        <strong>{signedPoints(gain)}</strong>
+        <span>{expectedGainLabel([week])}</span>
+      </div>
+      <div className="metric">
+        <strong>{expectedPoints(threshold)}</strong>
+        <span>Play only above</span>
       </div>
     </div>
   );

@@ -16,6 +16,7 @@ import {
   settingsFromImport,
 } from "./settings";
 import { restoreSavedTeam } from "./restore-session";
+import { previewedChip } from "./chips";
 import {
   emptyPreview,
   planSelection,
@@ -301,6 +302,13 @@ export function usePlanner() {
     });
   }
 
+  function previewChip(key: string, week: number) {
+    const index = result?.weeks.indexOf(week) ?? -1;
+    if (index < 0) return;
+    operation.invalidate();
+    dispatch({ type: "chip-previewed", key, index });
+  }
+
   function selectPlan(plan: TransferPlan) {
     if (planner.expired()) {
       void refresh({
@@ -447,6 +455,10 @@ export function usePlanner() {
     confirmedPrices,
     priceConfirmed: session.priceConfirmed,
     lineupIndex: session.lineupIndex,
+    chipPreviewKey: session.chipPreview,
+    chipPreview: result
+      ? previewedChip(result, session.chipPreview, session.lineupIndex)
+      : null,
     planCategory: session.planCategory,
     canReturnToShortlist: !!session.reviewSnapshot,
     hasTeamEdits: hasTeamEdits(session),
@@ -475,6 +487,7 @@ export function usePlanner() {
     toggleLock,
     selectMove,
     selectPlan,
+    previewChip,
     compareTransfer,
     cancelTeamEdit,
     editTeam,

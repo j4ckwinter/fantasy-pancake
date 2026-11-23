@@ -89,6 +89,39 @@ describe("planner session", () => {
       expect(sessionReducer(confirmed, action).priceConfirmed).toBe(false);
   });
 
+  it("previews a chip in its week in place of any transfer preview", () => {
+    const plan = planSelection({
+      kind: "pair-now",
+      actions: [],
+      gain: 3,
+      hit: 0,
+      remainingBank: 0,
+      freeTransfersAfterPlan: 0,
+      reasons: [],
+      weeks: [],
+    });
+    const previewing = sessionReducer(
+      session({ selection: plan, priceConfirmed: true }),
+      { type: "chip-previewed", key: "bboost-1", index: 2 },
+    );
+    expect(previewing).toMatchObject({
+      chipPreview: "bboost-1",
+      lineupIndex: 2,
+      selection: null,
+      priceConfirmed: false,
+    });
+    expect(
+      sessionReducer(previewing, { type: "selected", selection: plan }),
+    ).toMatchObject({ chipPreview: null, selection: plan });
+    for (const action of [
+      { type: "selection-cleared" },
+      { type: "evaluated", settings, result: analysis([9]) },
+      { type: "edit-started" },
+      { type: "team-switched" },
+    ] as const)
+      expect(sessionReducer(previewing, action).chipPreview).toBeNull();
+  });
+
   it("clears the unsaved-settings warning after a later save works", () => {
     const warned = session({ notice: "settings-not-saved" });
     expect(sessionReducer(warned, { type: "saved" }).notice).toBeNull();

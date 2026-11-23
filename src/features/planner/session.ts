@@ -19,6 +19,7 @@ export type Session = {
   savedPlan: boolean;
   result: Analysis | null;
   selection: Selection | null;
+  chipPreview: string | null;
   planCategory: PlanCategory;
   lineupIndex: number;
   confirmedPrices: number[];
@@ -73,6 +74,7 @@ export type SessionAction =
     }
   | { type: "lock-toggled"; settings: Settings; result: Analysis }
   | { type: "selected"; selection: Selection }
+  | { type: "chip-previewed"; key: string; index: number }
   | { type: "selection-cleared" }
   | { type: "category-changed"; category: PlanCategory }
   | { type: "lineup-selected"; index: number }
@@ -88,6 +90,7 @@ export const initialSession: Session = {
   savedPlan: false,
   result: null,
   selection: null,
+  chipPreview: null,
   planCategory: "singles",
   lineupIndex: 0,
   confirmedPrices: [],
@@ -157,6 +160,7 @@ export function sessionReducer(
         savedPlan: false,
         result: action.result,
         selection: null,
+        chipPreview: null,
         customError: "",
         reviewSnapshot: null,
         planCategory: "singles",
@@ -188,6 +192,7 @@ export function sessionReducer(
         priceConfirmed: false,
         settings: action.settings,
         result: action.result,
+        chipPreview: null,
         lineupIndex: 0,
         reviewSnapshot: null,
         planCategory: "singles",
@@ -263,9 +268,27 @@ export function sessionReducer(
         customError: "",
       };
     case "selected":
-      return { ...session, selection: action.selection, priceConfirmed: false };
+      return {
+        ...session,
+        selection: action.selection,
+        chipPreview: null,
+        priceConfirmed: false,
+      };
+    case "chip-previewed":
+      return {
+        ...session,
+        chipPreview: action.key,
+        lineupIndex: action.index,
+        selection: null,
+        priceConfirmed: false,
+      };
     case "selection-cleared":
-      return { ...session, selection: null, priceConfirmed: false };
+      return {
+        ...session,
+        selection: null,
+        chipPreview: null,
+        priceConfirmed: false,
+      };
     case "category-changed":
       if (session.planCategory === action.category) return session;
       return {
@@ -292,6 +315,7 @@ export function sessionReducer(
         reviewOpen: true,
         result: null,
         selection: null,
+        chipPreview: null,
       };
     case "edit-cancelled": {
       const snapshot = session.reviewSnapshot;

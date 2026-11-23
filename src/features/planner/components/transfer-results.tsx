@@ -33,6 +33,8 @@ import { LineupPreview } from "./lineup-preview";
 import { PlayerDetails } from "./player-details";
 import { RollOption } from "./roll-option";
 import { MobilePlannerNav } from "./mobile-planner-nav";
+import { ChipPanel } from "./chip-panel";
+import type { ChipPreview } from "../chips";
 import "./transfer-results.css";
 
 export function TransferResults({
@@ -63,6 +65,10 @@ export function TransferResults({
   playerId,
   onPlayerSelect,
   onClosePlayer,
+  chipPreviewKey,
+  chipPreview,
+  onPreviewChip,
+  onRefreshFromFpl,
 }: {
   data: Data;
   category: PlanCategory;
@@ -91,6 +97,10 @@ export function TransferResults({
   playerId: number | null;
   onPlayerSelect: (id: number) => void;
   onClosePlayer: () => void;
+  chipPreviewKey: string | null;
+  chipPreview: ChipPreview | null;
+  onPreviewChip: (key: string, week: number) => void;
+  onRefreshFromFpl: () => void;
 }) {
   const transferDetails = useRef<HTMLDetailsElement>(null);
   const previewOrigin = useRef<{
@@ -246,6 +256,14 @@ export function TransferResults({
               <span>{accuracyNote(FORECAST_ACCURACY)}</span>
             </p>
           </section>
+          <ChipPanel
+            advice={result.chips}
+            weeks={result.weeks}
+            previewKey={chipPreviewKey}
+            busy={!idle}
+            onPreview={onPreviewChip}
+            onRefresh={onRefreshFromFpl}
+          />
           <section className="planner-tools" aria-label="Fine-tune your plan">
             <div className="planner-tools__heading">
               <span className="eyebrow">Fine-tune your plan</span>
@@ -334,7 +352,9 @@ export function TransferResults({
             key={
               selection
                 ? `${selection.key}:${selection.actions.map(({ week, outId, inId }) => `${week}-${outId}-${inId}`).join("/")}`
-                : "baseline"
+                : chipPreviewKey
+                  ? `chip:${chipPreviewKey}`
+                  : "baseline"
             }
             data={data}
             weeks={result.weeks}
@@ -346,13 +366,14 @@ export function TransferResults({
             pricesChecked={
               !!selection && pricesChecked(selection.actions, confirmedPrices)
             }
-            canClear={!!selection || customBusy}
+            canClear={!!selection || !!chipPreviewKey || customBusy}
             onClearSelection={onClearSelection}
             lineupIndex={lineupIndex}
             onLineupChange={onLineupChange}
             onPlayerSelect={onPlayerSelect}
             captaincy={result.captaincy}
             previewCaptaincy={previewCaptaincy}
+            chipPreview={chipPreview}
           />
         </section>
       </div>

@@ -110,6 +110,46 @@ export function fixtureData(): Data {
   };
 }
 
+const CHIP_WINDOWS = [
+  ["wildcard", 2, 19],
+  ["freehit", 2, 19],
+  ["bboost", 1, 19],
+  ["3xc", 1, 19],
+  ["wildcard", 20, 38],
+  ["freehit", 20, 38],
+  ["bboost", 20, 38],
+  ["3xc", 20, 38],
+] as const;
+
+export function withChipRules(data: Data): Data {
+  data.bootstrap.chips = CHIP_WINDOWS.map(([name, start, stop], index) => ({
+    id: index + 1,
+    name,
+    number: 1,
+    start_event: start,
+    stop_event: stop,
+    chip_type: name === "bboost" || name === "3xc" ? "team" : "transfer",
+  }));
+  return data;
+}
+
+export function withDoubleGameweek(data: Data, week: number): Data {
+  const first = Math.max(...data.fixtures.map((fixture) => fixture.id)) + 1;
+  data.fixtures.push(
+    ...Array.from({ length: 6 }, (_, i) => ({
+      id: first + i,
+      event: week,
+      team_h: i + 11,
+      team_a: i + 1,
+      team_h_difficulty: 3,
+      team_a_difficulty: 3,
+      finished: false,
+      kickoff_time: "2026-10-31T12:00:00Z",
+    })),
+  );
+  return data;
+}
+
 export function withPlayer(
   data: Data,
   copyOf: number,

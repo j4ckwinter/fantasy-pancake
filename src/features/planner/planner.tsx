@@ -146,6 +146,10 @@ export default function Planner() {
           playerId={planner.playerId}
           onPlayerSelect={planner.openPlayer}
           onClosePlayer={planner.closePlayer}
+          chipPreviewKey={planner.chipPreviewKey}
+          chipPreview={planner.chipPreview}
+          onPreviewChip={planner.previewChip}
+          onRefreshFromFpl={planner.refreshSavedTeam}
         />
       )}
       <PlannerFooter data={data} landing={!settings} />
