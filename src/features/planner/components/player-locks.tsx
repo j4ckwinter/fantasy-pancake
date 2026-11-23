@@ -1,7 +1,7 @@
 import { Button } from "@jack.winter/pancake-ui";
 import type { Data, Settings } from "@/lib/schemas";
 import { findPlayer } from "../players";
-import "./exploration.css";
+import "./player-locks.css";
 
 export function PlayerLocks({
   data,

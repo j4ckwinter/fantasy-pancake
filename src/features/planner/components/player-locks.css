@@ -1,0 +1,11 @@
+.player-locks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-0-5rem);
+  padding: var(--space-0-5rem) 0;
+}
+.player-locks button[aria-pressed="true"] {
+  background: var(--color-ink);
+  color: var(--color-accent);
+  border-color: var(--color-ink);
+}

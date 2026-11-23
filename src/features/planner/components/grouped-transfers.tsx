@@ -5,7 +5,7 @@ import { minus, money, signed, scoreGainLabel } from "../format";
 import { FixtureStrip } from "./fixture-strip";
 import { findClub, findPlayer } from "../players";
 import { PlayerLink } from "./player-link";
-import "./exploration.css";
+import "./transfer-group.css";
 import "./grouped-transfers.css";
 
 export function GroupedTransfers({

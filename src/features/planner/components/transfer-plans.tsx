@@ -5,6 +5,7 @@ import { planLabels, pricesChecked, type Selection } from "../selection";
 import { findPlayer } from "../players";
 import { PlayerLink } from "./player-link";
 import { minus, money, signed, scoreGainLabel } from "../format";
+import "./transfer-group.css";
 import "./transfer-plans.css";
 
 export function TransferPlans({
