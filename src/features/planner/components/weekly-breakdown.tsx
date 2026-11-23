@@ -1,5 +1,5 @@
 import type { Lineup } from "@/lib/model";
-import { signed } from "../format";
+import { minus, signed } from "../format";
 import "./comparison-panels.css";
 
 export function WeeklyBreakdown({
@@ -56,7 +56,7 @@ export function WeeklyBreakdown({
         </div>
         <div>
           <dt>Transfer hit · deducted once</dt>
-          <dd>{hit ? `−${hit.toFixed(1)}` : "0.0"}</dd>
+          <dd>{hit ? `${minus}${hit.toFixed(1)}` : "0.0"}</dd>
         </div>
         <div>
           <dt>Net horizon gain</dt>

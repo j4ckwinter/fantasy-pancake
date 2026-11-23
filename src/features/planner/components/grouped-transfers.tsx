@@ -1,7 +1,7 @@
 import { Button } from "@jack.winter/pancake-ui";
 import { playerForecast, type Move } from "@/lib/model";
 import type { Data, Settings } from "@/lib/schemas";
-import { money, signed, scoreGainLabel } from "../format";
+import { minus, money, signed, scoreGainLabel } from "../format";
 import { FixtureStrip } from "./fixture-strip";
 import { findClub, findPlayer } from "../players";
 import { PlayerLink } from "./player-link";
@@ -101,7 +101,10 @@ export function GroupedTransfers({
                       <strong>{signed(move.gain)}</strong>
                       <span>{scoreGainLabel(weeks)}</span>
                       {move.hit > 0 && (
-                        <span className="alternative-hit">−{move.hit} hit</span>
+                        <span className="alternative-hit">
+                          {minus}
+                          {move.hit} hit
+                        </span>
                       )}
                     </div>
                     <div className="alternative-price">

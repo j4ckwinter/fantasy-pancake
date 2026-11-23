@@ -4,7 +4,7 @@ import type { TransferPlan } from "@/lib/model";
 import { planLabels, pricesChecked, type Selection } from "../selection";
 import { findPlayer } from "../players";
 import { PlayerLink } from "./player-link";
-import { money, signed, scoreGainLabel } from "../format";
+import { minus, money, signed, scoreGainLabel } from "../format";
 import "./transfer-plans.css";
 
 export function TransferPlans({
@@ -110,7 +110,7 @@ export function TransferPlans({
                   <strong
                     className={plan.hit > 0 ? "plan-cost__hit" : undefined}
                   >
-                    {plan.hit > 0 ? `−${plan.hit} pts hit` : "No hit"}
+                    {plan.hit > 0 ? `${minus}${plan.hit} pts hit` : "No hit"}
                   </strong>
                   <span> · {money(plan.remainingBank)} left</span>
                 </span>

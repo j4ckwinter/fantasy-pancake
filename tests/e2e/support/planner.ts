@@ -1,8 +1,8 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { PLANNER_DATA_MAX_AGE } from "../../../src/features/planner/freshness";
+import { STORAGE_KEY } from "../../../src/features/planner/settings";
 import { START_TIME } from "./fixtures";
 
-const STORAGE_KEY = "fpl-planner-v1";
 const EXPIRY_STEP = PLANNER_DATA_MAX_AGE + 60_000;
 const SAVE_AND_VIEW_SHORTLIST = /^(Save & view shortlist|View shortlist)/;
 
