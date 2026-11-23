@@ -54,6 +54,7 @@ export function createFplClient({ fetch, now }: FplClientOptions) {
       );
     const value = schema.parse(await response.json());
     const fetchedAt = new Date(now()).toISOString();
+    cache.delete(path);
     if (cache.size >= MAX_CACHED_RESPONSES)
       cache.delete(cache.keys().next().value!);
     cache.set(path, { value, fetchedAt, expires: now() + TTL });

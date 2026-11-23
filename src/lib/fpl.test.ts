@@ -68,4 +68,19 @@ describe("FPL boundary", () => {
       message: "No FPL history was found for that player.",
     });
   });
+  it("keeps a fresh entry when refreshing an expired one at capacity", async () => {
+    let clock = 0;
+    const fetcher = vi.fn(async () => Response.json({ history: [] }));
+    const client = createFplClient({ fetch: fetcher, now: () => clock });
+    await client.getHistory(1);
+    await client.getHistory(2);
+    clock = 300_001;
+    await client.getHistory(1);
+    for (let id = 3; id <= 200; id++) await client.getHistory(id);
+    clock = 300_002;
+    await client.getHistory(2);
+    fetcher.mockClear();
+    await client.getHistory(1);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
 });
