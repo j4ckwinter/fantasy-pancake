@@ -58,6 +58,19 @@ export function laggedPointsScores(
   });
 }
 
+export function seasonPointsPerMatchScores(
+  data: Data,
+  weeks: number[],
+): Map<number, number>[] {
+  return weeklyForecast(data, weeks, (player, week) => {
+    const rows = data.histories?.[String(player.id)] ?? [];
+    return rows.length
+      ? (rows.reduce((sum, row) => sum + row.total_points, 0) / rows.length) *
+          scheduledTeamFixtures(data.fixtures, player.team, week).length
+      : 0;
+  });
+}
+
 export function squadHistoryCoverage(
   data: Data,
   squad: Settings["squad"],

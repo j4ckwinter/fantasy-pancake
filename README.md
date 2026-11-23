@@ -61,6 +61,7 @@ CI tests a production build across Chromium desktop/mobile, Firefox and WebKit m
 | `src/lib/model.ts`, `model/`                                           | pure scoring, squad rules and planning                  |
 | `src/lib/fpl.ts`, `schemas.ts`                                         | server-side FPL access, caching and data contracts      |
 | `src/lib/evaluation.ts`, `evaluation/`, `scripts/evaluate-snapshot.ts` | frozen decisions and offline outcome evaluation         |
+| `scripts/fetch-backtest-data.ts`, `scripts/backtest.ts`                | season backtest and calibration                         |
 
 keep fetching and persistence out of presentation components, and browser code out of the model. preserve public model exports and version-1 saved settings. [AGENTS.md](AGENTS.md) has the iteration rules.
 
