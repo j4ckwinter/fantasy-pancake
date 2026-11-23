@@ -7,7 +7,7 @@ import {
 } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
 import { findPlayer } from "../players";
-import { minus, money, signedPoints } from "../format";
+import { minus, money, signedPoints, tenthsAddingUp } from "../format";
 import { PlayerLink } from "./player-link";
 import "./plan-timeline.css";
 
@@ -26,17 +26,23 @@ function moveNote(week: PlanWeek) {
 export function PlanTimeline({
   data,
   weeks,
+  total,
   label,
   onPlayerSelect,
   onShowWeek,
 }: {
   data: Data;
   weeks: PlanWeek[];
+  total: number;
   label: string;
   onPlayerSelect: (id: number) => void;
   onShowWeek: (index: number) => void;
 }) {
   const cap = freeTransferCap(data.bootstrap.game_settings);
+  const gains = tenthsAddingUp(
+    weeks.map((week) => week.gain),
+    total,
+  );
   const name = (id: number) =>
     findPlayer(data.bootstrap.elements, id)?.web_name ?? String(id);
   return (
@@ -96,8 +102,8 @@ export function PlanTimeline({
               )}
             </div>
             <p className="plan-timeline__gain">
-              <strong>{signedPoints(week.gain)}</strong>
-              <span>vs holding</span>
+              <strong>{signedPoints(gains[index])}</strong>
+              <span>vs holding, after hits</span>
             </p>
           </li>
         );

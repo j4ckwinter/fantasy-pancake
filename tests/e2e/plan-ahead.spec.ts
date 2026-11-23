@@ -38,6 +38,9 @@ function blankThenStrikerData(): Data {
   return data;
 }
 
+const points = (text: string) =>
+  Math.round(Number(text.replace("−", "-").replace(" pts", "")) * 10);
+
 async function openPlanAhead(page: Page) {
   await routeData(page, blankThenStrikerData());
   await importTeam(page);
@@ -57,6 +60,13 @@ test("plan ahead holds through a blank week and buys when the fixtures return", 
   await expect(weeks.nth(0)).toContainText("Hold · bank a free transfer");
   await expect(weeks.nth(1)).toContainText("Hot Striker");
   await expect(weeks.nth(1)).toContainText("2 FT → 1 left · No hit");
+  const weekly = await plan
+    .locator(".plan-timeline__gain strong")
+    .allTextContents();
+  const headline = await plan.locator(".plan-ahead__gain strong").textContent();
+  expect(weekly.map(points).reduce((sum, value) => sum + value, 0)).toBe(
+    points(headline!),
+  );
   await expect(plan).toContainText("Plans run optimistic");
   await plan.getByText("How this plan was found · limits").click();
   await expect(plan).toContainText("Bounded search");
@@ -86,7 +96,22 @@ test("previewing a plan shows each week's XI through the gameweek switcher", asy
     lineup.getByRole("button", { name: "Show lineup GW10" }),
   ).toHaveAttribute("aria-pressed", "true");
   await expect(pitch).toContainText("Hot Striker");
-  await expect(page.locator("#selected-option")).toBeAttached();
+  await page.locator("#selected-option > summary").click();
+  const selected = page.getByRole("article", {
+    name: "Selected transfer option",
+  });
+  await selected
+    .getByText("Gameweek-by-gameweek gains", { exact: true })
+    .click();
+  const net = await selected
+    .locator(".weekly-breakdown tbody td:last-child")
+    .allTextContents();
+  const [, , total] = await selected
+    .locator(".weekly-breakdown__totals dd")
+    .allTextContents();
+  expect(net.map(points).reduce((sum, value) => sum + value, 0)).toBe(
+    points(total),
+  );
 });
 
 test("choosing a week from an unselected plan previews that plan", async ({

@@ -12,6 +12,23 @@ export const signed = (value: number) => {
   return `${Number(rounded) === 0 || value > 0 ? "+" : minus}${rounded}`;
 };
 
+const shownTenths = (value: number) =>
+  Math.round(Number(value.toFixed(1)) * 10);
+
+export const tenthsAddingUp = (parts: number[], total: number) => {
+  let running = 0;
+  let shown = 0;
+  return parts.map((part, index) => {
+    running += part;
+    const cumulative = shownTenths(
+      index === parts.length - 1 ? total : running,
+    );
+    const tenths = cumulative - shown;
+    shown = cumulative;
+    return tenths / 10;
+  });
+};
+
 export const expectedPoints = (value: number) => `${value.toFixed(1)} pts`;
 
 export const signedPoints = (value: number) => `${signed(value)} pts`;

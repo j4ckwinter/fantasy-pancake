@@ -102,6 +102,7 @@ function RecommendedPlan({
       <PlanTimeline
         data={data}
         weeks={plan.weeks}
+        total={plan.gain}
         label={planLabel(plan)}
         onPlayerSelect={actions.onPlayerSelect}
         onShowWeek={(index) => {

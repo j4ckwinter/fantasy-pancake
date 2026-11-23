@@ -205,6 +205,25 @@ describe("planning ahead", () => {
     expect(reasons).toContain("each hit must clear that margin again");
   });
 
+  it("splits the reported gain into weekly gains that add up to it exactly", () => {
+    let plans = 0;
+    for (const freeTransfers of [0, 1, 2]) {
+      const { data, settings } = seasonContext();
+      addPlayer(data, { element_type: 4, ...STRONG, expected_goals: 11.37 });
+      addPlayer(data, { id: 101, ...STRONG, expected_assists: 7.13 });
+      settings.freeTransfers = freeTransfers;
+      for (const plan of analyze(data, settings).plans) {
+        plans++;
+        const hundredths = plan.weeks.reduce(
+          (sum, week) => sum + Math.round(week.gain * 100),
+          0,
+        );
+        expect(hundredths).toBe(Math.round(plan.gain * 100));
+      }
+    }
+    expect(plans).toBeGreaterThan(0);
+  });
+
   it("re-evaluates a chosen plan after a selling price changes", () => {
     const { data, settings } = seasonContext();
     addPlayer(data, { element_type: 4, ...STRONG });

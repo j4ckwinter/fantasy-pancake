@@ -7,7 +7,7 @@ import {
   nextWeekFreeTransfers,
   transferHit,
 } from "./transfer-rules";
-import { roundScore } from "./round-score";
+import { roundScore, roundScoreParts } from "./round-score";
 import type { TransferContext } from "./transfer-preview";
 
 export function accountPlan(
@@ -41,12 +41,13 @@ export function accountPlan(
     freeTransfers = nextWeekFreeTransfers(left, cap);
     return planned;
   });
+  const weeklyGains = roundScoreParts(planWeeks.map((week) => week.gain));
   return {
     actions,
-    weeks: planWeeks.map((week) => ({
+    weeks: planWeeks.map((week, index) => ({
       ...week,
       score: roundScore(week.score),
-      gain: roundScore(week.gain),
+      gain: weeklyGains[index],
     })),
     gain: roundScore(planWeeks.reduce((sum, week) => sum + week.gain, 0)),
     hit: planWeeks.reduce((sum, week) => sum + week.hit, 0),
