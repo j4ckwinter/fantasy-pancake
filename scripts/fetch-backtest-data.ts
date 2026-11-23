@@ -19,17 +19,16 @@ async function fetchJson(path: string): Promise<unknown> {
     const wait = lastRequestAt + MIN_REQUEST_GAP_MS - Date.now();
     if (wait > 0) await pause(wait);
     lastRequestAt = Date.now();
-    try {
-      const response = await fetch(ROOT + path, {
-        headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      });
-      if (response.ok) return await response.json();
-      if (response.status === 404 || attempt >= MAX_ATTEMPTS)
-        throw new Error(`${path} returned ${response.status}`);
-    } catch (error) {
+    const response = await fetch(ROOT + path, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    }).catch((error: unknown) => {
       if (attempt >= MAX_ATTEMPTS) throw error;
-    }
+      return undefined;
+    });
+    if (response?.ok) return await response.json();
+    if (response && (response.status === 404 || attempt >= MAX_ATTEMPTS))
+      throw new Error(`${path} returned ${response.status}`);
     await pause(RETRY_BACKOFF_MS * attempt);
   }
 }
