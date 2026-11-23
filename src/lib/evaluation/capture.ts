@@ -148,7 +148,7 @@ export function createSnapshot(
   settings: Settings,
   analysis: Analysis,
   confirmedSellingPriceIds: number[],
-  capturedAt = new Date().toISOString(),
+  capturedAt: string,
 ): EvaluationSnapshot {
   z.iso.datetime().parse(capturedAt);
   data = dataSchema.parse(data);
