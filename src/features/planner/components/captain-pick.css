@@ -70,8 +70,8 @@
 .captain-pick__mark {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: var(--size-role-badge);
+  height: var(--size-role-badge);
   border-radius: var(--radius-999);
   background: var(--color-surface-subtle);
   color: var(--color-ink);

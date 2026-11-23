@@ -217,8 +217,8 @@
 .lineup-preview__bench-slot {
   display: grid;
   place-items: center;
-  min-width: 20px;
-  height: 20px;
+  min-width: var(--size-bench-badge);
+  height: var(--size-bench-badge);
   padding-inline: var(--space-4);
   border: 1px solid var(--color-night-border-strong);
   border-radius: var(--radius-999);

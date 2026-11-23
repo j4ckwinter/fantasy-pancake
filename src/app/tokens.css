@@ -204,6 +204,8 @@
   --shadow-hero-card: 0 18px 40px var(--color-hero-card-shadow);
   --shadow-focus-on-night: 0 0 0 3px var(--color-brand);
   --segment-height: 32px;
+  --size-role-badge: 22px;
+  --size-bench-badge: 20px;
   --color-segment-on: #ffffff;
   --color-brand-tint: #c6fa4633;
   --color-night-pill-line: #c6fa4640;
