@@ -1,8 +1,6 @@
 import type { Data, Settings } from "./schemas";
 import type { Analysis, Move } from "./model/types";
-import { validateSquad } from "./model/squad-rules";
 import { checkTransfers } from "./model/transfer-legality";
-import { upcomingWeeks } from "./model/schedule";
 import { planTransfers } from "./model/planning";
 import {
   transferContext,
@@ -39,9 +37,8 @@ const AT_CAP_ROLL_NOTE =
   " You are at the free-transfer cap, so rolling cannot add another saved transfer.";
 
 export function analyze(data: Data, settings: Settings): Analysis {
-  const errors = validateSquad(data, settings);
-  if (errors.length) throw new Error(errors.join(" "));
-  const weeks = upcomingWeeks(data);
+  const context = transferContext(data, settings);
+  const { weeks, squad, scores, baseline } = context;
   const atCap =
     settings.freeTransfers >= freeTransferCap(data.bootstrap.game_settings);
   const threshold = atCap ? AT_CAP_NET_GAIN_THRESHOLD : NET_GAIN_THRESHOLD;
@@ -55,8 +52,6 @@ export function analyze(data: Data, settings: Settings): Analysis {
       rollReason:
         "No upcoming gameweeks are available. Recheck when the next season or schedule is published.",
     };
-  const context = transferContext(data, settings);
-  const { squad, scores, baseline } = context;
   const moves = worthwhileMoves(context, threshold);
   const plans = planTransfers(
     data,

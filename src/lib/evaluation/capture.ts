@@ -64,8 +64,6 @@ function freezeLineups(
       );
     }
     const lineup = bestLineup(data, squad, scores[index]);
-    if (lineup.captain === null)
-      throw new Error("A frozen lineup requires a captain.");
     return { week, ids: lineup.ids, captain: lineup.captain };
   });
 }

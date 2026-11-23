@@ -2,7 +2,9 @@ import type { Data, Fixture, Player } from "../schemas";
 
 const HORIZON_WEEKS = 4;
 
-export function upcomingWeeks(data: Data): number[] {
+export function upcomingWeeks(data: {
+  bootstrap: Pick<Data["bootstrap"], "events">;
+}): number[] {
   const events = [...data.bootstrap.events].sort((a, b) => a.id - b.id);
   const next =
     events.find((event) => event.is_next) ??

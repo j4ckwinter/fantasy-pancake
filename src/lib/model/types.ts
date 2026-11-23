@@ -1,4 +1,4 @@
-export type Lineup = { score: number; ids: number[]; captain: number | null };
+export type Lineup = { score: number; ids: number[]; captain: number };
 export type Move = {
   outId: number;
   inId: number;
