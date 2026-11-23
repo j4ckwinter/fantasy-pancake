@@ -207,10 +207,6 @@
   .results-workspace .selected-option {
     padding: var(--space-14);
   }
-  .results-workspace .transfer-group-heading h3 {
-    font-size: var(--text-21);
-    margin-block: 0;
-  }
 }
 .workspace-squad .lineup-switcher {
   margin-bottom: 0;

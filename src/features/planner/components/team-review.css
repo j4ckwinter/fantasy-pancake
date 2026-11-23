@@ -122,9 +122,6 @@
   .team-settings .squad-summary-heading button {
     padding-inline: var(--space-14);
   }
-  .team-settings .confirm-footer button[type="submit"] {
-    width: 100%;
-  }
 }
 .team-settings--expanded .confirm-footer {
   position: sticky;

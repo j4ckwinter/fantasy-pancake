@@ -56,9 +56,6 @@
   .alternative-price {
     gap: var(--space-0-2rem);
   }
-  .transfer-alternative > button {
-    justify-self: end;
-  }
 }
 .alternative-price .alternative-price__checked {
   color: var(--color-text-positive);
@@ -83,6 +80,7 @@
     grid-row: 2;
   }
   .transfer-alternative > button {
+    justify-self: end;
     grid-column: 2;
     grid-row: 2;
     min-height: 36px;
