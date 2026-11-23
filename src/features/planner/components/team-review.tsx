@@ -1,6 +1,15 @@
+import {
+  ArrowRightIcon,
+  ArrowUpRightIcon,
+  ChevronUpIcon,
+  CircleAlertIcon,
+  PencilIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TextField, SelectField } from "@/components/field";
 import { Banner } from "@/components/banner";
+import { Disclosure } from "@/components/disclosure";
+import { StatusBadge } from "@/components/status-badge";
 import { freeTransferCap, TRANSFER_HIT_POINTS } from "@/lib/model";
 import type { Data, Settings } from "@/lib/schemas";
 import { SquadEditor } from "./squad-editor";
@@ -44,7 +53,7 @@ export function TeamReview({
       className={`team-settings${editingTeam ? " team-settings--expanded" : ""}`}
     >
       <header className="team-settings-header">
-        <div>
+        <div className="team-settings-header__title">
           <span className="eyebrow">
             {teamLabel(settings)} · GW
             {settings.sourceGameweek} picks
@@ -54,13 +63,16 @@ export function TeamReview({
         <Button
           type="button"
           variant="outline"
+          className="team-settings-switch"
           disabled={busy}
           onClick={onImportAnother}
         >
-          Switch team ↗
+          Switch team
+          <ArrowUpRightIcon aria-hidden="true" className="size-4" />
         </Button>
       </header>
       <form
+        className="team-settings-form"
         onSubmit={(event) => {
           event.preventDefault();
           if (busy) return;
@@ -105,38 +117,43 @@ export function TeamReview({
           </SelectField>
         </div>
         {settings.freeTransfers === 0 && (
-          <p className="team-settings-note">
-            Your next transfer costs {TRANSFER_HIT_POINTS} points.
+          <p className="team-settings-cost">
+            <CircleAlertIcon aria-hidden="true" className="size-4" />
+            <span>
+              Your next transfer costs{" "}
+              <strong>{TRANSFER_HIT_POINTS} points</strong>.
+            </span>
           </p>
         )}
-        <details className="forecast-settings">
-          <summary>Advanced options</summary>
-          <SelectField
-            label="Availability assumption"
-            value={settings.availabilityScenario ?? "persistent"}
-            onChange={(event) =>
-              onUpdate({
-                ...settings,
-                availabilityScenario:
-                  event.target.value === "recover-next-week"
-                    ? "recover-next-week"
-                    : "persistent",
-              })
-            }
-          >
-            <option value="persistent">Current availability persists</option>
-            <option value="recover-next-week">
-              Flagged players recover after next gameweek
-            </option>
-          </SelectField>
-          {settings.availabilityScenario === "recover-next-week" && (
-            <p className="muted">
-              Recovery is a what-if scenario, not a predicted return date.
-            </p>
-          )}
-        </details>
+        <div className="team-settings-advanced">
+          <Disclosure summary="Advanced options">
+            <SelectField
+              label="Availability assumption"
+              value={settings.availabilityScenario ?? "persistent"}
+              onChange={(event) =>
+                onUpdate({
+                  ...settings,
+                  availabilityScenario:
+                    event.target.value === "recover-next-week"
+                      ? "recover-next-week"
+                      : "persistent",
+                })
+              }
+            >
+              <option value="persistent">Current availability persists</option>
+              <option value="recover-next-week">
+                Flagged players recover after next gameweek
+              </option>
+            </SelectField>
+            {settings.availabilityScenario === "recover-next-week" && (
+              <p className="team-settings-hint">
+                Recovery is a what-if scenario, not a predicted return date.
+              </p>
+            )}
+          </Disclosure>
+        </div>
         {errors.length > 0 && (
-          <div className="notice">
+          <div className="team-settings-problems">
             <Banner title="Check your squad" tone="warning">
               <ul>
                 {errors.map((e) => (
@@ -146,12 +163,13 @@ export function TeamReview({
             </Banner>
           </div>
         )}
-        <div className="section-title squad-summary-heading">
+        <div className="squad-summary-heading">
           <div>
             <h3>
-              Your squad <span>{settings.squad.length}</span>
+              Your squad{" "}
+              <StatusBadge tone="neutral">{settings.squad.length}</StatusBadge>
             </h3>
-            <p className="muted">Made a move already? Update your picks.</p>
+            <p>Made a move already? Update your picks.</p>
           </div>
           <Button
             type="button"
@@ -159,6 +177,11 @@ export function TeamReview({
             aria-expanded={editingTeam}
             onClick={onToggleEditing}
           >
+            {editingTeam ? (
+              <ChevronUpIcon aria-hidden="true" className="size-4" />
+            ) : (
+              <PencilIcon aria-hidden="true" className="size-4" />
+            )}
             {editingTeam ? "Hide players" : "Edit team"}
           </Button>
         </div>
@@ -173,7 +196,7 @@ export function TeamReview({
           {canReturnToShortlist && hasTeamEdits && (
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               className="team-settings-discard"
               disabled={busy}
               onClick={onCancel}
@@ -182,13 +205,15 @@ export function TeamReview({
             </Button>
           )}
           <Button
-            variant="outline"
+            variant="brand"
             type="submit"
+            className="team-settings-submit"
             disabled={busy || errors.length > 0}
           >
             {canReturnToShortlist && !hasTeamEdits
-              ? "View shortlist →"
-              : "Save & view shortlist →"}
+              ? "View shortlist"
+              : "Save & view shortlist"}
+            <ArrowRightIcon aria-hidden="true" className="size-4" />
           </Button>
         </div>
       </form>
