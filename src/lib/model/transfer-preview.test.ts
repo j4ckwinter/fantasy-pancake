@@ -25,8 +25,9 @@ describe("interactive transfers", () => {
     settings.lockedPlayerIds = [8, 9, 10, 11, 13, 14];
     const result = analyze(data, settings);
     expect(result.moves.length).toBeGreaterThan(0);
-    expect(result.plans?.map((plan) => plan.kind).sort()).toEqual([
+    expect([...new Set(result.plans.map((plan) => plan.kind))].sort()).toEqual([
       "pair-now",
+      "plan-ahead",
       "roll-then-transfer",
     ]);
     for (const move of result.moves)

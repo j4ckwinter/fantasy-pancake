@@ -2,6 +2,7 @@ import type { Data, Settings } from "./schemas";
 import type { Analysis, Move } from "./model/types";
 import { checkTransfers } from "./model/transfer-legality";
 import { planTransfers } from "./model/planning";
+import { transferThreshold } from "./model/transfer-threshold";
 import {
   transferContext,
   describeTransfer,
@@ -13,6 +14,7 @@ import { roundScore } from "./model/round-score";
 import { captaincyByWeek } from "./model/captaincy-preview";
 
 export { evaluateTransfer, previewTransfers } from "./model/transfer-preview";
+export { evaluatePlan } from "./model/planning";
 export { previewCaptaincy } from "./model/captaincy-preview";
 export type { BenchSlot, CaptainOption, Captaincy } from "./model/captaincy";
 export { playerForecast, usableHistory } from "./model/forecast-history";
@@ -20,6 +22,8 @@ export type {
   Analysis,
   Lineup,
   Move,
+  PlanVariant,
+  PlanWeek,
   TransferPlan,
   TransferAction,
 } from "./model/types";
@@ -37,8 +41,6 @@ export {
   nextWeekFreeTransfers,
 } from "./model/transfer-rules";
 
-const NET_GAIN_THRESHOLD_POINTS = 2;
-const AT_CAP_NET_GAIN_THRESHOLD_POINTS = 1;
 const SHORTLIST_INCOMING_PLAYERS = 3;
 const SHORTLIST_OUTGOING_PER_INCOMING = 3;
 const AT_CAP_ROLL_NOTE =
@@ -51,14 +53,15 @@ function atFreeTransferCap(data: Data, settings: Settings): boolean {
 }
 
 export function netGainThreshold(data: Data, settings: Settings): number {
-  return atFreeTransferCap(data, settings)
-    ? AT_CAP_NET_GAIN_THRESHOLD_POINTS
-    : NET_GAIN_THRESHOLD_POINTS;
+  return transferThreshold(
+    settings.freeTransfers,
+    freeTransferCap(data.bootstrap.game_settings),
+  );
 }
 
 export function analyze(data: Data, settings: Settings): Analysis {
   const context = transferContext(data, settings);
-  const { weeks, squad, scores, baseline } = context;
+  const { weeks, squad, baseline } = context;
   const atCap = atFreeTransferCap(data, settings);
   const threshold = netGainThreshold(data, settings);
   if (!weeks.length)
@@ -73,15 +76,7 @@ export function analyze(data: Data, settings: Settings): Analysis {
         "No upcoming gameweeks are available. Recheck when the next season or schedule is published.",
     };
   const moves = worthwhileMoves(context, threshold);
-  const plans = planTransfers(
-    data,
-    settings,
-    weeks,
-    squad,
-    scores,
-    baseline,
-    threshold,
-  );
+  const plans = planTransfers(context);
   return {
     weeks,
     baseline: baseline.map((lineup) => ({

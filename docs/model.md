@@ -1,6 +1,6 @@
 # Recommendation model
 
-`forecast-v6` forecasts expected FPL points per player and gameweek, using parameters calibrated against this season's results (see [Calibration](#calibration)). It compares keeping the squad, single transfers, selected pairs now and rolling before one transfer next week. Forecasts carry measured error that can exceed the gap between closely ranked moves, and forecast transfer gains have been much larger than realised gains.
+`forecast-v7` forecasts expected FPL points per player and gameweek, using parameters calibrated against this season's results (see [Calibration](#calibration)). It compares keeping the squad, single transfers and multi-week plans found by one bounded search: the best plan over the horizon, pairs now and rolling before one transfer next week. Forecasts carry measured error that can exceed the gap between closely ranked moves, and forecast transfer gains have been much larger than realised gains.
 
 ## Inputs and legality
 
@@ -56,11 +56,24 @@ For each horizon week, the captaincy module ranks the chosen starting XI (`capta
 
 This is an approximation of automatic substitution. Each reserve's cover is computed on its own, so it ignores that an earlier reserve may already have filled a vacancy, the order FPL processes substitutions in, and correlated absences such as a whole club blanking. The ranking adds no output to existing transfer scores, so `forecast-v5` is unchanged.
 
-Single transfers search all eligible players. Paired and delayed plans use four highest horizon-scoring and two cheapest unowned candidates per position. This bounded search is not exhaustive and can miss the best enabling move or a deferred specialist. The best qualifying pair-now and roll-then-transfer plan are shown in their own categories alongside grouped single-transfer options; these are alternatives, not cumulative recommendations.
+## Transfer threshold
 
-Each uncovered transfer costs four points and deducts four expected points once. Pairs can cost zero, four or eight. Rolling accrues one free transfer up to the API cap before the next-week move; first-week gain for a delayed move is zero. Remaining free transfers in plan cards are measured immediately after the last planned action, before further weekly accrual. Future purchase and selling prices are held at today's values. No longer sequences or future news changes are simulated.
+Single transfers search all eligible players and must gain more than two expected points net of any hit, or one at the free-transfer cap (`transfer-threshold.ts`). These thresholds express an assumed flexibility margin, not a learned value. The season backtest kept them: realised gains did not rise with forecast gain in the decision replay, so the data gives no better cut-off, and two points over four gameweeks still stands for the value of a saved transfer. Model uncertainty can exceed differences between closely ranked moves.
 
-Net gain must exceed two expected points, or one at the free-transfer cap. These thresholds express an assumed flexibility margin, not a learned value. The season backtest kept them: realised gains did not rise with forecast gain in the decision replay, so the data gives no better cut-off, and two points over four gameweeks still stands for the value of a saved transfer. Model uncertainty can exceed differences between closely ranked moves.
+## Multi-week plans
+
+One search (`plan-search.ts`) builds every plan. It walks the horizon a week at a time and, in each week, chooses zero, one or two transfers, carrying the squad, bank, selling prices and free transfers forward. Free transfers follow `transfer-rules.ts`: each uncovered transfer costs four points, unused transfers accrue one a week up to the API cap, and the transfers left after a week's moves are what carry into the next accrual. Each week's legality comes from `transfer-legality.ts`, so squad shape, locks, unique ownership, combined-funds budget and club limits apply to every week's batch. A starting squad over a club limit can be held, but any week with transfers must leave it legal.
+
+- **Objective.** A plan's value is the sum over the horizon of each week's best XI, captain doubled, minus hits. Weeks after the last move hold the squad. Gain is that value less the value of holding throughout, so every plan states its own expected points against holding.
+- **Margin.** Plans are ranked by gain less a margin: the net-gain threshold for each transfer, plus the threshold again for each transfer that takes a hit, using the at-cap threshold when that week starts at the cap. A plan is offered only when its gain beats its margin, so a two-transfer plan needs more than four points and a hit transfer needs more than four points plus its hit. This is deliberate caution. In the season replay the model's best single transfer forecast far more than it realised (the dated figures are in `forecast-accuracy.ts` and under [Calibration](#calibration)), and choosing the best of many noisy sequences compounds that optimism.
+- **Candidates.** Incoming players come from a pool of the four highest horizon-scoring and two cheapest unowned, transferable players per position (`plan-candidates.ts`). Every outgoing player that is not locked is paired with every pool player in its position.
+- **Pairs.** A week's pairs are ranked by the sum of their two single-transfer gains, ignoring budget and club limits so that a downgrade can fund an unaffordable upgrade. Pairs start from the eight best singles, and only the sixteen best-estimated legal pairs are scored exactly.
+- **Beam.** After each week the search keeps the six best partial plans, plus the best for each free-transfer count and each number of transfers made, so banking a transfer is never pruned in favour of moving now. Identical squads with the same bank and free transfers merge. Ties prefer fewer transfers, then later moves, then a fixed ordering of player ids, so results are deterministic.
+- **Plans shown.** Plan ahead shows the best plan and up to three distinct alternatives: the best without hits, with a single transfer, holding this week, or moving this week, whichever differ from the best. Two transfers now and roll then move are the same search restricted to two transfers in the first week, or one in the second.
+
+Each plan reports, per week, its transfers, hit, free transfers before and after the moves, bank after the moves, the week's best XI and its gain over holding net of the hit. Plan totals report free transfers immediately after the last planned move, before further accrual.
+
+This search is bounded and can miss the best plan: a player outside the pool, a pair outside the best-estimated sixteen, or a sequence the beam pruned. On 300 small generated markets where every sequence could be enumerated, the search found the exhaustive optimum every time; that check says nothing about full-size markets. Prices stay at today's values for every week. Future injury news, price changes, chips and automatic substitutions are not simulated, and the value of free transfers still held at the end of the horizon is ignored. Only the first week's moves need making now, and plans should be rerun each week.
 
 ## Evaluation
 
@@ -79,6 +92,8 @@ Version 4 changes shortlist coverage and planning constraints; it does not claim
 Version 5 adds the adaptive minutes weighting described above. The UI also reports the observed mean minutes across starts in the latest four eligible completed matches (with its sample count); this is distinct from expected minutes per match and is unavailable when there are no recent starts. Current availability remains a separate scoring adjustment.
 
 Version 6 calibrates six named parameters against this season's results and reports forecasts as expected FPL points. Shortlist, plan and preview gains change accordingly; legality, search and thresholds do not.
+
+Version 7 replaces the separate pair and roll searches with the multi-week plan search above. Pair and roll plans now come from the same search, rank pairs by estimated gain before scoring the best sixteen exactly instead of scoring every pair in the pool, and must clear the threshold for each transfer and hit rather than once per plan. Forecasts and single transfers do not change.
 
 ## Calibration
 

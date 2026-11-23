@@ -1,26 +1,38 @@
-import type { AvailabilityScenario, Data, Player, Settings } from "../schemas";
-import type { Lineup, TransferAction, TransferPlan } from "./types";
-import { bestLineup } from "./lineup";
+import type { AvailabilityScenario, Data, Settings } from "../schemas";
+import type {
+  PlanIdentity,
+  PlanVariant,
+  TransferAction,
+  TransferPlan,
+} from "./types";
+import { freeTransferCap, uncoveredTransfers } from "./transfer-rules";
 import {
-  checkTransfers,
-  isTransferable,
-  startingState,
-  transferRules,
-  type SquadState,
-  type TransferRules,
-} from "./transfer-legality";
-import { roundScore } from "./round-score";
-import {
-  freeTransferCap,
-  freeTransfersLeft,
-  nextWeekFreeTransfers,
-  transferHit,
-} from "./transfer-rules";
+  AT_CAP_NET_GAIN_THRESHOLD_POINTS,
+  NET_GAIN_THRESHOLD_POINTS,
+  transferThreshold,
+} from "./transfer-threshold";
 import { DEFAULT_AVAILABILITY_SCENARIO } from "./scoring";
-import { positionOf, type Position } from "./position";
+import {
+  CHEAP_CANDIDATES_PER_POSITION,
+  STRONG_CANDIDATES_PER_POSITION,
+  candidatePool,
+} from "./plan-candidates";
+import {
+  MAX_TRANSFERS_PER_WEEK,
+  PLAN_BEAM_WIDTH,
+  adjustedValue,
+  compareCandidates,
+  searchPlans,
+  WEEK_TRANSFER_CHOICES,
+  type PlanCandidate,
+  type PlanShape,
+  type SearchSpace,
+} from "./plan-search";
+import { accountPlan } from "./plan-accounting";
+import { transferContext, type TransferContext } from "./transfer-preview";
 
-const STRONG_CANDIDATES_PER_POSITION = 4;
-const CHEAP_CANDIDATES_PER_POSITION = 2;
+const PLAN_ALTERNATIVES = 3;
+
 const SCENARIO_ASSUMPTION: Record<AvailabilityScenario, string> = {
   persistent:
     "Assumes current availability persists; short absences could make this plan less attractive.",
@@ -33,220 +45,173 @@ const PAIR_REASONS = [
   "Free transfers shown are those left immediately after the two moves, before next week's accrual.",
 ];
 
-type WeeklyScores = ReadonlyMap<number, number>[];
+const PLAN_AHEAD_REASONS = [
+  "Only this gameweek's moves need making now. Later weeks are a sketch: rerun the plan each week as news and prices change.",
+];
 
-type PlanSearch = {
-  weeks: number[];
-  squad: Player[];
-  candidates: Record<Position, Player[]>;
-  rules: TransferRules;
-  start: SquadState;
-  gains: (changed: Player[]) => number[];
+const ALTERNATIVE_RULES: Record<
+  Exclude<PlanVariant, "best">,
+  {
+    applies: (best: PlanCandidate, weeks: number[]) => boolean;
+    matches: (candidate: PlanCandidate, weeks: number[]) => boolean;
+  }
+> = {
+  "no-hits": {
+    applies: (best) => best.hit > 0,
+    matches: (candidate) => candidate.hit === 0,
+  },
+  "fewer-moves": {
+    applies: (best) => best.transfers > 1,
+    matches: (candidate) => candidate.transfers === 1,
+  },
+  "bank-first": {
+    applies: (best, weeks) => movesIn(best, weeks[0]),
+    matches: (candidate, weeks) => !movesIn(candidate, weeks[0]),
+  },
+  "move-now": {
+    applies: (best, weeks) => !movesIn(best, weeks[0]),
+    matches: (candidate, weeks) => movesIn(candidate, weeks[0]),
+  },
 };
 
-type Swap = Pick<TransferAction, "outId" | "inId">;
+const ALTERNATIVE_ORDER = [
+  "no-hits",
+  "fewer-moves",
+  "bank-first",
+  "move-now",
+] as const satisfies readonly Exclude<PlanVariant, "best">[];
 
-export function planTransfers(
+function transferSet(candidate: PlanCandidate): string {
+  return candidate.actions
+    .map((action) => `${action.outId}>${action.inId}`)
+    .sort()
+    .join(",");
+}
+
+function movesIn(candidate: PlanCandidate, week: number | undefined) {
+  return candidate.actions.some((action) => action.week === week);
+}
+
+function searchSpace(context: TransferContext): SearchSpace {
+  const { data, settings, weeks, squad, scores, rules, start } = context;
+  const cap = freeTransferCap(data.bootstrap.game_settings);
+  return {
+    data,
+    weeks,
+    scores,
+    rules,
+    start,
+    freeTransfers: settings.freeTransfers,
+    cap,
+    candidates: candidatePool(data, squad, scores),
+    margin: (transfers, freeTransfers) =>
+      transferThreshold(freeTransfers, cap) *
+      (transfers + uncoveredTransfers(transfers, freeTransfers)),
+  };
+}
+
+function plan(
+  context: TransferContext,
+  actions: TransferAction[],
+  identity: PlanIdentity,
+  reasons: string[],
+): TransferPlan {
+  return { ...accountPlan(context, actions), ...identity, reasons };
+}
+
+function shapes(weeks: number[]): Record<TransferPlan["kind"], PlanShape> {
+  return {
+    "plan-ahead": weeks.map(() => WEEK_TRANSFER_CHOICES),
+    "pair-now": weeks.map((_, index) => (index === 0 ? [2] : [0])),
+    "roll-then-transfer":
+      weeks.length < 2
+        ? []
+        : weeks.map((_, index) => (index === 1 ? [1] : [0])),
+  };
+}
+
+export function planTransfers(context: TransferContext): TransferPlan[] {
+  const { weeks, settings } = context;
+  if (!weeks.length) return [];
+  const space = searchSpace(context);
+  const holding = context.baseline.reduce(
+    (sum, lineup) => sum + lineup.score,
+    0,
+  );
+  const assumptions = planAssumptions(settings);
+  const search = (shape: PlanShape) =>
+    shape.length
+      ? searchPlans(space, shape)
+          .filter((candidate) => adjustedValue(candidate) > holding)
+          .sort(compareCandidates)
+      : [];
+  const shapeFor = shapes(weeks);
+  const [pair] = search(shapeFor["pair-now"]);
+  const [roll] = search(shapeFor["roll-then-transfer"]);
+  return [
+    ...planAhead(context, search(shapeFor["plan-ahead"]), assumptions),
+    ...(pair
+      ? [
+          plan(context, pair.actions, { kind: "pair-now" }, [
+            ...PAIR_REASONS,
+            ...assumptions,
+          ]),
+        ]
+      : []),
+    ...(roll
+      ? [
+          plan(context, roll.actions, { kind: "roll-then-transfer" }, [
+            ...rollReasons(weeks, space.cap, settings.freeTransfers),
+            ...assumptions,
+          ]),
+        ]
+      : []),
+  ];
+}
+
+function planAhead(
+  context: TransferContext,
+  ranked: PlanCandidate[],
+  assumptions: string[],
+): TransferPlan[] {
+  const [best] = ranked;
+  if (!best) return [];
+  const { weeks } = context;
+  const chosen = new Set([transferSet(best)]);
+  const alternatives: { variant: PlanVariant; candidate: PlanCandidate }[] = [];
+  for (const variant of ALTERNATIVE_ORDER) {
+    if (alternatives.length >= PLAN_ALTERNATIVES) break;
+    const rule = ALTERNATIVE_RULES[variant];
+    if (!rule.applies(best, weeks)) continue;
+    const candidate = ranked.find(
+      (option) =>
+        !chosen.has(transferSet(option)) && rule.matches(option, weeks),
+    );
+    if (!candidate) continue;
+    chosen.add(transferSet(candidate));
+    alternatives.push({ variant, candidate });
+  }
+  const reasons = [...PLAN_AHEAD_REASONS, ...assumptions];
+  return [{ variant: "best" as const, candidate: best }, ...alternatives].map(
+    ({ variant, candidate }) =>
+      plan(
+        context,
+        candidate.actions,
+        { kind: "plan-ahead", variant },
+        reasons,
+      ),
+  );
+}
+
+export function evaluatePlan(
   data: Data,
   settings: Settings,
-  weeks: number[],
-  squad: Player[],
-  scores: WeeklyScores,
-  baseline: Lineup[],
-  threshold: number,
-): TransferPlan[] {
-  if (!weeks.length) return [];
-  const search: PlanSearch = {
-    weeks,
-    squad,
-    candidates: candidatePool(data, squad, scores),
-    rules: transferRules(data, settings),
-    start: startingState(settings, squad),
-    gains: lineupGains(data, scores, baseline),
-  };
-  const assumptions = planAssumptions(settings);
-  const cap = freeTransferCap(data.bootstrap.game_settings);
-  return bestPlanPerKind(
-    [
-      ...rollPlans(search, settings.freeTransfers, cap, assumptions),
-      ...pairPlans(search, settings.freeTransfers, assumptions),
-    ],
-    threshold,
-  );
-}
-
-function candidatePool(
-  data: Data,
-  squad: Player[],
-  scores: WeeklyScores,
-): Record<Position, Player[]> {
-  const owned = new Set(squad.map((player) => player.id));
-  const horizonScore = (player: Player) =>
-    scores.reduce((sum, week) => sum + (week.get(player.id) ?? 0), 0);
-  const forPosition = (position: Position) => {
-    const eligible = data.bootstrap.elements.filter(
-      (player) =>
-        player.element_type === position &&
-        !owned.has(player.id) &&
-        isTransferable(player),
-    );
-    const best = [...eligible]
-      .sort((a, b) => horizonScore(b) - horizonScore(a) || a.id - b.id)
-      .slice(0, STRONG_CANDIDATES_PER_POSITION);
-    const cheap = [...eligible]
-      .sort(
-        (a, b) =>
-          a.now_cost - b.now_cost ||
-          horizonScore(b) - horizonScore(a) ||
-          a.id - b.id,
-      )
-      .slice(0, CHEAP_CANDIDATES_PER_POSITION);
-    return [...new Map([...best, ...cheap].map((p) => [p.id, p])).values()];
-  };
+  original: TransferPlan,
+): TransferPlan {
   return {
-    1: forPosition(1),
-    2: forPosition(2),
-    3: forPosition(3),
-    4: forPosition(4),
+    ...original,
+    ...accountPlan(transferContext(data, settings), original.actions),
   };
-}
-
-function lineupGains(
-  data: Data,
-  scores: WeeklyScores,
-  baseline: Lineup[],
-): (changed: Player[]) => number[] {
-  const cache = new Map<string, number[]>();
-  return (changed) => {
-    const key = changed
-      .map((player) => player.id)
-      .sort((a, b) => a - b)
-      .join(",");
-    const cached = cache.get(key);
-    if (cached) return cached;
-    const values = scores.map(
-      (week, index) =>
-        bestLineup(data, changed, week).score - baseline[index].score,
-    );
-    cache.set(key, values);
-    return values;
-  };
-}
-
-function singleSwaps(search: PlanSearch): Swap[] {
-  return search.squad.flatMap((outgoing) =>
-    search.candidates[positionOf(outgoing)].map((incoming) => ({
-      outId: outgoing.id,
-      inId: incoming.id,
-    })),
-  );
-}
-
-function isMirrorAssignment(
-  search: PlanSearch,
-  first: Swap,
-  second: Swap,
-): boolean {
-  const firstOut = search.rules.byId.get(first.outId)!;
-  const secondOut = search.rules.byId.get(second.outId)!;
-  return (
-    firstOut.element_type === secondOut.element_type && first.inId > second.inId
-  );
-}
-
-function swapPairs(search: PlanSearch): [Swap, Swap][] {
-  const singles = singleSwaps(search);
-  const squadIndex = new Map(
-    search.squad.map((player, index) => [player.id, index]),
-  );
-  return singles.flatMap((first) =>
-    singles
-      .filter(
-        (second) =>
-          squadIndex.get(second.outId)! > squadIndex.get(first.outId)! &&
-          first.inId !== second.inId &&
-          !isMirrorAssignment(search, first, second),
-      )
-      .map((second): [Swap, Swap] => [first, second]),
-  );
-}
-
-function rollPlans(
-  search: PlanSearch,
-  freeTransfers: number,
-  cap: number,
-  assumptions: string[],
-): TransferPlan[] {
-  const { weeks } = search;
-  if (weeks.length < 2) return [];
-  const deferredFreeTransfers = nextWeekFreeTransfers(freeTransfers, cap);
-  return singleSwaps(search).flatMap((swap) => {
-    const check = checkTransfers(search.rules, search.start, [swap]);
-    if (!check.legal) return [];
-    const laterGain = search
-      .gains(check.state.squad)
-      .slice(1)
-      .reduce((sum, value) => sum + value, 0);
-    return [
-      {
-        kind: "roll-then-transfer",
-        actions: [{ week: weeks[1], ...swap }],
-        gain: roundScore(laterGain),
-        hit: 0,
-        remainingBank: check.state.bank,
-        freeTransfersAfterPlan: freeTransfersLeft(1, deferredFreeTransfers),
-        reasons: [...rollReasons(weeks, cap, freeTransfers), ...assumptions],
-      },
-    ];
-  });
-}
-
-function pairPlans(
-  search: PlanSearch,
-  freeTransfers: number,
-  assumptions: string[],
-): TransferPlan[] {
-  const hit = transferHit(2, freeTransfers);
-  return swapPairs(search).flatMap((swaps) => {
-    const check = checkTransfers(search.rules, search.start, swaps);
-    if (!check.legal) return [];
-    const totalGain = search
-      .gains(check.state.squad)
-      .reduce((sum, value) => sum + value, 0);
-    return [
-      {
-        kind: "pair-now",
-        actions: swaps.map((swap) => ({ week: search.weeks[0], ...swap })),
-        gain: roundScore(totalGain - hit),
-        hit,
-        remainingBank: check.state.bank,
-        freeTransfersAfterPlan: freeTransfersLeft(2, freeTransfers),
-        reasons: [...PAIR_REASONS, ...assumptions],
-      },
-    ];
-  });
-}
-
-function bestPlanPerKind(
-  plans: TransferPlan[],
-  threshold: number,
-): TransferPlan[] {
-  const planKey = (plan: TransferPlan) =>
-    plan.actions.map((action) => `${action.outId}:${action.inId}`).join(",");
-  const best = new Map<TransferPlan["kind"], TransferPlan>();
-  for (const plan of plans) {
-    if (plan.gain <= threshold) continue;
-    const previous = best.get(plan.kind);
-    if (
-      !previous ||
-      plan.gain > previous.gain ||
-      (plan.gain === previous.gain && planKey(plan) < planKey(previous))
-    )
-      best.set(plan.kind, plan);
-  }
-  return [...best.values()].sort(
-    (a, b) => b.gain - a.gain || a.kind.localeCompare(b.kind),
-  );
 }
 
 function planAssumptions(settings: Settings): string[] {
@@ -254,9 +219,10 @@ function planAssumptions(settings: Settings): string[] {
     SCENARIO_ASSUMPTION[
       settings.availabilityScenario ?? DEFAULT_AVAILABILITY_SCENARIO
     ],
-    "Bounded search: four strongest and two cheapest candidates per position; this is not an exhaustive transfer plan.",
+    `Bounded search: ${STRONG_CANDIDATES_PER_POSITION} strongest and ${CHEAP_CANDIDATES_PER_POSITION} cheapest candidates per position, at most ${MAX_TRANSFERS_PER_WEEK} transfers a week, and the best ${PLAN_BEAM_WIDTH} plans kept each week. It is not exhaustive.`,
+    `Each transfer must add more than ${NET_GAIN_THRESHOLD_POINTS} expected points after hits (${AT_CAP_NET_GAIN_THRESHOLD_POINTS} at the free-transfer cap), and each hit must clear that margin again, because the forecast gain of the best-looking move runs optimistic.`,
     "Uses today's purchase and selling prices throughout; confirm outgoing prices and recheck future prices before acting.",
-    "No chips, further transfers, automatic substitutions or changing injury news are simulated.",
+    "Ignores future injury news and price changes. No chips or automatic substitutions are simulated.",
   ];
 }
 

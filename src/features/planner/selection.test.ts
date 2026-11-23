@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { Analysis, Move, TransferPlan } from "@/lib/model";
 import type { Settings } from "@/lib/schemas";
-import { planSelection, reselect, transferSelection } from "./selection";
+import {
+  planSelection,
+  reselect,
+  selectedPreview,
+  transferSelection,
+} from "./selection";
+import { addPlayer, seasonContext } from "@/lib/model/test-fixtures";
 import { seasonData } from "./test-fixtures";
 
 const data = seasonData();
@@ -33,6 +39,7 @@ function plan(week: number, gain = 4): TransferPlan {
     remainingBank: 0,
     freeTransfersAfterPlan: 1,
     reasons: [],
+    weeks: [],
   };
 }
 
@@ -101,5 +108,36 @@ describe("reselecting after a refresh", () => {
         settings,
       ),
     ).toBeNull();
+  });
+});
+
+describe("previewing a plan", () => {
+  it("keeps the bank right when a plan sells a player it bought earlier", () => {
+    const { data: league, settings: squad } = seasonContext();
+    addPlayer(league, { now_cost: 55 });
+    addPlayer(league, { id: 101, now_cost: 52 });
+    squad.bank = 10;
+    const chained: TransferPlan = {
+      kind: "plan-ahead",
+      variant: "best",
+      actions: [
+        { week: 11, outId: 8, inId: 100 },
+        { week: 12, outId: 100, inId: 101 },
+      ],
+      weeks: [],
+      gain: 0,
+      hit: 0,
+      remainingBank: 0,
+      freeTransfersAfterPlan: 0,
+      reasons: [],
+    };
+    const { selection } = selectedPreview(
+      league,
+      squad,
+      planSelection(chained),
+    );
+    expect(selection?.kind === "plan" && selection.plan.remainingBank).toBe(
+      10 + 50 - 55 + 55 - 52,
+    );
   });
 });

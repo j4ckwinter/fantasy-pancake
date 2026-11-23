@@ -2,7 +2,12 @@ import { ArrowRightIcon, CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Data } from "@/lib/schemas";
 import type { TransferPlan } from "@/lib/model";
-import { planLabels, pricesChecked, type Selection } from "../selection";
+import {
+  planKey,
+  planLabel,
+  pricesChecked,
+  type Selection,
+} from "../selection";
 import { findPlayer } from "../players";
 import { PlayerLink } from "./player-link";
 import { expectedGainLabel, minus, money, signedPoints } from "../format";
@@ -40,15 +45,8 @@ export function TransferPlans({
   return (
     <div className="transfer-plan-grid">
       {plans.map((plan, index) => {
-        const key = plan.actions
-          .map((action) => `${action.week}-${action.outId}-${action.inId}`)
-          .join("/");
-        const selected =
-          selection?.kind === "plan" &&
-          selection.plan.kind === plan.kind &&
-          selection.actions
-            .map((action) => `${action.week}-${action.outId}-${action.inId}`)
-            .join("/") === key;
+        const key = planKey(plan);
+        const selected = selection?.kind === "plan" && selection.key === key;
         const multipleWeeks =
           new Set(plan.actions.map((action) => action.week)).size > 1;
         const checked = pricesChecked(plan.actions, confirmedPrices);
@@ -62,7 +60,7 @@ export function TransferPlans({
                 {String(index + 1).padStart(2, "0")}
               </span>
               <div>
-                <h3>{planLabels[plan.kind]}</h3>
+                <h3>{planLabel(plan)}</h3>
                 <p className="transfer-group-subtitle">
                   {plan.kind === "pair-now"
                     ? `GW${plan.actions[0]?.week}`

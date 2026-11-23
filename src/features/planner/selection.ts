@@ -1,13 +1,14 @@
 import { errorMessage } from "@/lib/error-message";
 import { findPlayer } from "./players";
 import {
+  evaluatePlan,
   evaluateTransfer,
   previewCaptaincy,
   previewTransfers,
   type Analysis,
   type Captaincy,
-  type Lineup,
   type Move,
+  type PlanVariant,
   type TransferPlan,
 } from "@/lib/model";
 import type { Data, Player, Settings } from "@/lib/schemas";
@@ -28,13 +29,37 @@ export function selectedOption(selection: Selection): Move | TransferPlan {
 
 export type PlanCategory = "singles" | TransferPlan["kind"];
 
-export const planLabels: Record<TransferPlan["kind"], string> = {
-  "pair-now": "Two transfers now",
-  "roll-then-transfer": "Roll, then move",
+export const planVariantLabels: Record<PlanVariant, string> = {
+  best: "Recommended plan",
+  "no-hits": "No hits",
+  "fewer-moves": "One move only",
+  "bank-first": "Bank first",
+  "move-now": "Move now",
 };
+
+export function planLabel(plan: TransferPlan): string {
+  switch (plan.kind) {
+    case "plan-ahead":
+      return planVariantLabels[plan.variant];
+    case "pair-now":
+      return "Two transfers now";
+    case "roll-then-transfer":
+      return "Roll, then move";
+  }
+}
+
+export function planKey(plan: TransferPlan): string {
+  return [
+    plan.kind === "plan-ahead" ? `${plan.kind}:${plan.variant}` : plan.kind,
+    ...plan.actions.map(
+      (action) => `${action.week}-${action.outId}-${action.inId}`,
+    ),
+  ].join("/");
+}
 
 export const planCategoryLabels: Record<PlanCategory, string> = {
   singles: "Singles",
+  "plan-ahead": "Plan ahead",
   "pair-now": "Two transfers",
   "roll-then-transfer": "Roll then move",
 };
@@ -78,8 +103,8 @@ export function transferSelection(
 export function planSelection(plan: TransferPlan): Selection {
   return {
     kind: "plan",
-    key: plan.kind,
-    label: planLabels[plan.kind],
+    key: planKey(plan),
+    label: planLabel(plan),
     actions: plan.actions,
     plan,
   };
@@ -135,7 +160,6 @@ export function selectedPreview(
   data: Data,
   settings: Settings,
   selection: Selection | null,
-  baseline: Lineup[],
 ) {
   if (!selection) return emptyPreview;
   try {
@@ -153,26 +177,7 @@ export function selectedPreview(
     const captaincy = previewCaptaincy(data, settings, selection.actions);
     const plan =
       selection.kind === "plan"
-        ? {
-            ...selection.plan,
-            gain:
-              Math.round(
-                (preview.reduce((sum, lineup) => sum + lineup.score, 0) -
-                  baseline.reduce((sum, lineup) => sum + lineup.score, 0) -
-                  selection.plan.hit) *
-                  100,
-              ) / 100,
-            remainingBank: selection.actions.reduce(
-              (bank, action) =>
-                bank +
-                (settings.squad.find((pick) => pick.id === action.outId)
-                  ?.sellingPrice ?? 0) -
-                (data.bootstrap.elements.find(
-                  (player) => player.id === action.inId,
-                )?.now_cost ?? 0),
-              settings.bank,
-            ),
-          }
+        ? evaluatePlan(data, settings, selection.plan)
         : undefined;
     return {
       selection:

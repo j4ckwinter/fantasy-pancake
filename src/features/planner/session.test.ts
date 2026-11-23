@@ -76,6 +76,7 @@ describe("planner session", () => {
       remainingBank: 0,
       freeTransfersAfterPlan: 0,
       reasons: [],
+      weeks: [],
     };
     const moves = [
       { type: "selected", selection: planSelection(plan) },

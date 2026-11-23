@@ -17,8 +17,15 @@ export function nextWeekFreeTransfers(
   return Math.min(cap, freeTransfers + 1);
 }
 
+export function uncoveredTransfers(
+  transfers: number,
+  freeTransfers: number,
+): number {
+  return Math.max(0, transfers - freeTransfers);
+}
+
 export function transferHit(transfers: number, freeTransfers: number): number {
-  return TRANSFER_HIT_POINTS * Math.max(0, transfers - freeTransfers);
+  return TRANSFER_HIT_POINTS * uncoveredTransfers(transfers, freeTransfers);
 }
 
 export function freeTransfersLeft(
