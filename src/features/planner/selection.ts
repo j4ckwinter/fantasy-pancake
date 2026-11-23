@@ -80,7 +80,11 @@ export function pricesChecked(
   actions: Selection["actions"],
   confirmedPrices: number[],
 ) {
-  return actions.every((action) => confirmedPrices.includes(action.outId));
+  return actions.every(
+    (action, index) =>
+      confirmedPrices.includes(action.outId) ||
+      actions.slice(0, index).some((earlier) => earlier.inId === action.outId),
+  );
 }
 
 export function transferSelection(

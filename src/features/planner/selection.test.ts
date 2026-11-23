@@ -3,6 +3,7 @@ import type { Analysis, Move, TransferPlan } from "@/lib/model";
 import type { Settings } from "@/lib/schemas";
 import {
   planSelection,
+  pricesChecked,
   reselect,
   selectedPreview,
   transferSelection,
@@ -159,5 +160,16 @@ describe("previewing a plan", () => {
     expect(selection?.kind === "plan" && selection.plan.remainingBank).toBe(
       10 + 50 - 55 + 55 - 52,
     );
+  });
+});
+
+describe("checked selling prices", () => {
+  it("needs only the players owned today, not ones a plan buys and sells again", () => {
+    const actions = [
+      { week: 11, outId: 8, inId: 100 },
+      { week: 12, outId: 100, inId: 101 },
+    ];
+    expect(pricesChecked(actions, [8])).toBe(true);
+    expect(pricesChecked(actions, [])).toBe(false);
   });
 });
