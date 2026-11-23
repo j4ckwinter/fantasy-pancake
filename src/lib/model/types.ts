@@ -1,3 +1,5 @@
+import type { Captaincy } from "./captaincy";
+
 export type Lineup = { score: number; ids: number[]; captain: number };
 export type Move = {
   outId: number;
@@ -27,6 +29,7 @@ export type TransferPlan = {
 export type Analysis = {
   weeks: number[];
   baseline: Lineup[];
+  captaincy: Captaincy[];
   moves: Move[];
   plans: TransferPlan[];
   threshold: number;

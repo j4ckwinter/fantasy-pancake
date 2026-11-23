@@ -68,6 +68,7 @@ function context() {
   const analysis: Analysis = {
     weeks: [2, 3],
     baseline: [],
+    captaincy: [],
     moves: [],
     plans: [],
     threshold: 2,

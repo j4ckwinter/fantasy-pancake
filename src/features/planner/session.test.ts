@@ -21,6 +21,7 @@ function analysis(weeks: number[]): Analysis {
   return {
     weeks,
     baseline: weeks.map(() => ({ ids: [], captain: 1, score: 0 })),
+    captaincy: [],
     moves: [],
     plans: [],
     threshold: 2,

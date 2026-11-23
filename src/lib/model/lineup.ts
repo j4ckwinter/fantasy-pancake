@@ -1,6 +1,7 @@
 import type { Data, Player } from "../schemas";
 import type { Lineup } from "./types";
 import { POSITIONS } from "./position";
+import { rankCaptains } from "./captaincy";
 
 type LineupRules = {
   bootstrap: Pick<Data["bootstrap"], "element_types" | "game_settings">;
@@ -24,7 +25,7 @@ export function bestLineup(
   const choose = (index: number, chosen: Player[]) => {
     if (index === POSITIONS.length) {
       if (chosen.length !== game_settings.squad_squadplay) return;
-      const [captain] = [...chosen].sort(byScore);
+      const [captain] = rankCaptains(chosen, scores);
       if (!captain) return;
       const score =
         chosen.reduce((sum, player) => sum + (scores.get(player.id) ?? 0), 0) +

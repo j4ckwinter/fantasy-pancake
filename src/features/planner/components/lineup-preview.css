@@ -185,13 +185,24 @@
   align-items: center;
   gap: var(--space-6);
 }
-.lineup-preview__bench > div {
+.lineup-preview__bench-slots {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-6);
   margin-top: var(--space-6);
 }
+.lineup-preview__bench-slots ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 .lineup-preview__bench button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
   min-height: var(--space-32);
   padding: var(--space-4) var(--space-12);
   border: 1px solid var(--color-line);
@@ -202,6 +213,20 @@
   font-size: var(--text-12);
   font-weight: 500;
   cursor: pointer;
+}
+.lineup-preview__bench-slot {
+  display: grid;
+  place-items: center;
+  min-width: var(--size-bench-badge);
+  height: var(--size-bench-badge);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-night-border-strong);
+  border-radius: var(--radius-999);
+  background: var(--color-night);
+  color: var(--color-on-night);
+  font-size: var(--text-10);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 .lineup-preview__bench button:hover {
   border-color: var(--color-border-hover);

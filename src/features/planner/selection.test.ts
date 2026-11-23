@@ -40,6 +40,7 @@ function analysis(overrides: Partial<Analysis>): Analysis {
   return {
     weeks: [10, 11, 12],
     baseline: [],
+    captaincy: [],
     moves: [],
     plans: [],
     threshold: 2,

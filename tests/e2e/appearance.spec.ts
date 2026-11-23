@@ -117,6 +117,9 @@ for (const scheme of ["light", "dark"] as const) {
       .first()
       .click();
     expect(await lowContrastText(page)).toEqual([]);
+    await page.getByText("Bench and XI changes", { exact: true }).click();
+    await expect(page.locator(".lineup-preview__bench")).toBeVisible();
+    expect(await lowContrastText(page)).toEqual([]);
     await page.getByRole("button", { name: "Edit team details" }).click();
     await page.getByRole("button", { name: "Edit team", exact: true }).click();
     expect(await lowContrastText(page)).toEqual([]);

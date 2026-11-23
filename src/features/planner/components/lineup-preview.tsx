@@ -10,10 +10,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
 import { mobileLayoutQuery } from "@/app/breakpoints";
-import type { Lineup } from "@/lib/model";
+import type { Captaincy, Lineup } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
 import { PreviewMetrics } from "./preview-metrics";
 import { PitchBoard } from "./pitch-board";
+import { CaptainPick } from "./captain-pick";
 import { PlayerLink } from "./player-link";
 import { findPlayer } from "../players";
 import "./lineup-preview.css";
@@ -21,7 +22,6 @@ import "./lineup-preview.css";
 export function LineupPreview({
   transferDetails,
   data,
-  squadIds,
   weeks,
   baseline: baselines,
   preview,
@@ -34,11 +34,11 @@ export function LineupPreview({
   lineupIndex,
   onLineupChange,
   onPlayerSelect,
-  previewSquadIdsByWeek,
+  captaincy,
+  previewCaptaincy,
 }: {
   transferDetails: ReactNode;
   data: Data;
-  squadIds: number[];
   weeks: number[];
   baseline: Lineup[];
   preview: Lineup[] | null;
@@ -51,7 +51,8 @@ export function LineupPreview({
   lineupIndex: number;
   onLineupChange: (index: number) => void;
   onPlayerSelect: (id: number) => void;
-  previewSquadIdsByWeek: number[][];
+  captaincy: Captaincy[];
+  previewCaptaincy: Captaincy[] | null;
 }) {
   const [mode, setMode] = useState<"before" | "after">("after");
   const previewPanel = useRef<HTMLElement>(null);
@@ -76,8 +77,9 @@ export function LineupPreview({
   const exited = baseline.ids.filter(
     (id) => changed && !changed.ids.includes(id),
   );
-  const shownSquad = after ? previewSquadIdsByWeek[lineupIndex] : squadIds;
-  const bench = shownSquad?.filter((id) => !lineup.ids.includes(id));
+  const picks = after
+    ? previewCaptaincy?.[lineupIndex]
+    : captaincy[lineupIndex];
   return (
     <aside
       ref={previewPanel}
@@ -159,6 +161,13 @@ export function LineupPreview({
         highlightIds={after ? entered : []}
         onPlayerSelect={onPlayerSelect}
       />
+      {picks && (
+        <CaptainPick
+          data={data}
+          captaincy={picks}
+          onPlayerSelect={onPlayerSelect}
+        />
+      )}
       {preview && (
         <div className="lineup-preview__selection">
           <h3 aria-live="polite">{selectedLabel}</h3>
@@ -212,21 +221,52 @@ export function LineupPreview({
               </p>
             </>
           )}
-          {bench && (
+          {picks && (
             <div className="lineup-preview__bench">
-              <strong>Bench · unordered</strong>
-              <div>
-                {bench.map((id) => (
-                  <PlayerLink key={id} playerId={id} onSelect={onPlayerSelect}>
-                    {name(id)}
+              <strong id="bench-order-title">Bench order</strong>
+              <div className="lineup-preview__bench-slots">
+                {picks.benchGoalkeeper !== null && (
+                  <PlayerLink
+                    playerId={picks.benchGoalkeeper}
+                    onSelect={onPlayerSelect}
+                    label={`View ${name(picks.benchGoalkeeper)} details`}
+                  >
+                    <span
+                      className="lineup-preview__bench-slot"
+                      aria-hidden="true"
+                    >
+                      GK
+                    </span>
+                    {name(picks.benchGoalkeeper)}
                   </PlayerLink>
-                ))}
+                )}
+                <ol aria-labelledby="bench-order-title">
+                  {picks.bench.map((slot, index) => (
+                    <li key={slot.playerId}>
+                      <PlayerLink
+                        playerId={slot.playerId}
+                        onSelect={onPlayerSelect}
+                        label={`View ${name(slot.playerId)} details`}
+                      >
+                        <span
+                          className="lineup-preview__bench-slot"
+                          aria-hidden="true"
+                        >
+                          {index + 1}
+                        </span>
+                        {name(slot.playerId)}
+                      </PlayerLink>
+                    </li>
+                  ))}
+                </ol>
               </div>
             </div>
           )}
           <p className="muted">
-            Tap a player for their form and forecast. The XI and captain are
-            optimised each week; these are previews, not saved transfers.
+            Tap a player for their form and forecast. The XI, captain and bench
+            order are optimised each week; substitutes are ordered by their
+            chance to come on times their forecast. These are previews, not
+            saved transfers.
           </p>
         </div>
       </details>
