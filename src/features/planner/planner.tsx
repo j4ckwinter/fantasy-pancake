@@ -11,6 +11,7 @@ import { PlannerFooter } from "./components/planner-footer";
 import { TeamReview } from "./components/team-review";
 import { TransferResults } from "./components/transfer-results";
 import { SavedPlanNotice } from "./components/saved-plan-notice";
+import { noticeText } from "./messages";
 export default function Planner() {
   const planner = usePlanner();
   const { data, settings, result, busy, error, notice } = planner;
@@ -71,7 +72,7 @@ export default function Planner() {
       {data && !settings && notice && (
         <div className="notice">
           <BannerToast title="Saved settings" tone="warning">
-            {notice}
+            {noticeText[notice]}
           </BannerToast>
         </div>
       )}
@@ -121,7 +122,7 @@ export default function Planner() {
           settings={settings}
           result={result}
           notice={notice}
-          priceNotice={planner.priceNotice}
+          priceConfirmed={planner.priceConfirmed}
           confirmedPrices={planner.confirmedPrices}
           lineupIndex={planner.lineupIndex}
           onLineupChange={planner.selectLineup}

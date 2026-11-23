@@ -6,6 +6,7 @@ import {
 } from "@jack.winter/pancake-ui";
 import type { Data, Settings } from "@/lib/schemas";
 import { SquadEditor } from "./squad-editor";
+import { noticeText, type Notice } from "../messages";
 import { fromMillions, teamLabel, toMillions } from "../format";
 import "./team-review.css";
 export function TeamReview({
@@ -27,7 +28,7 @@ export function TeamReview({
   data: Data;
   settings: Settings;
   busy: boolean;
-  notice: string;
+  notice: Notice | null;
   editingTeam: boolean;
   errors: string[];
   onImportAnother: () => void;
@@ -70,7 +71,7 @@ export function TeamReview({
           else onCompare();
         }}
       >
-        {notice && <p className="team-settings-note">{notice}</p>}
+        {notice && <p className="team-settings-note">{noticeText[notice]}</p>}
         <div className="settings-grid">
           <TextField
             label="Bank balance (£m)"

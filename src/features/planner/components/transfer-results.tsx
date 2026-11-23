@@ -9,7 +9,7 @@ import {
   type PlanCategory,
   type Selection,
 } from "../selection";
-import { settingsNotSaved } from "../messages";
+import { noticeText, type Notice } from "../messages";
 import { TransferPlans } from "./transfer-plans";
 import { GroupedTransfers } from "./grouped-transfers";
 import { PlayerLocks } from "./player-locks";
@@ -29,7 +29,7 @@ export function TransferResults({
   settings,
   result,
   notice,
-  priceNotice,
+  priceConfirmed,
   confirmedPrices,
   lineupIndex,
   onLineupChange,
@@ -55,8 +55,8 @@ export function TransferResults({
   playerData?: Data;
   settings: Settings;
   result: Analysis;
-  notice: string;
-  priceNotice: string;
+  notice: Notice | null;
+  priceConfirmed: boolean;
   confirmedPrices: number[];
   lineupIndex: number;
   onLineupChange: (index: number) => void;
@@ -120,9 +120,9 @@ export function TransferResults({
         }
       }}
     >
-      {notice === settingsNotSaved && (
+      {notice === "settings-not-saved" && (
         <BannerToast title="Settings not saved" tone="warning">
-          {notice}
+          {noticeText[notice]}
         </BannerToast>
       )}
       <MobilePlannerNav
@@ -287,7 +287,7 @@ export function TransferResults({
                   preview={preview}
                   threshold={result.threshold}
                   previewError={previewError}
-                  priceNotice={priceNotice}
+                  priceConfirmed={priceConfirmed}
                   confirmedPrices={confirmedPrices}
                   onConfirmPrice={onConfirmPrice}
                 />

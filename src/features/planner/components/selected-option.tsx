@@ -8,6 +8,7 @@ import { pricesChecked, selectedOption, type Selection } from "../selection";
 import { findPlayer } from "../players";
 import { signed } from "../format";
 import { SellingPriceCheck } from "./selling-price-check";
+import { priceConfirmed as priceConfirmedMessage } from "../messages";
 
 export function SelectedOption({
   detailsRef,
@@ -19,7 +20,7 @@ export function SelectedOption({
   preview,
   threshold,
   previewError,
-  priceNotice,
+  priceConfirmed,
   confirmedPrices,
   onConfirmPrice,
 }: {
@@ -32,7 +33,7 @@ export function SelectedOption({
   selection: Selection;
   threshold: number;
   previewError: string;
-  priceNotice: string;
+  priceConfirmed: boolean;
   confirmedPrices: number[];
   onConfirmPrice: (id: number, price: number) => void;
 }) {
@@ -145,9 +146,9 @@ export function SelectedOption({
             })}
           </div>
         </Disclosure>
-        {priceNotice && (
+        {priceConfirmed && (
           <p role="status" className="price-notice">
-            {priceNotice}
+            {priceConfirmedMessage}
           </p>
         )}
       </article>

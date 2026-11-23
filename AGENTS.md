@@ -4,21 +4,28 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 
 ## Where changes belong
 
-| Responsibility                                                    | Owner                                                   |
-| ----------------------------------------------------------------- | ------------------------------------------------------- |
-| Next.js routes, layouts and global foundations                    | `src/app/`                                              |
-| Planner screen composition                                        | `src/features/planner/planner.tsx`                      |
-| Planning session state and actions                                | `src/features/planner/use-planner.ts`                   |
-| Browser HTTP requests and response validation                     | `src/features/planner/api.ts`                           |
-| Saved-settings compatibility, import defaults and price estimates | `src/features/planner/settings.ts`                      |
-| Selections, their labels and plan categories                      | `src/features/planner/selection.ts`                     |
-| Planner messages that more than one place shows or checks         | `src/features/planner/messages.ts`                      |
-| Rendering and local UI interactions                               | `src/features/planner/components/`                      |
-| Planner styling                                                   | `src/features/planner/planner.css` and component styles |
-| Recommendation orchestration and public model exports             | `src/lib/model.ts`                                      |
-| Scoring, squad rules, scheduling and lineup selection             | `src/lib/model/`                                        |
-| Server-side FPL access and caching                                | `src/lib/fpl.ts`                                        |
-| Validated data contracts                                          | `src/lib/schemas.ts`                                    |
+| Responsibility                                                    | Owner                                                      |
+| ----------------------------------------------------------------- | ---------------------------------------------------------- |
+| Next.js routes, layouts and global foundations                    | `src/app/`                                                 |
+| Planner screen composition                                        | `src/features/planner/planner.tsx`                         |
+| Planning session state and its transitions                        | `src/features/planner/session.ts`                          |
+| Import, comparison and refresh flows                              | `src/features/planner/use-planner.ts`                      |
+| Restoring a saved team on load                                    | `src/features/planner/restore-session.ts`                  |
+| Which operation is running and whether a result is still current  | `src/features/planner/use-operation.ts`                    |
+| Loaded FPL data and when it expires                               | `src/features/planner/use-planner-data.ts`, `freshness.ts` |
+| Player details dialog data                                        | `src/features/planner/use-player-details.ts`               |
+| Player and club lookups                                           | `src/features/planner/players.ts`                          |
+| Money, gain and label formatting                                  | `src/features/planner/format.ts`                           |
+| Browser HTTP requests and response validation                     | `src/features/planner/api.ts`                              |
+| Saved-settings compatibility, import defaults and price estimates | `src/features/planner/settings.ts`                         |
+| Selections, their labels and plan categories                      | `src/features/planner/selection.ts`                        |
+| Planner status, notice and error messages                         | `src/features/planner/messages.ts`                         |
+| Rendering and local UI interactions                               | `src/features/planner/components/`                         |
+| Planner styling                                                   | `src/features/planner/planner.css` and component styles    |
+| Recommendation orchestration and public model exports             | `src/lib/model.ts`                                         |
+| Scoring, squad rules, scheduling and lineup selection             | `src/lib/model/`                                           |
+| Server-side FPL access and caching                                | `src/lib/fpl.ts`                                           |
+| Validated data contracts                                          | `src/lib/schemas.ts`                                       |
 
 Snapshot capture and outcome accounting belong in `src/lib/evaluation.ts`, and the offline evaluation entry point is `scripts/evaluate-snapshot.ts`. The planner UI offers no snapshot download. Keep evaluation decisions frozen before outcomes and version material model changes.
 
@@ -26,7 +33,7 @@ Snapshot capture and outcome accounting belong in `src/lib/evaluation.ts`, and t
 
 - Keep route files and screen composition thin. Add behavior to its existing owner rather than rebuilding a large page component.
 - Give presentation components data and callbacks. Keep fetching and persistence out of them. Local form drafts, disclosure state, focus and other DOM effects can stay with the component that owns them.
-- Keep shared session transitions in the controller hook. Components should request actions rather than coordinate several session-state setters.
+- Keep session transitions in the `session.ts` reducer and async flows in `use-planner.ts`. Components should request actions rather than coordinate several pieces of session state.
 - Keep model calculations independent of React, Next.js, browser storage and HTTP. Call the public model entry point from features; model internals must not depend on feature or route code.
 - Validate external and persisted data at the owning boundary using the existing schemas. Supply storage to settings functions rather than hiding browser access inside them.
 - Reuse existing domain rules, price conversions and formatting where applicable. Extract shared code when it represents the same responsibility; avoid generic utility collections, speculative interfaces or class hierarchies just to satisfy SOLID/DRY terminology.

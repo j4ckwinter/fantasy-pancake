@@ -24,6 +24,19 @@ export function marketPricePick(
   };
 }
 
+export function refreshEstimatedPrices(
+  data: Data,
+  settings: Settings,
+  confirmed: number[],
+): Settings {
+  return {
+    ...settings,
+    squad: settings.squad.map((pick) =>
+      confirmed.includes(pick.id) ? pick : marketPricePick(data, pick.id),
+    ),
+  };
+}
+
 export function settingsFromImport(
   data: Data,
   entryId: number,
