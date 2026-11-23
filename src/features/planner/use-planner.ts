@@ -453,8 +453,11 @@ export function usePlanner() {
     hasTeamEdits: hasTeamEdits(session),
     setTeamId: (teamId: string) =>
       dispatch({ type: "team-id-changed", teamId }),
-    setPlanCategory: (category: PlanCategory) =>
-      dispatch({ type: "category-changed", category }),
+    changeCategory: (category: PlanCategory) => {
+      if (category === session.planCategory) return;
+      operation.invalidate();
+      dispatch({ type: "category-changed", category });
+    },
     selectLineup: (index: number) =>
       dispatch({ type: "lineup-selected", index }),
     toggleEditing: () => dispatch({ type: "editing-toggled" }),

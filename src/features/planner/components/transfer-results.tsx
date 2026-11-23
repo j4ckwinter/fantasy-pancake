@@ -160,11 +160,9 @@ export function TransferResults({
                   variant="secondary"
                   aria-pressed={category === value}
                   onClick={() => {
-                    if (category !== value) {
-                      onClearSelection();
-                      previewOrigin.current = null;
-                      onCategoryChange(value);
-                    }
+                    if (category === value) return;
+                    previewOrigin.current = null;
+                    onCategoryChange(value);
                   }}
                 >
                   {label}

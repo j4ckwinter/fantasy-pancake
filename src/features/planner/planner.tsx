@@ -120,7 +120,7 @@ export default function Planner() {
       {data && settings && result && (
         <TransferResults
           category={planner.planCategory}
-          onCategoryChange={planner.setPlanCategory}
+          onCategoryChange={planner.changeCategory}
           data={data}
           settings={settings}
           result={result}

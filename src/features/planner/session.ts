@@ -259,7 +259,13 @@ export function sessionReducer(
     case "selection-cleared":
       return { ...session, selection: null, priceConfirmed: false };
     case "category-changed":
-      return { ...session, planCategory: action.category };
+      if (session.planCategory === action.category) return session;
+      return {
+        ...session,
+        planCategory: action.category,
+        selection: null,
+        priceConfirmed: false,
+      };
     case "lineup-selected":
       return { ...session, lineupIndex: action.index };
     case "edit-started":
