@@ -48,11 +48,9 @@ describe("captaincy", () => {
     for (const [index, option] of options.entries()) {
       const next = options[index + 1];
       if (next)
-        expect(
-          Math.abs(
-            option.gapToNext! - (option.expectedPoints - next.expectedPoints),
-          ),
-        ).toBeLessThanOrEqual(0.01 + 1e-9);
+        expect(option.gapToNext).toBe(
+          Math.round((option.expectedPoints - next.expectedPoints) * 100) / 100,
+        );
       else expect(option.gapToNext).toBeNull();
       if (next)
         expect(option.expectedPoints).toBeGreaterThanOrEqual(
