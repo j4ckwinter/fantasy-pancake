@@ -5,6 +5,8 @@ export function assertPreDeadline(data: Data, capturedAt: string): number[] {
   const capture = Date.parse(capturedAt);
   const fetched = Date.parse(data.fetchedAt);
   const weeks = upcomingWeeks(data);
+  if (!weeks.length)
+    throw new Error("No upcoming gameweek is available to capture.");
   const deadline = data.bootstrap.events.find(
     (event) => event.id === weeks[0],
   )?.deadline_time;

@@ -357,3 +357,17 @@ it("scores a completed blank when every original fixture remains in the actual s
   });
   expect(report.policies[0]).toMatchObject({ status: "complete", points: 0 });
 });
+
+it("refuses to capture when no gameweek is left in the horizon", () => {
+  const { data, settings, analysis } = context();
+  for (const event of data.bootstrap.events) event.is_next = false;
+  expect(() =>
+    createSnapshot(
+      data,
+      settings,
+      { ...analysis, weeks: [] },
+      [],
+      "2026-10-02T10:00:00Z",
+    ),
+  ).toThrow("No upcoming gameweek is available to capture.");
+});
