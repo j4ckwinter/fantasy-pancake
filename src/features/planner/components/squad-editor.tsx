@@ -47,7 +47,9 @@ export function SquadEditor({
           <section className="position-group" key={group.id}>
             <header className="position-heading">
               <h3>{group.name}</h3>
-              <span className="eyebrow">{picks.length} players</span>
+              <span className="eyebrow">
+                {picks.length} {picks.length === 1 ? "player" : "players"}
+              </span>
             </header>
             <div className="position-players">
               {picks.map(({ index }) => (

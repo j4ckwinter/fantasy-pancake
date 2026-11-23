@@ -221,6 +221,7 @@ test("replacing an unavailable player keeps focus on the replaced row", async ({
 }) => {
   await routeImport(page, importResponse({ picks: squadPicks({ 7: 999 }) }));
   await importTeam(page);
+  await expect(page.getByText("1 player", { exact: true })).toBeVisible();
   await page
     .getByRole("button", {
       name: "Replace Unavailable player #999",
