@@ -159,6 +159,22 @@ export function scorePlayer(
   );
 }
 
+export function weeklyScores(
+  data: Data,
+  weeks: number[],
+  scenario?: AvailabilityScenario,
+): Map<number, number>[] {
+  return weeks.map(
+    (week) =>
+      new Map(
+        data.bootstrap.elements.map((player) => [
+          player.id,
+          scorePlayer(data, player, week, scenario),
+        ]),
+      ),
+  );
+}
+
 function outcomePoints(
   forecast: PlayerForecast,
   rules: PositionScoring,

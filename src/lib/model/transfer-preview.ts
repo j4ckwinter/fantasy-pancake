@@ -1,4 +1,4 @@
-import type { AvailabilityScenario, Data, Settings } from "../schemas";
+import type { AvailabilityScenario, Data, Player, Settings } from "../schemas";
 import type { Lineup, Move, TransferAction } from "./types";
 import { validateSquad } from "./squad-rules";
 import {
@@ -9,23 +9,18 @@ import {
 import { fixturesFor, upcomingWeeks } from "./schedule";
 import {
   DEFAULT_AVAILABILITY_SCENARIO,
-  availability,
-  expectedMinutes,
   playerRisks,
-  scorePlayer,
+  weeklyScores,
 } from "./scoring";
 import { bestLineup } from "./lineup";
 import { roundScore } from "./round-score";
 import { transferHit } from "./transfer-rules";
+import { transferReasons } from "./transfer-reasons";
 
 const AVAILABILITY_SENSITIVE_GAIN_DIFFERENCE = 1;
 const ALTERNATE_SCENARIO: Record<AvailabilityScenario, AvailabilityScenario> = {
   persistent: "recover-next-week",
   "recover-next-week": "persistent",
-};
-const KEEP_SCORE_SCENARIO_LABEL: Record<AvailabilityScenario, string> = {
-  persistent: "persistent absence",
-  "recover-next-week": "recovery from the second week",
 };
 
 export function transferContext(data: Data, settings: Settings) {
@@ -35,15 +30,7 @@ export function transferContext(data: Data, settings: Settings) {
   const rules = transferRules(data, settings);
   const { byId } = rules;
   const squad = settings.squad.map((pick) => byId.get(pick.id)!);
-  const scores = weeks.map(
-    (week) =>
-      new Map(
-        data.bootstrap.elements.map((player) => [
-          player.id,
-          scorePlayer(data, player, week, settings.availabilityScenario),
-        ]),
-      ),
-  );
+  const scores = weeklyScores(data, weeks, settings.availabilityScenario);
   const baseline = scores.map((values) => bestLineup(data, squad, values));
   const start = startingState(settings, squad);
   return {
@@ -82,6 +69,10 @@ export function previewTransfers(
   });
 }
 
+function totalScore(lineups: Lineup[]): number {
+  return lineups.reduce((sum, lineup) => sum + lineup.score, 0);
+}
+
 export function evaluatePreparedTransfer(
   context: Context,
   outId: number,
@@ -97,40 +88,27 @@ export function evaluatePreparedTransfer(
   const outgoing = byId.get(outId)!;
   const incoming = byId.get(inId)!;
   const lineups = scores.map((values) => bestLineup(data, changed, values));
-  const baselineTotal = baseline.reduce((sum, lineup) => sum + lineup.score, 0);
-  const grossGain =
-    lineups.reduce((sum, lineup) => sum + lineup.score, 0) - baselineTotal;
+  const grossGain = totalScore(lineups) - totalScore(baseline);
   const hit = transferHit(1, settings.freeTransfers);
-  const gain = grossGain - hit;
-  const reasons = [
-    `Changes the optimised starting XI and captain total by ${roundScore(grossGain)} score units across ${weeks.length} gameweeks before the hit.`,
-    `${Math.round(expectedMinutes(data, incoming))} estimated minutes per match from recent history where available, blended with season usage; venue and opponent strengths adjust attacking and clean-sheet scores.`,
-  ];
-  if (incoming.penalties_order === 1)
-    reasons.push(
-      "Listed first for penalties; this role is already reflected in underlying attacking data, so receives no extra bonus.",
-    );
-  if (
-    incoming.corners_and_indirect_freekicks_order === 1 ||
-    incoming.direct_freekicks_order === 1
-  )
-    reasons.push(
-      "Listed first for a set-piece duty; role context, not an additional scoring bonus.",
-    );
-  if (availability(outgoing) < 1)
-    reasons.push(
-      `${outgoing.web_name}'s availability affects the keep score under the selected ${KEEP_SCORE_SCENARIO_LABEL[settings.availabilityScenario ?? DEFAULT_AVAILABILITY_SCENARIO]} scenario; no return date is inferred.`,
-    );
+  const scenario =
+    settings.availabilityScenario ?? DEFAULT_AVAILABILITY_SCENARIO;
   const move: Move = {
     outId,
     inId,
     cost: incoming.now_cost,
     remainingBank,
     hit,
-    gain: roundScore(gain),
+    gain: roundScore(grossGain - hit),
     immediateGain: roundScore(lineups[0].score - baseline[0].score - hit),
     grossGain: roundScore(grossGain),
-    reasons,
+    reasons: transferReasons(
+      data,
+      scenario,
+      outgoing,
+      incoming,
+      grossGain,
+      weeks.length,
+    ),
     risks: playerRisks(data, incoming, settings.availabilityScenario),
     fixtures: fixturesFor(data, incoming, weeks),
   };
@@ -143,49 +121,46 @@ export function evaluatePreparedTransfer(
   };
 }
 
-export function addAvailabilitySensitivity(
+export function withAvailabilitySensitivity(
   context: Context,
   moves: Move[],
-): void {
+): Move[] {
   const { data, settings, weeks, squad, byId } = context;
   const selected =
     settings.availabilityScenario ?? DEFAULT_AVAILABILITY_SCENARIO;
-  const alternate = ALTERNATE_SCENARIO[selected];
-  const scores = weeks.map(
-    (week) =>
-      new Map(
-        data.bootstrap.elements.map((player) => [
-          player.id,
-          scorePlayer(data, player, week, alternate),
-        ]),
-      ),
-  );
-  const baseline = scores.reduce(
-    (sum, values) => sum + bestLineup(data, squad, values).score,
-    0,
-  );
-  for (const move of moves) {
+  const scores = weeklyScores(data, weeks, ALTERNATE_SCENARIO[selected]);
+  const horizonTotal = (players: Player[]) =>
+    scores.reduce(
+      (sum, values) => sum + bestLineup(data, players, values).score,
+      0,
+    );
+  const baseline = horizonTotal(squad);
+  return moves.map((move) => {
     const changed = squad.map((player) =>
       player.id === move.outId ? byId.get(move.inId)! : player,
     );
-    const gain = roundScore(
-      scores.reduce(
-        (sum, values) => sum + bestLineup(data, changed, values).score,
-        0,
-      ) -
-        baseline -
-        move.hit,
+    const alternateGain = roundScore(
+      horizonTotal(changed) - baseline - move.hit,
     );
-    move.gainPersistent = selected === "persistent" ? move.gain : gain;
-    move.gainRecovery = selected === "recover-next-week" ? move.gain : gain;
-    if (
-      Math.abs(move.gainPersistent - move.gainRecovery) >=
-      AVAILABILITY_SENSITIVE_GAIN_DIFFERENCE
-    )
-      move.risks.push(
-        `Availability-sensitive: net gain is ${move.gainPersistent} with persistent availability and ${move.gainRecovery} if flagged players recover from week two. These are scenarios, not confidence bounds.`,
-      );
-  }
+    const gainPersistent =
+      selected === "persistent" ? move.gain : alternateGain;
+    const gainRecovery =
+      selected === "recover-next-week" ? move.gain : alternateGain;
+    const sensitive =
+      Math.abs(gainPersistent - gainRecovery) >=
+      AVAILABILITY_SENSITIVE_GAIN_DIFFERENCE;
+    return {
+      ...move,
+      risks: sensitive
+        ? [
+            ...move.risks,
+            `Availability-sensitive: net gain is ${gainPersistent} with persistent availability and ${gainRecovery} if flagged players recover from week two. These are scenarios, not confidence bounds.`,
+          ]
+        : move.risks,
+      gainPersistent,
+      gainRecovery,
+    };
+  });
 }
 
 export function evaluateTransfer(
@@ -195,7 +170,7 @@ export function evaluateTransfer(
   inId: number,
 ): { move: Move; lineups: Lineup[] } {
   const context = transferContext(data, settings);
-  const result = evaluatePreparedTransfer(context, outId, inId);
-  addAvailabilitySensitivity(context, [result.move]);
-  return result;
+  const { move, lineups } = evaluatePreparedTransfer(context, outId, inId);
+  const [sensitiveMove] = withAvailabilitySensitivity(context, [move]);
+  return { move: sensitiveMove, lineups };
 }

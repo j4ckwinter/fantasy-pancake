@@ -7,7 +7,7 @@ import { planTransfers } from "./model/planning";
 import {
   transferContext,
   evaluatePreparedTransfer,
-  addAvailabilitySensitivity,
+  withAvailabilitySensitivity,
 } from "./model/transfer-preview";
 import { freeTransferCap } from "./model/transfer-rules";
 import { roundScore } from "./model/round-score";
@@ -35,6 +35,8 @@ const NET_GAIN_THRESHOLD = 2;
 const AT_CAP_NET_GAIN_THRESHOLD = 1;
 const SHORTLIST_INCOMING_PLAYERS = 3;
 const SHORTLIST_OUTGOING_PER_INCOMING = 3;
+const AT_CAP_ROLL_NOTE =
+  " You are at the free-transfer cap, so rolling cannot add another saved transfer.";
 
 export function analyze(data: Data, settings: Settings): Analysis {
   const errors = validateSquad(data, settings);
@@ -54,7 +56,35 @@ export function analyze(data: Data, settings: Settings): Analysis {
         "No upcoming gameweeks are available. Recheck when the next season or schedule is published.",
     };
   const context = transferContext(data, settings);
-  const { squad, scores, baseline, rules, start } = context;
+  const { squad, scores, baseline } = context;
+  const moves = worthwhileMoves(context, threshold);
+  const plans = planTransfers(
+    data,
+    settings,
+    weeks,
+    squad,
+    scores,
+    baseline,
+    threshold,
+  );
+  return {
+    weeks,
+    baseline: baseline.map((lineup) => ({
+      ...lineup,
+      score: roundScore(lineup.score),
+    })),
+    moves: withAvailabilitySensitivity(context, shortlist(moves)),
+    plans,
+    threshold,
+    rollReason: rollReason(threshold, atCap, moves.length, plans.length),
+  };
+}
+
+function worthwhileMoves(
+  context: ReturnType<typeof transferContext>,
+  threshold: number,
+): Move[] {
+  const { data, squad, rules, start } = context;
   const moves: Move[] = [];
   for (const outgoing of squad) {
     for (const incoming of data.bootstrap.elements) {
@@ -68,19 +98,22 @@ export function analyze(data: Data, settings: Settings): Analysis {
       if (move.gain > threshold) moves.push(move);
     }
   }
-  moves.sort(
+  return moves.sort(
     (a, b) =>
       b.gain - a.gain ||
       b.immediateGain - a.immediateGain ||
       a.inId - b.inId ||
       a.outId - b.outId,
   );
-  const incomingIds = [...new Set(moves.map((move) => move.inId))].slice(
+}
+
+function shortlist(rankedMoves: Move[]): Move[] {
+  const incomingIds = [...new Set(rankedMoves.map((move) => move.inId))].slice(
     0,
     SHORTLIST_INCOMING_PLAYERS,
   );
   const counts = new Map<number, number>();
-  const shortlisted = moves.filter((move) => {
+  return rankedMoves.filter((move) => {
     const count = counts.get(move.inId) ?? 0;
     if (
       !incomingIds.includes(move.inId) ||
@@ -90,30 +123,18 @@ export function analyze(data: Data, settings: Settings): Analysis {
     counts.set(move.inId, count + 1);
     return true;
   });
-  addAvailabilitySensitivity(context, shortlisted);
-  const plans = planTransfers(
-    data,
-    settings,
-    weeks,
-    squad,
-    scores,
-    baseline,
-    threshold,
-  );
-  const rollReason = moves.length
-    ? `Rolling scores zero improvement and keeps flexibility. Only moves exceeding ${threshold} net score units are shown.${atCap ? " You are at the free-transfer cap, so rolling cannot add another saved transfer." : ""}`
-    : plans.length
-      ? `No legal single transfer beats the ${threshold}-unit net improvement threshold. Larger or delayed plans are shown separately; rolling remains the no-hit baseline.${atCap ? " You are at the free-transfer cap, so rolling cannot add another saved transfer." : ""}`
-      : `No evaluated transfer plan beats the ${threshold}-unit net improvement threshold. Keep the squad and retain flexibility.${atCap ? " You are at the free-transfer cap, so rolling cannot add another saved transfer." : ""}`;
-  return {
-    weeks,
-    baseline: baseline.map((lineup) => ({
-      ...lineup,
-      score: roundScore(lineup.score),
-    })),
-    moves: shortlisted,
-    plans,
-    threshold,
-    rollReason,
-  };
+}
+
+function rollReason(
+  threshold: number,
+  atCap: boolean,
+  moveCount: number,
+  planCount: number,
+): string {
+  const capNote = atCap ? AT_CAP_ROLL_NOTE : "";
+  if (moveCount)
+    return `Rolling scores zero improvement and keeps flexibility. Only moves exceeding ${threshold} net score units are shown.${capNote}`;
+  if (planCount)
+    return `No legal single transfer beats the ${threshold}-unit net improvement threshold. Larger or delayed plans are shown separately; rolling remains the no-hit baseline.${capNote}`;
+  return `No evaluated transfer plan beats the ${threshold}-unit net improvement threshold. Keep the squad and retain flexibility.${capNote}`;
 }
