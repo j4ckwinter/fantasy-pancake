@@ -179,6 +179,9 @@ test("squad replacement supports keyboard search, cancellation and touch selecti
     page.getByRole("listbox", { name: "Matching players" }).getByRole("option"),
   ).toHaveCount(0);
   await search.press("Escape");
+  await expect(search).toBeFocused();
+  await expect(search).toHaveAttribute("aria-expanded", "false");
+  await search.press("Escape");
   await expect(replace).toBeFocused();
   await expect(search).toHaveCount(0);
   await expect(

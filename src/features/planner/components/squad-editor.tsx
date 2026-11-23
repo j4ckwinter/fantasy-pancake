@@ -96,7 +96,7 @@ function SquadPlayerRow({
   return (
     <div
       className="squad-player-row"
-      onKeyDownCapture={(event) => {
+      onKeyDown={(event) => {
         if (replacing && event.key === "Escape") {
           event.preventDefault();
           event.stopPropagation();
