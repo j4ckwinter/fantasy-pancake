@@ -8,7 +8,10 @@ import {
   withPlayer,
 } from "./support/fixtures";
 import {
+  bottomOf,
   expectNoHorizontalOverflow,
+  gapBetween,
+  heightOf,
   importTeam,
   saveAndViewShortlist,
   shortlistHeading,
@@ -98,13 +101,14 @@ test("pair plans show combined transfers and correct hits", async ({
     .click();
   await expect(pair).toContainText("8 pts");
   if (test.info().project.use.isMobile) {
-    const preview = await pair
-      .getByRole("button", { name: "Preview plan" })
-      .boundingBox();
-    const nav = await page
-      .getByRole("navigation", { name: "Planner sections" })
-      .boundingBox();
-    expect(preview!.y + preview!.height).toBeLessThanOrEqual(nav!.y);
+    await expect
+      .poll(() =>
+        gapBetween(
+          pair.getByRole("button", { name: "Preview plan" }),
+          page.getByRole("navigation", { name: "Planner sections" }),
+        ),
+      )
+      .toBeGreaterThanOrEqual(0);
   }
 
   await expect(page.locator(".roll-option")).toHaveCount(0);
@@ -177,9 +181,9 @@ test("delayed plans preserve the first-week XI and only change later weeks", asy
     .click();
   const after = page.getByLabel("Preview starting lineup");
   await expect(after).toBeVisible();
-  expect(await after.locator(".pitch-board__name").allTextContents()).toEqual(
-    before,
-  );
+  await expect
+    .poll(() => after.locator(".pitch-board__name").allTextContents())
+    .toEqual(before);
   await expect(after).not.toContainText("New Star");
   await page
     .getByRole("button", { name: "Show lineup GW10", exact: true })
@@ -208,11 +212,9 @@ test("results keep optional tools collapsed and the first recommendation easy to
     "Score gain · GW9–12",
   );
   if (test.info().project.use.isMobile) {
-    const row = await page
-      .locator(".transfer-alternative")
-      .first()
-      .boundingBox();
-    expect(row!.height).toBeLessThan(150);
+    await expect
+      .poll(() => heightOf(page.locator(".transfer-alternative").first()))
+      .toBeLessThan(150);
   }
   await expect(page.locator(".alternative-hit")).toHaveCount(0);
   const difficulty = page
@@ -225,18 +227,23 @@ test("results keep optional tools collapsed and the first recommendation easy to
   await expect(
     page.getByText("How to read the model", { exact: true }),
   ).toHaveCount(0);
-  const firstPreview = await page
+  const firstPreview = page
     .getByRole("button", { name: /Preview Player .* to New Star/ })
-    .first()
-    .boundingBox();
-  const nav = test.info().project.use.isMobile
-    ? await page
-        .getByRole("navigation", { name: "Planner sections" })
-        .boundingBox()
-    : null;
-  expect(firstPreview!.y + firstPreview!.height).toBeLessThanOrEqual(
-    nav?.y ?? page.viewportSize()!.height,
-  );
+    .first();
+  if (test.info().project.use.isMobile) {
+    await expect
+      .poll(() =>
+        gapBetween(
+          firstPreview,
+          page.getByRole("navigation", { name: "Planner sections" }),
+        ),
+      )
+      .toBeGreaterThanOrEqual(0);
+  } else {
+    await expect
+      .poll(() => bottomOf(firstPreview))
+      .toBeLessThanOrEqual(page.viewportSize()!.height);
+  }
   await page.screenshot({
     path: `test-results/compact-results-${test.info().project.name}.png`,
     fullPage: true,
@@ -269,17 +276,13 @@ test("preview buttons toggle singles and plans back to the current XI", async ({
   await single.click();
   await expect(single).toHaveText("Selected");
   await expect(single).toHaveAttribute("aria-pressed", "true");
-  const pitchBox = await page
-    .getByLabel("Preview starting lineup")
-    .boundingBox();
-  const summaryBox = await page
-    .locator(".lineup-preview__summary")
-    .boundingBox();
-  const detailsBox = await page.locator("#selected-option").boundingBox();
-  expect(summaryBox!.y).toBeGreaterThanOrEqual(pitchBox!.y + pitchBox!.height);
-  expect(detailsBox!.y).toBeGreaterThanOrEqual(
-    summaryBox!.y + summaryBox!.height,
-  );
+  const summary = page.locator(".lineup-preview__summary");
+  await expect
+    .poll(() => gapBetween(page.getByLabel("Preview starting lineup"), summary))
+    .toBeGreaterThanOrEqual(0);
+  await expect
+    .poll(() => gapBetween(summary, page.locator("#selected-option")))
+    .toBeGreaterThanOrEqual(0);
   await expect(
     page.getByText("THE EFFECT ON YOUR XI", { exact: true }),
   ).toHaveCount(0);

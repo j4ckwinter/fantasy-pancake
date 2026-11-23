@@ -1,9 +1,10 @@
-import { test as base, type Page } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
 import type { Data, Player } from "../../../src/lib/schemas";
 
 export { expect } from "@playwright/test";
 
 export const FETCHED_AT = "2026-10-31T18:00:00Z";
+export const START_TIME = new Date(FETCHED_AT);
 export const NEW_STAR_INDEX = 15;
 const SQUAD_SIZE = 15;
 
@@ -153,6 +154,15 @@ export async function failHistory(page: Page) {
   );
 }
 
+async function failUnstubbedApiRequests(page: Page) {
+  const unstubbed: string[] = [];
+  await page.route("**/api/**", (route) => {
+    unstubbed.push(route.request().url());
+    return route.abort();
+  });
+  return unstubbed;
+}
+
 async function installDefaultRoutes(page: Page) {
   await page.route("**/api/history/*", (route) =>
     route.fulfill({ json: { history: [] } }),
@@ -163,7 +173,13 @@ async function installDefaultRoutes(page: Page) {
 
 export const test = base.extend({
   page: async ({ page }, provide) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+    await page.clock.setFixedTime(START_TIME);
+    const unstubbed = await failUnstubbedApiRequests(page);
     await installDefaultRoutes(page);
     await provide(page);
+    expect(unstubbed, "API requests without a test route").toEqual([]);
+    expect(pageErrors, "uncaught page errors").toEqual([]);
   },
 });

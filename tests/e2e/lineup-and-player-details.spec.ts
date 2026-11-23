@@ -1,10 +1,14 @@
 import { expect, fixtureData, routeData, test } from "./support/fixtures";
 import {
+  bottomOf,
   compareTransfer,
   expectNoHorizontalOverflow,
+  heightOf,
   importTeam,
   saveAndViewShortlist,
+  scrollY,
   shortlistHeading,
+  topOf,
 } from "./support/planner";
 
 test("recent histories and availability scenario are connected", async ({
@@ -106,11 +110,11 @@ test("pitch players open details and Escape returns keyboard focus", async ({
     path: `test-results/player-details-${test.info().project.name}.png`,
     animations: "disabled",
   });
-  expect(
-    await dialog.evaluate(
-      (element) => element.scrollWidth <= element.clientWidth,
-    ),
-  ).toBe(true);
+  await expect
+    .poll(() =>
+      dialog.evaluate((element) => element.scrollWidth <= element.clientWidth),
+    )
+    .toBe(true);
   await dialog
     .getByText("What this forecast cannot know", { exact: true })
     .click();
@@ -151,31 +155,21 @@ test("preview preserves desktop position and takes mobile users to the new XI", 
   });
   const first = choices.first();
   await first.scrollIntoViewIfNeeded();
-  const scrollBefore = await page.evaluate(() => window.scrollY);
+  const scrollBefore = await scrollY(page);
   await first.click();
   await expect(page.getByLabel("Preview starting lineup")).toBeVisible();
   if (!test.info().project.use.isMobile) {
     await expect(first).toBeFocused();
-    expect(
-      Math.abs((await page.evaluate(() => window.scrollY)) - scrollBefore),
-    ).toBeLessThan(3);
+    await expect
+      .poll(async () => Math.abs((await scrollY(page)) - scrollBefore))
+      .toBeLessThan(3);
     await page.mouse.move(400, 350);
     await page.mouse.wheel(0, 350);
+    const preview = page.getByLabel("Preview starting lineup");
     await expect
-      .poll(async () => {
-        const box = await page
-          .getByLabel("Preview starting lineup")
-          .boundingBox();
-        return box!.y + box!.height;
-      })
+      .poll(() => bottomOf(preview))
       .toBeLessThanOrEqual(page.viewportSize()!.height);
-    const pitch = await page
-      .getByLabel("Preview starting lineup")
-      .boundingBox();
-    expect(pitch!.y).toBeGreaterThanOrEqual(0);
-    expect(pitch!.y + pitch!.height).toBeLessThanOrEqual(
-      page.viewportSize()!.height,
-    );
+    await expect.poll(() => topOf(preview)).toBeGreaterThanOrEqual(0);
   } else {
     await expect(page.locator("#lineup-comparison")).toBeFocused();
     await expect(
@@ -197,9 +191,9 @@ test("preview preserves desktop position and takes mobile users to the new XI", 
   if (test.info().project.use.isMobile) {
     await page.getByRole("link", { name: "Back to options" }).click();
     await expect(first).toBeFocused();
-    expect(
-      Math.abs((await page.evaluate(() => window.scrollY)) - scrollBefore),
-    ).toBeLessThan(3);
+    await expect
+      .poll(async () => Math.abs((await scrollY(page)) - scrollBefore))
+      .toBeLessThan(3);
     await expect(
       page
         .getByRole("navigation", { name: "Planner sections" })
@@ -246,7 +240,9 @@ test("the XI panel uses the page scroll rather than a nested scrollbar", async (
   await page
     .getByRole("button", { name: "Keep Player 15", exact: true })
     .scrollIntoViewIfNeeded();
-  expect(await squad.evaluate((element) => element.scrollTop)).toBe(0);
+  await expect
+    .poll(() => squad.evaluate((element) => element.scrollTop))
+    .toBe(0);
   await page.screenshot({
     path: `test-results/direct-import-${test.info().project.name}.png`,
     fullPage: true,
@@ -297,8 +293,10 @@ test("returning starters distinguish expected minutes from recent starting minut
   const starting = dialog
     .locator(".player-details__supporting-metrics > div")
     .filter({ hasText: "Minutes when starting · recent" });
-  expect(Number(await expected.locator("dd").innerText())).toBeGreaterThan(60);
-  expect(Number(await expected.locator("dd").innerText())).toBeLessThan(73);
+  const expectedMinutes = async () =>
+    Number(await expected.locator("dd").innerText());
+  await expect.poll(expectedMinutes).toBeGreaterThan(60);
+  await expect.poll(expectedMinutes).toBeLessThan(73);
   await expect(starting.locator("dd")).toHaveText("73");
   await expect(dialog).toContainText(
     "Four consecutive starts give the recent role extra weight",
@@ -329,8 +327,7 @@ test("mobile navigation reaches each section and opens comparison", async ({
     ["Options", "planner-options"],
   ]) {
     const link = nav.getByRole("link", { name, exact: true });
-    const box = await link.boundingBox();
-    expect(box!.height).toBeGreaterThanOrEqual(44);
+    await expect.poll(() => heightOf(link)).toBeGreaterThanOrEqual(44);
     await link.click();
     await expect(page.locator(`#${id}`)).toBeInViewport();
     await expect(link).toHaveAttribute("aria-current", "location");

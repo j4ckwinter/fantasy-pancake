@@ -1,6 +1,9 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
+import { PLANNER_DATA_MAX_AGE } from "../../../src/features/planner/freshness";
+import { START_TIME } from "./fixtures";
 
 const STORAGE_KEY = "fpl-planner-v1";
+const EXPIRY_STEP = PLANNER_DATA_MAX_AGE + 60_000;
 const SAVE_AND_VIEW_SHORTLIST = /^(Save & view shortlist|View shortlist)/;
 
 export async function importTeam(page: Page) {
@@ -61,11 +64,13 @@ export async function replaceSquadPlayer(
 }
 
 export async function expectNoHorizontalOverflow(page: Page) {
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
-    ),
-  ).toBe(true);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    )
+    .toBe(true);
 }
 
 export async function savedSettingsText(page: Page) {
@@ -97,4 +102,41 @@ export function gate() {
     release = resolve;
   });
   return { opened, release };
+}
+
+export async function expireData(page: Page, expiries = 1) {
+  await page.clock.setFixedTime(
+    new Date(START_TIME.getTime() + expiries * EXPIRY_STEP),
+  );
+}
+
+export async function focusWindow(page: Page) {
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+}
+
+async function boxOf(locator: Locator) {
+  const box = await locator.boundingBox();
+  if (!box) throw new Error(`${locator} has no layout box`);
+  return box;
+}
+
+export async function topOf(locator: Locator) {
+  return (await boxOf(locator)).y;
+}
+
+export async function bottomOf(locator: Locator) {
+  const box = await boxOf(locator);
+  return box.y + box.height;
+}
+
+export async function heightOf(locator: Locator) {
+  return (await boxOf(locator)).height;
+}
+
+export async function gapBetween(upper: Locator, lower: Locator) {
+  return (await topOf(lower)) - (await bottomOf(upper));
+}
+
+export async function scrollY(page: Page) {
+  return page.evaluate(() => window.scrollY);
 }

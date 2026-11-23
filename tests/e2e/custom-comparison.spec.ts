@@ -9,6 +9,7 @@ import {
   chooseIncoming,
   compareTransfer,
   expectNoHorizontalOverflow,
+  gapBetween,
   gate,
   importTeam,
   openCustomComparison,
@@ -186,9 +187,9 @@ test("custom errors follow the submitted players and weekly gains deduct the hit
   await selected
     .getByText("Gameweek-by-gameweek gains", { exact: true })
     .click();
-  const totals = await selected
-    .locator(".weekly-breakdown__totals dd")
-    .allTextContents();
+  const totalCells = selected.locator(".weekly-breakdown__totals dd");
+  await expect(totalCells).toHaveCount(3);
+  const totals = await totalCells.allTextContents();
   const [gross, hit, net] = totals.map((value) =>
     Number(value.replace("−", "-")),
   );
@@ -234,20 +235,23 @@ test("incoming picker requires a choice and supports keyboard search", async ({
     await expect(
       page.getByRole("navigation", { name: "Planner sections" }),
     ).toBeHidden();
-    const popup = await page.locator(".player-picker__popup").boundingBox();
-    const submit = await compare.boundingBox();
-    expect(submit!.y).toBeGreaterThanOrEqual(popup!.y + popup!.height);
+    await expect
+      .poll(() => gapBetween(page.locator(".player-picker__popup"), compare))
+      .toBeGreaterThanOrEqual(0);
   }
   await picker.press("ArrowDown");
   await picker.press("Enter");
   await expect(picker).toHaveValue("New Star · T6 · £5.0m");
   await expect(compare).toBeEnabled();
   await picker.click();
-  expect(
-    await picker.evaluate(
-      (input: HTMLInputElement) => input.selectionEnd! - input.selectionStart!,
-    ),
-  ).toBe("New Star · T6 · £5.0m".length);
+  await expect
+    .poll(() =>
+      picker.evaluate(
+        (input: HTMLInputElement) =>
+          input.selectionEnd! - input.selectionStart!,
+      ),
+    )
+    .toBe("New Star · T6 · £5.0m".length);
   await picker.press("Escape");
   await expect(picker).toHaveAttribute("aria-expanded", "false");
   await expect(compare).toBeEnabled();

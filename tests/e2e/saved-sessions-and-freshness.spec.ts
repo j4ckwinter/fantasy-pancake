@@ -11,6 +11,8 @@ import {
   withPlayer,
 } from "./support/fixtures";
 import {
+  expireData,
+  focusWindow,
   importTeam,
   savedSettings,
   savedSettingsText,
@@ -89,8 +91,6 @@ test("saved plans remain intact until an explicit successful FPL refresh", async
 test("expired planning data and histories refresh on focus without replacing the squad", async ({
   page,
 }) => {
-  const start = new Date("2026-10-31T18:00:00Z");
-  await page.clock.setFixedTime(start);
   let dataRequests = 0;
   let historyRequests = 0;
   let refreshed = false;
@@ -129,14 +129,14 @@ test("expired planning data and histories refresh on focus without replacing the
   const historyCount = historyRequests;
   const initialDataRequests = dataRequests;
   refreshed = true;
-  await page.clock.setFixedTime(new Date(start.getTime() + 6 * 60_000));
+  await expireData(page);
   await page.evaluate(() => {
     window.dispatchEvent(new Event("focus"));
     document.dispatchEvent(new Event("visibilitychange"));
   });
   await expect(page.locator(".workspace-horizon")).toHaveText("GW10–12");
   expect(dataRequests).toBe(initialDataRequests + 1);
-  expect(historyRequests).toBeGreaterThan(historyCount);
+  await expect.poll(() => historyRequests).toBeGreaterThan(historyCount);
   const saved = await savedSettings(page);
   expect(saved.bank).toBe(5);
   expect(
@@ -153,8 +153,6 @@ test("expired planning data and histories refresh on focus without replacing the
 test("expired data refresh waits for edited settings and failures can be retried", async ({
   page,
 }) => {
-  const start = new Date("2026-10-31T18:00:00Z");
-  await page.clock.setFixedTime(start);
   let dataRequests = 0;
   let failRefresh = false;
   await page.route("**/api/data", (route) => {
@@ -167,8 +165,8 @@ test("expired data refresh waits for edited settings and failures can be retried
   await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByLabel("Bank balance (£m)").fill("1.2");
   const initialDataRequests = dataRequests;
-  await page.clock.setFixedTime(new Date(start.getTime() + 6 * 60_000));
-  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expireData(page);
+  await focusWindow(page);
   await expect(page.getByLabel("Bank balance (£m)")).toHaveValue("1.2");
   expect(dataRequests).toBe(initialDataRequests);
   failRefresh = true;
@@ -176,6 +174,7 @@ test("expired data refresh waits for edited settings and failures can be retried
   await expect(
     page.getByText("Refresh unavailable", { exact: true }),
   ).toBeVisible();
+  expect(dataRequests).toBe(initialDataRequests + 1);
   await expect(page.getByLabel("Bank balance (£m)")).toHaveValue("1.2");
   failRefresh = false;
   await page.getByRole("button", { name: "Save & view shortlist" }).click();
@@ -187,8 +186,6 @@ test("expired data refresh waits for edited settings and failures can be retried
 test("failed focus refresh does not save subsequent team edits on focus", async ({
   page,
 }) => {
-  const start = new Date("2026-10-31T18:00:00Z");
-  await page.clock.setFixedTime(start);
   let failRefresh = false;
   let dataRequests = 0;
   await page.route("**/api/data", (route) => {
@@ -201,27 +198,26 @@ test("failed focus refresh does not save subsequent team edits on focus", async 
   await expect(shortlistHeading(page)).toBeVisible();
   const saved = await savedSettingsText(page);
   failRefresh = true;
-  await page.clock.setFixedTime(new Date(start.getTime() + 6 * 60_000));
-  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expireData(page);
+  await focusWindow(page);
   await expect(
     page.getByText("Refresh unavailable", { exact: true }),
   ).toBeVisible();
   await page.getByLabel("Bank balance (£m)").fill("1.2");
   failRefresh = false;
   const requestsBeforeFocus = dataRequests;
-  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await focusWindow(page);
   await expect(page.getByLabel("Bank balance (£m)")).toHaveValue("1.2");
   expect(dataRequests).toBe(requestsBeforeFocus);
   expect(await savedSettingsText(page)).toBe(saved);
   await page.getByRole("button", { name: "Save & view shortlist" }).click();
   await expect(page.locator(".workspace-figures")).toContainText("£1.2m");
+  expect(dataRequests).toBe(requestsBeforeFocus + 1);
 });
 
 test("previewing an expired option refreshes the shortlist before using the move", async ({
   page,
 }) => {
-  const start = new Date("2026-10-31T18:00:00Z");
-  await page.clock.setFixedTime(start);
   let dataRequests = 0;
   await page.route("**/api/data", (route) => {
     dataRequests++;
@@ -234,9 +230,7 @@ test("previewing an expired option refreshes the shortlist before using the move
   const initialRequests = dataRequests;
   for (const [index, category] of ["Singles", "Two transfers"].entries()) {
     await page.getByRole("button", { name: category, exact: true }).click();
-    await page.clock.setFixedTime(
-      new Date(start.getTime() + (index + 1) * 6 * 60_000),
-    );
+    await expireData(page, index + 1);
     await page.locator(".preview-toggle").first().click();
     await expect(page.locator(".workspace-horizon")).toBeVisible();
     await expect.poll(() => dataRequests).toBe(initialRequests + index + 1);

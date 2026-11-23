@@ -1,5 +1,6 @@
 import { expect, failHistory, test } from "./support/fixtures";
 import {
+  bottomOf,
   expectNoHorizontalOverflow,
   gate,
   importTeam,
@@ -7,6 +8,7 @@ import {
   saveAndViewShortlist,
   saveShortlistButton,
   shortlistHeading,
+  topOf,
 } from "./support/planner";
 
 test("import, correct, confirm, compare and restore settings", async ({
@@ -154,6 +156,7 @@ test("team editing can return or discard without recalculating or saving drafts"
   await expect(
     page.getByRole("button", { name: "Replace Player 8", exact: true }),
   ).toBeVisible();
+  expect(historyRequests).toBe(0);
   await page.reload();
   await page.getByRole("button", { name: "Edit team details" }).click();
   await expect(page.getByLabel("Bank balance (£m)")).toHaveValue("0.5");
@@ -168,12 +171,11 @@ test("team updates clear import guidance and keep the expanded action reachable"
   await page
     .getByRole("button", { name: "Replace Player 8", exact: true })
     .scrollIntoViewIfNeeded();
-  const action = await saveShortlistButton(page).boundingBox();
-  expect(action).not.toBeNull();
-  expect(action!.y).toBeGreaterThanOrEqual(0);
-  expect(action!.y + action!.height).toBeLessThanOrEqual(
-    page.viewportSize()!.height,
-  );
+  const action = saveShortlistButton(page);
+  await expect.poll(() => topOf(action)).toBeGreaterThanOrEqual(0);
+  await expect
+    .poll(() => bottomOf(action))
+    .toBeLessThanOrEqual(page.viewportSize()!.height);
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: `test-results/team-expanded-${test.info().project.name}.png`,

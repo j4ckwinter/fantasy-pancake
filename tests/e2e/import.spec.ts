@@ -8,7 +8,10 @@ import {
   test,
 } from "./support/fixtures";
 import {
+  bottomOf,
   expectNoHorizontalOverflow,
+  gapBetween,
+  heightOf,
   gate,
   importTeam,
   removeSavedTeamName,
@@ -114,15 +117,16 @@ test("import controls align without overflow", async ({ page }) => {
   await expect(page.locator("footer")).not.toContainText("Data fetched");
   await expect(page.locator(".landing-steps li")).toHaveCount(3);
   if (test.info().project.use.isMobile) {
-    const pitch = await page.locator(".hero > .pitch-board").boundingBox();
-    expect(pitch!.height).toBeLessThan(300);
+    await expect
+      .poll(() => heightOf(page.locator(".hero > .pitch-board")))
+      .toBeLessThan(300);
   }
-  const fieldBox = (await input.boundingBox())!;
-  const buttonBox = (await button.boundingBox())!;
   if (page.viewportSize()!.width > 1150) {
-    expect(
-      Math.abs(fieldBox.y + fieldBox.height - buttonBox.y - buttonBox.height),
-    ).toBeLessThan(2);
+    await expect
+      .poll(async () =>
+        Math.abs((await bottomOf(input)) - (await bottomOf(button))),
+      )
+      .toBeLessThan(2);
   }
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
@@ -152,9 +156,7 @@ test("normal import opens recommendations directly and keeps assumptions editabl
     page.getByText("How these comparisons work", { exact: true }),
   ).toHaveCount(0);
   await expect(page.locator(".results-support")).toHaveCount(0);
-  await page
-    .getByRole("heading", { name: "Your transfer shortlist", exact: true })
-    .scrollIntoViewIfNeeded();
+  await shortlistHeading(page).scrollIntoViewIfNeeded();
   await page.screenshot({
     path: `test-results/workspace-overview-${test.info().project.name}.png`,
     animations: "disabled",
@@ -188,11 +190,14 @@ test("Free Hit imports require permanent-squad correction before recommending", 
   await expect(
     page.getByRole("button", { name: "Replace Player 8", exact: true }),
   ).toBeVisible();
-  const freeHitNotice = await page
-    .getByText("This is a Free Hit squad.", { exact: false })
-    .boundingBox();
-  const players = await page.locator(".squad-editor").boundingBox();
-  expect(freeHitNotice!.y + freeHitNotice!.height).toBeLessThan(players!.y);
+  await expect
+    .poll(() =>
+      gapBetween(
+        page.getByText("This is a Free Hit squad.", { exact: false }),
+        page.locator(".squad-editor"),
+      ),
+    )
+    .toBeGreaterThan(0);
   await expect(shortlistHeading(page)).toHaveCount(0);
   await expect(saveShortlistButton(page)).toBeVisible();
 });
