@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { errorMessage } from "./error-message";
 import {
   bootstrapSchema,
   fixtureSchema,
@@ -112,10 +113,7 @@ export async function getHistory(id: number) {
 export function errorResponse(error: unknown) {
   if (error instanceof FplError)
     return Response.json({ error: error.message }, { status: error.status });
-  console.error(
-    "FPL request failed",
-    error instanceof Error ? error.message : "Unknown error",
-  );
+  console.error("FPL request failed", errorMessage(error, "Unknown error"));
   return Response.json(
     { error: "Could not load valid FPL data. Please try again shortly." },
     { status: 502 },

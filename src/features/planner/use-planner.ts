@@ -17,7 +17,20 @@ import {
 } from "./settings";
 import { historyCandidates } from "./history-candidates";
 import { plannerDataExpired } from "./freshness";
-import { selectedPreview, type Selection } from "./selection";
+import {
+  planSelection,
+  selectedPreview,
+  transferSelection,
+  type PlanCategory,
+  type Selection,
+} from "./selection";
+import {
+  checkTeamSettings,
+  comparingPlans,
+  loadingPlannerData,
+  settingsNotSaved,
+} from "./messages";
+import { errorMessage } from "@/lib/error-message";
 function refreshEstimatedPrices(
   data: Data,
   settings: Settings,
@@ -57,13 +70,11 @@ export function usePlanner() {
   const [data, setData] = useState<Data | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [teamId, setTeamId] = useState("");
-  const [busy, setBusy] = useState("Loading players and fixtures…");
+  const [busy, setBusy] = useState(loadingPlannerData);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [reviewOpen, setReviewOpen] = useState(false);
-  const [planCategory, setPlanCategory] = useState<
-    "singles" | "pair-now" | "roll-then-transfer"
-  >("singles");
+  const [planCategory, setPlanCategory] = useState<PlanCategory>("singles");
   const [editingTeam, setEditingTeam] = useState(false);
   const [confirmedPrices, setConfirmedPrices] = useState<number[]>([]);
   const [priceNotice, setPriceNotice] = useState("");
@@ -113,7 +124,7 @@ export function usePlanner() {
             setNotice(
               "Saved settings restored. Check your current bank and remaining transfers. Selling prices will be checked only for shortlisted moves.",
             );
-            setBusy("Loading recent matches and comparing transfer plans…");
+            setBusy(comparingPlans);
             try {
               const comparison = await prepareComparison(
                 loaded,
@@ -123,12 +134,7 @@ export function usePlanner() {
               setData(comparison.data);
               setResult(comparison.result);
             } catch (reason) {
-              if (active)
-                setError(
-                  reason instanceof Error
-                    ? reason.message
-                    : "Please check your team settings.",
-                );
+              if (active) setError(errorMessage(reason, checkTeamSettings));
             } finally {
               if (active) setBusy("");
             }
@@ -145,11 +151,7 @@ export function usePlanner() {
       })
       .catch((reason: unknown) => {
         if (active) {
-          setError(
-            reason instanceof Error
-              ? reason.message
-              : "Could not load FPL data.",
-          );
+          setError(errorMessage(reason, "Could not load FPL data."));
           setBusy("");
         }
       });
@@ -214,11 +216,7 @@ export function usePlanner() {
       if (comparison) persist(comparison.settings);
     } catch (reason) {
       if (currentRevision === revision.current)
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Could not import your squad.",
-        );
+        setError(errorMessage(reason, "Could not import your squad."));
     } finally {
       if (pendingOperation.current === currentRevision) {
         pendingOperation.current = null;
@@ -246,7 +244,7 @@ export function usePlanner() {
     const currentRevision = ++revision.current;
     pendingOperation.current = currentRevision;
     setError("");
-    setBusy("Loading recent matches and comparing transfer plans…");
+    setBusy(comparingPlans);
     setResult(null);
     setSelection(null);
     try {
@@ -268,20 +266,10 @@ export function usePlanner() {
       setReviewOpen(false);
       setEditingTeam(false);
       setNotice("");
-      try {
-        saveSettings(localStorage, comparison.settings);
-      } catch {
-        setNotice(
-          "Your settings could not be saved in this browser. Results are still available for this session.",
-        );
-      }
+      persist(comparison.settings);
     } catch (reason) {
       if (currentRevision === revision.current)
-        setError(
-          reason instanceof Error
-            ? reason.message
-            : "Please check your team settings.",
-        );
+        setError(errorMessage(reason, checkTeamSettings));
     } finally {
       if (pendingOperation.current === currentRevision) {
         pendingOperation.current = null;
@@ -315,9 +303,7 @@ export function usePlanner() {
         "Selling price confirmed. The shortlist has been recalculated; unaffordable moves have been removed.",
       );
     } catch (reason) {
-      setError(
-        reason instanceof Error ? reason.message : "Check the selling price.",
-      );
+      setError(errorMessage(reason, "Check the selling price."));
     }
   }
 
@@ -346,7 +332,7 @@ export function usePlanner() {
   }
   function retry() {
     setError("");
-    setBusy("Loading players and fixtures…");
+    setBusy(loadingPlannerData);
     setReload((value) => value + 1);
   }
   const previewState = useMemo(
@@ -371,9 +357,7 @@ export function usePlanner() {
     try {
       saveSettings(localStorage, next);
     } catch {
-      setNotice(
-        "Your settings could not be saved in this browser. Results are still available for this session.",
-      );
+      setNotice(settingsNotSaved);
     }
   }
   function toggleLock(id: number) {
@@ -403,16 +387,14 @@ export function usePlanner() {
     }
     revision.current++;
     if (!result?.weeks.length) return;
-    const name = (id: number) =>
-      data?.bootstrap.elements.find((player) => player.id === id)?.web_name ??
-      String(id);
-    setSelection({
-      key: `${move.outId}-${move.inId}`,
-      custom,
-      label: `${name(move.outId)} → ${name(move.inId)}`,
-      actions: [{ week: result.weeks[0], outId: move.outId, inId: move.inId }],
-      move,
-    });
+    setSelection(
+      transferSelection(
+        data?.bootstrap.elements ?? [],
+        result.weeks[0],
+        move,
+        custom,
+      ),
+    );
   }
   function selectPlan(plan: TransferPlan) {
     if (plannerDataExpired(loadedAt.current)) {
@@ -420,12 +402,7 @@ export function usePlanner() {
       return;
     }
     revision.current++;
-    setSelection({
-      key: plan.kind,
-      label: plan.kind === "pair-now" ? "Two transfers now" : "Roll, then move",
-      actions: plan.actions,
-      plan,
-    });
+    setSelection(planSelection(plan));
   }
   async function compareTransfer(outId: number, inId: number) {
     if (
@@ -470,22 +447,20 @@ export function usePlanner() {
       setSettings(currentSettings);
       const nextResult = analyze(enriched.data, currentSettings);
       setResult(nextResult);
-      const name = (id: number) =>
-        enriched.data.bootstrap.elements.find((player) => player.id === id)
-          ?.web_name ?? String(id);
-      setSelection({
-        key: `${outId}-${inId}`,
-        custom: true,
-        label: `${name(outId)} → ${name(inId)}`,
-        actions: [{ week: nextResult.weeks[0], outId, inId }],
-        move: evaluated.move,
-      });
+      setSelection(
+        transferSelection(
+          enriched.data.bootstrap.elements,
+          nextResult.weeks[0],
+          evaluated.move,
+          true,
+        ),
+      );
     } catch (reason) {
       if (currentRevision === revision.current) {
-        const message =
-          reason instanceof Error
-            ? reason.message
-            : "Could not compare this transfer.";
+        const message = errorMessage(
+          reason,
+          "Could not compare this transfer.",
+        );
         setCustomError(message);
         if (expired) setError(message);
       }

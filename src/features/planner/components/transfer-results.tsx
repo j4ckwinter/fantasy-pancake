@@ -2,7 +2,8 @@ import { useRef } from "react";
 import { BannerToast, Button, EmptyState } from "@jack.winter/pancake-ui";
 import type { Data, Settings } from "@/lib/schemas";
 import type { Analysis, Lineup, Move, TransferPlan } from "@/lib/model";
-import type { Selection } from "../selection";
+import type { PlanCategory, Selection } from "../selection";
+import { settingsNotSaved } from "../messages";
 import { TransferPlans } from "./transfer-plans";
 import { GroupedTransfers } from "./grouped-transfers";
 import { PlayerLocks } from "./player-locks";
@@ -43,10 +44,8 @@ export function TransferResults({
   onClosePlayer,
 }: {
   data: Data;
-  category: "singles" | "pair-now" | "roll-then-transfer";
-  onCategoryChange: (
-    category: "singles" | "pair-now" | "roll-then-transfer",
-  ) => void;
+  category: PlanCategory;
+  onCategoryChange: (category: PlanCategory) => void;
   playerData?: Data;
   settings: Settings;
   result: Analysis;
@@ -115,7 +114,7 @@ export function TransferResults({
         }
       }}
     >
-      {notice.includes("could not be saved") && (
+      {notice === settingsNotSaved && (
         <BannerToast title="Settings not saved" tone="warning">
           {notice}
         </BannerToast>
