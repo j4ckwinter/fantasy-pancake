@@ -4,7 +4,8 @@ import type { Lineup } from "@/lib/model";
 import { WeeklyBreakdown } from "./weekly-breakdown";
 import { PlayerComparison } from "./player-comparison";
 import type { Data, Settings } from "@/lib/schemas";
-import type { Selection } from "../selection";
+import { pricesChecked, type Selection } from "../selection";
+import { findPlayer } from "../players";
 import { signed } from "../format";
 import { SellingPriceCheck } from "./selling-price-check";
 
@@ -42,7 +43,7 @@ export function SelectedOption({
   const outgoingIds = [
     ...new Set(selection.actions.map((action) => action.outId)),
   ];
-  const pricesChecked = outgoingIds.every((id) => confirmedPrices.includes(id));
+  const checked = pricesChecked(selection.actions, confirmedPrices);
   return (
     <details id="selected-option" className="transfer-details" ref={detailsRef}>
       <summary>Transfer details</summary>
@@ -50,8 +51,8 @@ export function SelectedOption({
         className="selected-option"
         aria-label="Selected transfer option"
       >
-        <StatusChip tone={pricesChecked ? "success" : "warning"}>
-          {pricesChecked ? "Prices checked" : "Provisional prices"}
+        <StatusChip tone={checked ? "success" : "warning"}>
+          {checked ? "Prices checked" : "Provisional prices"}
         </StatusChip>
         {previewError ? (
           <p role="alert">{previewError}</p>
@@ -130,9 +131,7 @@ export function SelectedOption({
         <Disclosure summary="Check selling prices" defaultOpen={!!previewError}>
           <div className="selling-check-grid">
             {outgoingIds.map((id) => {
-              const player = data.bootstrap.elements.find(
-                (item) => item.id === id,
-              );
+              const player = findPlayer(data.bootstrap.elements, id);
               const owned = settings.squad.find((item) => item.id === id);
               return player && owned ? (
                 <SellingPriceCheck

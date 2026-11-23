@@ -18,6 +18,7 @@ import {
 import { historyCandidates } from "./history-candidates";
 import { plannerDataExpired } from "./freshness";
 import {
+  emptyPreview,
   planSelection,
   selectedPreview,
   transferSelection,
@@ -345,12 +346,7 @@ export function usePlanner() {
             result?.weeks ?? [],
             result?.baseline ?? [],
           )
-        : {
-            selection: null,
-            preview: null,
-            previewError: "",
-            previewSquadIdsByWeek: [],
-          },
+        : emptyPreview,
     [data, settings, selection, result],
   );
   function persist(next: Settings) {

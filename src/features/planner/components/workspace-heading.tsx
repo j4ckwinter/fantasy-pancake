@@ -3,7 +3,7 @@ import { Button } from "@jack.winter/pancake-ui";
 import "./workspace-heading.css";
 import type { Settings } from "@/lib/schemas";
 import type { Analysis } from "@/lib/model";
-import { money } from "../format";
+import { gameweekRange, money, teamLabel } from "../format";
 export function WorkspaceHeading({
   settings,
   result,
@@ -33,7 +33,7 @@ export function WorkspaceHeading({
     >
       <div>
         <span className="eyebrow">
-          {settings.teamName || `Team #${settings.entryId}`}
+          {teamLabel(settings)}
           {!editing && ` / ${result ? "THE NEXT MOVE" : "SQUAD CHECK"}`}
         </span>
         <h1 ref={workspaceHeading} tabIndex={-1}>
@@ -73,8 +73,7 @@ export function WorkspaceHeading({
               <div>
                 <dt>Planning horizon</dt>
                 <dd className="workspace-horizon">
-                  GW{result.weeks[0]}
-                  {result.weeks.length > 1 ? `–${result.weeks.at(-1)}` : ""}
+                  {gameweekRange(result.weeks)}
                 </dd>
               </div>
             ) : null}

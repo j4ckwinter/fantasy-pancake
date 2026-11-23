@@ -5,6 +5,8 @@ import type { Analysis, Lineup } from "@/lib/model";
 import type { Data, Settings } from "@/lib/schemas";
 import { PreviewMetrics } from "./preview-metrics";
 import { PitchBoard } from "./pitch-board";
+import { PlayerLink } from "./player-link";
+import { findPlayer } from "../players";
 
 export function LineupPreview({
   transferDetails,
@@ -57,8 +59,8 @@ export function LineupPreview({
   const lineup = after ? changed : baseline;
   if (!lineup || !baseline) return null;
   const name = (id: number | null) =>
-    data.bootstrap.elements.find((player) => player.id === id)?.web_name ??
-    "None";
+    (id === null ? undefined : findPlayer(data.bootstrap.elements, id))
+      ?.web_name ?? "None";
   const entered = changed?.ids.filter((id) => !baseline.ids.includes(id)) ?? [];
   const exited = baseline.ids.filter(
     (id) => changed && !changed.ids.includes(id),
@@ -191,16 +193,9 @@ export function LineupPreview({
               <strong>Bench · unordered</strong>
               <div>
                 {bench.map((id) => (
-                  <button
-                    type="button"
-                    key={id}
-                    onClick={(event) => {
-                      event.currentTarget.focus({ preventScroll: true });
-                      onPlayerSelect(id);
-                    }}
-                  >
+                  <PlayerLink key={id} playerId={id} onSelect={onPlayerSelect}>
                     {name(id)}
-                  </button>
+                  </PlayerLink>
                 ))}
               </div>
             </div>

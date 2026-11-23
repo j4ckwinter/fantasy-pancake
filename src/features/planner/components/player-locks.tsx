@@ -1,5 +1,6 @@
 import { Button } from "@jack.winter/pancake-ui";
 import type { Data, Settings } from "@/lib/schemas";
+import { findPlayer } from "../players";
 import "./exploration.css";
 
 export function PlayerLocks({
@@ -33,7 +34,7 @@ export function PlayerLocks({
         </p>
         <div className="player-locks">
           {settings.squad.map(({ id }) => {
-            const player = data.bootstrap.elements.find((p) => p.id === id);
+            const player = findPlayer(data.bootstrap.elements, id);
             if (!player) return null;
             const locked = lockedIds.includes(id);
             return (

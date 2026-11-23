@@ -3,6 +3,8 @@ import { playerForecast, type Move } from "@/lib/model";
 import type { Data, Settings } from "@/lib/schemas";
 import { money, signed, scoreGainLabel } from "../format";
 import { FixtureStrip } from "./pitch-board";
+import { findClub, findPlayer } from "../players";
+import { PlayerLink } from "./player-link";
 import "./exploration.css";
 
 export function GroupedTransfers({
@@ -35,7 +37,7 @@ export function GroupedTransfers({
   return (
     <div className="transfer-groups">
       {[...groups].slice(0, 3).map(([inId, alternatives], index) => {
-        const incoming = data.bootstrap.elements.find((p) => p.id === inId);
+        const incoming = findPlayer(data.bootstrap.elements, inId);
         if (!incoming) return null;
         const rows = alternatives.slice(0, 3);
         const gains = rows.map((move) => move.gain);
@@ -50,24 +52,17 @@ export function GroupedTransfers({
               <div>
                 <h3>
                   Buy{" "}
-                  <button
+                  <PlayerLink
                     className="player-detail-link"
-                    type="button"
-                    onClick={(event) => {
-                      event.currentTarget.focus({ preventScroll: true });
-                      onPlayerSelect(inId);
-                    }}
+                    playerId={inId}
+                    onSelect={onPlayerSelect}
                   >
                     {incoming.web_name}
-                  </button>
+                  </PlayerLink>
                 </h3>
                 <p className="muted">
-                  {
-                    data.bootstrap.teams.find(
-                      (team) => team.id === incoming.team,
-                    )?.name
-                  }{" "}
-                  · {money(incoming.now_cost)}
+                  {findClub(data.bootstrap.teams, incoming.team)?.name} ·{" "}
+                  {money(incoming.now_cost)}
                 </p>
               </div>
             </div>
@@ -75,8 +70,9 @@ export function GroupedTransfers({
             {close && <p className="close-alternatives">Similar scores</p>}
             <div className="transfer-alternatives">
               {rows.map((move) => {
-                const outgoing = data.bootstrap.elements.find(
-                  (p) => p.id === move.outId,
+                const outgoing = findPlayer(
+                  data.bootstrap.elements,
+                  move.outId,
                 );
                 const owned = settings.squad.find((p) => p.id === move.outId);
                 if (!outgoing || !owned) return null;
@@ -89,16 +85,13 @@ export function GroupedTransfers({
                   >
                     <div className="alternative-player">
                       <span className="eyebrow">Sell</span>
-                      <button
+                      <PlayerLink
                         className="player-detail-link"
-                        type="button"
-                        onClick={(event) => {
-                          event.currentTarget.focus({ preventScroll: true });
-                          onPlayerSelect(outgoing.id);
-                        }}
+                        playerId={outgoing.id}
+                        onSelect={onPlayerSelect}
                       >
                         {outgoing.web_name}
-                      </button>
+                      </PlayerLink>
                       <span className="muted">
                         {Math.round(playerForecast(data, outgoing).minutes)}{" "}
                         expected mins

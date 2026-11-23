@@ -1,4 +1,5 @@
 import { errorMessage } from "@/lib/error-message";
+import { findPlayer } from "./players";
 import {
   evaluateTransfer,
   previewTransfers,
@@ -19,10 +20,30 @@ export type Selection = {
 
 export type PlanCategory = "singles" | TransferPlan["kind"];
 
-const planLabels: Record<TransferPlan["kind"], string> = {
+export const planLabels: Record<TransferPlan["kind"], string> = {
   "pair-now": "Two transfers now",
   "roll-then-transfer": "Roll, then move",
 };
+
+export const planCategoryLabels: Record<PlanCategory, string> = {
+  singles: "Singles",
+  "pair-now": "Two transfers",
+  "roll-then-transfer": "Roll then move",
+};
+
+export const emptyPreview = {
+  selection: null,
+  preview: null,
+  previewError: "",
+  previewSquadIdsByWeek: [],
+};
+
+export function pricesChecked(
+  actions: Selection["actions"],
+  confirmedPrices: number[],
+) {
+  return actions.every((action) => confirmedPrices.includes(action.outId));
+}
 
 export function transferSelection(
   players: Player[],
@@ -30,8 +51,7 @@ export function transferSelection(
   move: Move,
   custom: boolean,
 ): Selection {
-  const name = (id: number) =>
-    players.find((player) => player.id === id)?.web_name ?? String(id);
+  const name = (id: number) => findPlayer(players, id)?.web_name ?? String(id);
   return {
     key: `${move.outId}-${move.inId}`,
     custom,
@@ -57,13 +77,7 @@ export function selectedPreview(
   weeks: number[],
   baseline: Lineup[],
 ) {
-  if (!selection)
-    return {
-      selection,
-      preview: null,
-      previewError: "",
-      previewSquadIdsByWeek: [],
-    };
+  if (!selection) return emptyPreview;
   try {
     const evaluated = selection.move
       ? evaluateTransfer(

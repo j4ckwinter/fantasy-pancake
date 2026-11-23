@@ -6,6 +6,7 @@ import {
 } from "@jack.winter/pancake-ui";
 import type { Data, Settings } from "@/lib/schemas";
 import { SquadEditor } from "./squad-editor";
+import { fromMillions, teamLabel, toMillions } from "../format";
 import "./team-review.css";
 export function TeamReview({
   data,
@@ -47,7 +48,7 @@ export function TeamReview({
       <header className="team-settings-header">
         <div>
           <span className="eyebrow">
-            {settings.teamName || `Team #${settings.entryId}`} · GW
+            {teamLabel(settings)} · GW
             {settings.sourceGameweek} picks
           </span>
           <h1>Your team</h1>
@@ -78,11 +79,13 @@ export function TeamReview({
             max="100"
             step="0.1"
             required
-            value={Number.isFinite(settings.bank) ? settings.bank / 10 : ""}
+            value={
+              Number.isFinite(settings.bank) ? toMillions(settings.bank) : ""
+            }
             onChange={(e) =>
               onUpdate({
                 ...settings,
-                bank: Math.round(e.target.valueAsNumber * 10),
+                bank: fromMillions(e.target.valueAsNumber),
               })
             }
           />

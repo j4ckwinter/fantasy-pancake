@@ -3,6 +3,7 @@ import { Button } from "@jack.winter/pancake-ui";
 import { marketPricePick } from "../settings";
 import { money } from "../format";
 import { PlayerPicker } from "./player-picker";
+import { findClub, findPlayer } from "../players";
 import type { Data, Settings } from "@/lib/schemas";
 
 export function SquadEditor({
@@ -35,9 +36,7 @@ export function SquadEditor({
           .map((pick, index) => ({
             pick,
             index,
-            current: data.bootstrap.elements.find(
-              (player) => player.id === pick.id,
-            ),
+            current: findPlayer(data.bootstrap.elements, pick.id),
           }))
           .filter(({ current }) => (current?.element_type ?? 0) === group.id);
         if (!picks.length) return null;
@@ -78,14 +77,10 @@ function SquadPlayerRow({
 }) {
   const [replacing, setReplacing] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
-  const current = data.bootstrap.elements.find(
-    (player) => player.id === settings.squad[index].id,
-  );
+  const current = findPlayer(data.bootstrap.elements, settings.squad[index].id);
   const name =
     current?.web_name ?? `Unavailable player #${settings.squad[index].id}`;
-  const club = data.bootstrap.teams.find(
-    (team) => team.id === current?.team,
-  )?.short_name;
+  const club = findClub(data.bootstrap.teams, current?.team)?.short_name;
   const candidates = data.bootstrap.elements
     .filter(
       (player) =>

@@ -7,6 +7,7 @@ import type { Data } from "@/lib/schemas";
 import { money } from "../format";
 import { FixtureStrip } from "./pitch-board";
 import "./player-details.css";
+import { findClub, findPlayer } from "../players";
 
 export function PlayerDetails({
   data,
@@ -19,7 +20,10 @@ export function PlayerDetails({
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
-  const player = data.bootstrap.elements.find((item) => item.id === playerId);
+  const player =
+    playerId === null
+      ? undefined
+      : findPlayer(data.bootstrap.elements, playerId);
   const open = !!player;
   useEffect(() => {
     const element = dialog.current;
@@ -33,7 +37,7 @@ export function PlayerDetails({
     };
   }, [open]);
   if (!player) return null;
-  const team = data.bootstrap.teams.find((item) => item.id === player.team);
+  const team = findClub(data.bootstrap.teams, player.team);
   const forecast = playerForecast(data, player);
   const history = usableHistory(data, player);
   const percentage = (value: number) => `${Math.round(value * 100)}%`;

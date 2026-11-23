@@ -4,6 +4,7 @@ import type { Data, Settings } from "@/lib/schemas";
 import type { Selection } from "../selection";
 import { money } from "../format";
 import { PlayerPicker } from "./player-picker";
+import { findClub } from "../players";
 import "./exploration.css";
 
 export function CustomTransferForm({
@@ -94,12 +95,7 @@ export function CustomTransferForm({
                     disabled={locks.has(player.id)}
                   >
                     {player.web_name} ·{" "}
-                    {
-                      data.bootstrap.teams.find(
-                        (team) => team.id === player.team,
-                      )?.short_name
-                    }{" "}
-                    ·{" "}
+                    {findClub(data.bootstrap.teams, player.team)?.short_name} ·{" "}
                     {money(
                       settings.squad.find((pick) => pick.id === player.id)!
                         .sellingPrice,

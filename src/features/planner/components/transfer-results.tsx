@@ -2,7 +2,12 @@ import { useRef } from "react";
 import { BannerToast, Button, EmptyState } from "@jack.winter/pancake-ui";
 import type { Data, Settings } from "@/lib/schemas";
 import type { Analysis, Lineup, Move, TransferPlan } from "@/lib/model";
-import type { PlanCategory, Selection } from "../selection";
+import {
+  planCategoryLabels,
+  pricesChecked,
+  type PlanCategory,
+  type Selection,
+} from "../selection";
 import { settingsNotSaved } from "../messages";
 import { TransferPlans } from "./transfer-plans";
 import { GroupedTransfers } from "./grouped-transfers";
@@ -145,25 +150,21 @@ export function TransferResults({
               aria-label="Plan category"
             >
               {(
-                [
-                  { value: "singles", label: "Singles" },
-                  { value: "pair-now", label: "Two transfers" },
-                  { value: "roll-then-transfer", label: "Roll then move" },
-                ] as const
-              ).map((item) => (
+                Object.entries(planCategoryLabels) as [PlanCategory, string][]
+              ).map(([value, label]) => (
                 <Button
-                  key={item.value}
+                  key={value}
                   variant="secondary"
-                  aria-pressed={category === item.value}
+                  aria-pressed={category === value}
                   onClick={() => {
-                    if (category !== item.value) {
+                    if (category !== value) {
                       onClearSelection();
                       previewOrigin.current = null;
-                      onCategoryChange(item.value);
+                      onCategoryChange(value);
                     }
                   }}
                 >
-                  {item.label}
+                  {label}
                 </Button>
               ))}
             </div>
@@ -304,10 +305,7 @@ export function TransferResults({
             onBackToOptions={returnToOptions}
             option={selection?.move ?? selection?.plan ?? null}
             pricesChecked={
-              !!selection &&
-              selection.actions.every((action) =>
-                confirmedPrices.includes(action.outId),
-              )
+              !!selection && pricesChecked(selection.actions, confirmedPrices)
             }
             canClear={!!selection || customBusy}
             onClearSelection={onClearSelection}
