@@ -43,7 +43,6 @@ export type SessionAction =
       teamId: string;
       settings: Settings;
       result: Analysis | null;
-      squadErrors: string[];
       freeHit: boolean;
     }
   | { type: "evaluation-started" }
@@ -142,9 +141,6 @@ export function sessionReducer(
         lineupIndex: 0,
         editingTeam: needsCorrection,
         reviewOpen: needsCorrection,
-        error: action.squadErrors.length
-          ? action.squadErrors.join(" ")
-          : session.error,
         notice: action.freeHit ? "free-hit" : "import-caveat",
       };
     }

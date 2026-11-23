@@ -51,4 +51,16 @@ describe("planner session", () => {
     );
     expect(next).toEqual({ ...initialSession, teamId: "123" });
   });
+
+  it("leaves squad problems to the team review instead of the error banner", () => {
+    const next = sessionReducer(session({ settings: null, result: null }), {
+      type: "imported",
+      teamId: "123",
+      settings,
+      result: null,
+      freeHit: false,
+    });
+    expect(next.error).toBe("");
+    expect(next.reviewOpen).toBe(true);
+  });
 });

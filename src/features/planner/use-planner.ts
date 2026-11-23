@@ -116,7 +116,6 @@ export function usePlanner() {
         teamId: entryId,
         settings: importedSettings,
         result: comparison?.result ?? null,
-        squadErrors,
         freeHit,
       });
       if (comparison) persist(comparison.settings);
