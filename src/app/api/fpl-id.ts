@@ -1,3 +1,9 @@
 import { z } from "zod";
 
-export const idSchema = z.coerce.number().int().min(1).max(100_000_000);
+const MAX_FPL_ID = 100_000_000;
+
+export const idSchema = z
+  .string()
+  .regex(/^\d+$/)
+  .transform(Number)
+  .pipe(z.number().int().min(1).max(MAX_FPL_ID));
