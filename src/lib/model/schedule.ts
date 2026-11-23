@@ -1,6 +1,6 @@
 import type { Data, Fixture, Player } from "../schemas";
 
-const HORIZON_WEEKS = 4;
+export const PLANNING_HORIZON_WEEKS = 4;
 
 export function upcomingWeeks(data: {
   bootstrap: Pick<Data["bootstrap"], "events">;
@@ -14,7 +14,7 @@ export function upcomingWeeks(data: {
   return next
     ? events
         .filter((event) => event.id >= next.id)
-        .slice(0, HORIZON_WEEKS)
+        .slice(0, PLANNING_HORIZON_WEEKS)
         .map((event) => event.id)
     : [];
 }

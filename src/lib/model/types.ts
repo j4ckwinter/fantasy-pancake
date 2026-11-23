@@ -1,4 +1,5 @@
 import type { Captaincy } from "./captaincy";
+import type { ChipAdvice } from "./chip-advice";
 
 export type Lineup = { score: number; ids: number[]; captain: number };
 export type Move = {
@@ -50,4 +51,5 @@ export type Analysis = {
   plans: TransferPlan[];
   threshold: number;
   rollReason: string;
+  chips: ChipAdvice;
 };

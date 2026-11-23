@@ -75,6 +75,30 @@ Each plan reports, per week, its transfers, hit, free transfers before and after
 
 This search is bounded and can miss the best plan: a player outside the pool, a pair outside the best-estimated sixteen, or a sequence the beam pruned. How close it gets was measured on 23 November 2026 with FPL data fetched that day: 30 real squads (five sampled squads at each of the GW9, GW11 and GW13 deadlines, each with one and with three free transfers) were compared with a far wider search (a beam of 60, 90 pair seeds and 400 scored pairs). The wider search found a better plan for 3 of the 30 squads, by at most 0.89 points after margins, and 0.06 points on average across all 30. It took about 1.5 seconds a squad against about 56 milliseconds. With a beam of six, the wider search did better for 14 of the 30, by up to 2.66 points. Unit tests compare the search with exhaustive enumeration on four-week markets with three tradeable players, where the pair and seed limits bind, and it matches every time; those markets are too small to show what the beam costs on a full squad. Prices stay at today's values for every week. Future injury news, price changes, chips and automatic substitutions are not simulated, and the value of free transfers still held at the end of the horizon is ignored. Only the first week's moves need making now, and plans should be rerun each week.
 
+## Chips
+
+`Analysis.chips` advises on the chips you have left. It needs FPL's chip rules from `bootstrap-static` and the chips you have played from your entry history, both read at import. Settings saved before chips were recorded have no played chips, so the planner asks you to refresh from FPL rather than guess.
+
+**Availability** (`chip-availability.ts`) reads each chip definition as a window, `start_event` to `stop_event`. FPL publishes two of each chip this season, one per half (GW1–19 or GW2–19, then GW20–38). A played chip uses up the window its gameweek falls in. A chip is available when an unused window overlaps the horizon, and only the horizon weeks inside that window are offered. When the horizon spans both halves and neither is used, each half's chip is listed separately. Otherwise the chip is used (with the gameweek, and the next window if there is one) or outside its window. Chips FPL adds that the planner does not know are ignored.
+
+**Valuation** (`chip-advice.ts`) scores each available chip in each of its horizon weeks against your current squad with no transfers:
+
+- **Triple Captain** gains the captain's expected points once more, using the captain from the captaincy ranking above.
+- **Bench Boost** gains the expected points of the four players `bestLineup` leaves on the bench.
+- **Free Hit** gains the best one-week XI the search finds, minus your own XI that week. The budget is your bank plus every selling price; owned players cost their selling price and others their current price. The squad must meet position counts and the club limit. The search (`free-hit-squad.ts`) is bounded: for every legal formation it beam-searches starters from the eight highest-scoring and four best-value players per position, then fills the bench with the cheapest legal players. It can miss the true best squad. If it finds nothing better than your XI, the gain is zero.
+- **Wildcard** is listed with its window, but its valuation is pending until multi-week planning can value a squad rebuilt with unlimited transfers.
+
+The best week is the one with the highest gain. A chip is recommended only when that gain clears its threshold: 8 points for Triple Captain, 15 for Bench Boost and 20 for Free Hit (`CHIP_PLAY_THRESHOLD_POINTS`). Below it, the advice is to hold. FPL allows one chip per gameweek, so chips that clear their thresholds claim weeks in order of gain; a chip whose qualifying weeks are all taken holds and names the chip that took them.
+
+The thresholds are assumptions, not fitted values. They stand for a week clearly better than a typical one, which usually means a double or blank gameweek. As a sanity check on 23 November 2026 live data (horizon GW12–15, no doubles), a synthetic squad of regular starters with a playing bench was worth 4.7–5.4 for Triple Captain, 9.8–12.1 for Bench Boost and 9.3–12.1 for Free Hit, so all three held. The squads were built from public player data only.
+
+Limits:
+
+- The horizon is four gameweeks. A chip's value outside it is unknown, so "hold" means "nothing in the next four weeks clears the bar", not "save it for a specific week".
+- Values use the current squad. They ignore transfers you plan before the chip week, automatic substitutions (so Bench Boost slightly overstates, since a reserve sometimes plays anyway), and the vice-captain.
+- Free Hit picks the best of very many squads, so like the top transfers in the [decision replay](#calibration) its forecast gain is likely to run optimistic.
+- Chip advice adds an output but changes no transfer score, so `forecast-v6` is unchanged.
+
 ## Evaluation
 
 Unit and browser tests verify calculation behavior, legality, data fallbacks and UI integration; they do not establish forecasting accuracy. Use [pre-deadline snapshot evaluation](evaluation.md) to freeze inputs, actions, starting XIs and captains before observing outcomes. Score against completed results without selecting a better XI afterwards. The baseline policies include model-selected holding, season minutes plus fixtures, and lagged points on the existing squad.

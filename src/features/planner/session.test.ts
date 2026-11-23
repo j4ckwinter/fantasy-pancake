@@ -26,6 +26,7 @@ function analysis(weeks: number[]): Analysis {
     plans: [],
     threshold: 2,
     rollReason: "",
+    chips: { status: "unknown", missing: "played-chips" },
   };
 }
 

@@ -28,7 +28,17 @@ export type {
   TransferAction,
 } from "./model/types";
 export { overLimitClubs, validateSquad } from "./model/squad-rules";
-export { upcomingWeeks } from "./model/schedule";
+export { PLANNING_HORIZON_WEEKS, upcomingWeeks } from "./model/schedule";
+import { adviseChips } from "./model/chip-advice";
+export {
+  CHIP_PLAY_THRESHOLD_POINTS,
+  type ChipAdvice,
+  type ChipRecommendation,
+  type ChipStatus,
+  type ChipValuation,
+  type ChipWeek,
+} from "./model/chip-advice";
+export type { ChipWindow } from "./model/chip-availability";
 export { scorePlayer } from "./model/scoring";
 export { bestLineup } from "./model/lineup";
 export {
@@ -74,6 +84,7 @@ export function analyze(data: Data, settings: Settings): Analysis {
       threshold,
       rollReason:
         "No upcoming gameweeks are available. Recheck when the next season or schedule is published.",
+      chips: adviseChips(context),
     };
   const moves = worthwhileMoves(context, threshold);
   const plans = planTransfers(context);
@@ -91,6 +102,7 @@ export function analyze(data: Data, settings: Settings): Analysis {
     plans,
     threshold,
     rollReason: rollReason(threshold, atCap, moves.length, plans.length),
+    chips: adviseChips(context),
   };
 }
 

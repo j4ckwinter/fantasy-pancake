@@ -73,6 +73,7 @@ function context() {
     plans: [],
     threshold: 2,
     rollReason: "Keep",
+    chips: { status: "unknown", missing: "played-chips" },
   };
   const outcomes = {
     fixtures: data.fixtures.map((fixture) => ({ ...fixture, finished: true })),
