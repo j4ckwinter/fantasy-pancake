@@ -55,9 +55,5 @@ export async function loadPlayerHistories(data: Data, ids: number[]) {
       }
     }),
   );
-  const loaded = ids.filter((id) => histories[String(id)]?.length).length;
-  return {
-    data: { ...data, histories },
-    notice: `Recent history available for ${loaded} of ${ids.length} selected players. Others use season estimates. The history pool includes your squad, forecast leaders and budget options; it does not cover every player.`,
-  };
+  return { data: { ...data, histories } };
 }

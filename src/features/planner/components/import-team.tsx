@@ -4,13 +4,11 @@ import "./landing.css";
 export function ImportTeam({
   ready,
   teamId,
-  busy,
   onTeamIdChange,
   onImport,
 }: {
   ready: boolean;
   teamId: string;
-  busy: boolean;
   onTeamIdChange: (value: string) => void;
   onImport: () => void;
 }) {
@@ -63,9 +61,7 @@ export function ImportTeam({
                 required
                 aria-describedby="team-id-help"
               />
-              <Button type="submit" loading={!!busy}>
-                Import team →
-              </Button>
+              <Button type="submit">Import team →</Button>
             </form>
             <p id="team-id-help" className="import-id-example">
               Example: /entry/<strong>123456</strong>/event/9

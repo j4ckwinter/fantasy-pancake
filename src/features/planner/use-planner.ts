@@ -380,7 +380,7 @@ export function usePlanner() {
     setCustomError("");
     persist(next);
   }
-  function selectMove(move: Move, custom = false) {
+  function selectMove(move: Move) {
     if (plannerDataExpired(loadedAt.current)) {
       void evaluate();
       return;
@@ -392,7 +392,7 @@ export function usePlanner() {
         data?.bootstrap.elements ?? [],
         result.weeks[0],
         move,
-        custom,
+        false,
       ),
     );
   }

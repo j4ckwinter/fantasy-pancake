@@ -9,12 +9,10 @@ export function SquadEditor({
   data,
   settings,
   onChange,
-  editing = false,
 }: {
   data: Data;
   settings: Settings;
   onChange: (settings: Settings) => void;
-  editing?: boolean;
 }) {
   const groups = [
     ...data.bootstrap.element_types.map((position) => ({
@@ -56,7 +54,6 @@ export function SquadEditor({
                   data={data}
                   settings={settings}
                   index={index}
-                  editing={editing}
                   onChange={onChange}
                 />
               ))}
@@ -72,13 +69,11 @@ function SquadPlayerRow({
   data,
   settings,
   index,
-  editing,
   onChange,
 }: {
   data: Data;
   settings: Settings;
   index: number;
-  editing: boolean;
   onChange: (settings: Settings) => void;
 }) {
   const [replacing, setReplacing] = useState(false);
@@ -123,18 +118,16 @@ function SquadPlayerRow({
             </span>
           )}
         </div>
-        {editing && (
-          <Button
-            ref={trigger}
-            type="button"
-            variant="secondary"
-            aria-label={`Replace ${name}`}
-            aria-expanded={replacing}
-            onClick={() => (replacing ? close() : setReplacing(true))}
-          >
-            Replace
-          </Button>
-        )}
+        <Button
+          ref={trigger}
+          type="button"
+          variant="secondary"
+          aria-label={`Replace ${name}`}
+          aria-expanded={replacing}
+          onClick={() => (replacing ? close() : setReplacing(true))}
+        >
+          Replace
+        </Button>
       </div>
       {replacing && (
         <div className="squad-player-row__search">

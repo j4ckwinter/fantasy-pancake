@@ -42,7 +42,6 @@ export default function Planner() {
         <ImportTeam
           ready={!!data}
           teamId={planner.teamId}
-          busy={!!busy}
           onTeamIdChange={planner.setTeamId}
           onImport={planner.importSquad}
         />

@@ -37,7 +37,7 @@ export function LineupPreview({
   lineupIndex: number;
   onLineupChange: (index: number) => void;
   onPlayerSelect: (id: number) => void;
-  previewSquadIdsByWeek?: number[][];
+  previewSquadIdsByWeek: number[][];
 }) {
   const [mode, setMode] = useState<"before" | "after">("after");
   const previewPanel = useRef<HTMLElement>(null);
@@ -64,7 +64,7 @@ export function LineupPreview({
     (id) => changed && !changed.ids.includes(id),
   );
   const squadIds = after
-    ? previewSquadIdsByWeek?.[lineupIndex]
+    ? previewSquadIdsByWeek[lineupIndex]
     : settings.squad.map((pick) => pick.id);
   const bench = squadIds?.filter((id) => !lineup.ids.includes(id));
   return (

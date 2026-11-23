@@ -165,7 +165,6 @@ export function TeamReview({
           <SquadEditor
             data={data}
             settings={settings}
-            editing={editingTeam}
             onChange={onUpdateSquad}
           />
         )}

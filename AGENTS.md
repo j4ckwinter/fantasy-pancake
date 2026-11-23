@@ -20,7 +20,7 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Server-side FPL access and caching                                | `src/lib/fpl.ts`                                        |
 | Validated data contracts                                          | `src/lib/schemas.ts`                                    |
 
-Snapshot capture and outcome accounting belong in `src/lib/evaluation.ts`; browser downloads belong in `src/features/planner/snapshot.ts`, and the offline evaluation entry point is `scripts/evaluate-snapshot.ts`. Keep evaluation decisions frozen before outcomes and version material model changes.
+Snapshot capture and outcome accounting belong in `src/lib/evaluation.ts`, and the offline evaluation entry point is `scripts/evaluate-snapshot.ts`. The planner UI offers no snapshot download. Keep evaluation decisions frozen before outcomes and version material model changes.
 
 ## Rules for iteration
 

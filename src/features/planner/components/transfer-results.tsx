@@ -174,7 +174,6 @@ export function TransferResults({
                     maxTransfers,
                     settings.freeTransfers + 1,
                   )}
-                  recommended
                   reason={result.rollReason}
                   onPreview={onClearSelection}
                 />
