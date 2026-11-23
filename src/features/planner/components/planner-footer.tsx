@@ -1,3 +1,4 @@
+import { ArrowUpRightIcon } from "lucide-react";
 import type { Data } from "@/lib/schemas";
 import "./planner-footer.css";
 export function PlannerFooter({
@@ -8,8 +9,8 @@ export function PlannerFooter({
   landing?: boolean;
 }) {
   return (
-    <footer>
-      <span>
+    <footer className="planner-footer">
+      <span className="planner-footer__source">
         {landing
           ? "Public FPL data"
           : data
@@ -17,11 +18,13 @@ export function PlannerFooter({
             : "Public data from Fantasy Premier League"}
       </span>
       <a
+        className="planner-footer__link"
         href="https://fantasy.premierleague.com/"
         target="_blank"
         rel="noreferrer"
       >
-        Open FPL ↗
+        Open FPL
+        <ArrowUpRightIcon className="size-4" aria-hidden="true" />
       </a>
       <span>Settings stay in this browser.</span>
     </footer>
