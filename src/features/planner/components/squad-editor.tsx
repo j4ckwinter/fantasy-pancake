@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@jack.winter/pancake-ui";
 import { marketPricePick } from "../settings";
 import { money } from "../format";
@@ -15,6 +15,7 @@ export function SquadEditor({
   settings: Settings;
   onChange: (settings: Settings) => void;
 }) {
+  const [focusRow, setFocusRow] = useState<number | null>(null);
   const groups = [
     ...data.bootstrap.element_types.map((position) => ({
       id: position.id,
@@ -53,6 +54,9 @@ export function SquadEditor({
                   data={data}
                   settings={settings}
                   index={index}
+                  focusTrigger={focusRow === index}
+                  onClosed={() => setFocusRow(index)}
+                  onFocused={() => setFocusRow(null)}
                   onChange={onChange}
                 />
               ))}
@@ -68,11 +72,17 @@ function SquadPlayerRow({
   data,
   settings,
   index,
+  focusTrigger,
+  onClosed,
+  onFocused,
   onChange,
 }: {
   data: Data;
   settings: Settings;
   index: number;
+  focusTrigger: boolean;
+  onClosed: () => void;
+  onFocused: () => void;
   onChange: (settings: Settings) => void;
 }) {
   const [replacing, setReplacing] = useState(false);
@@ -89,9 +99,14 @@ function SquadPlayerRow({
         !settings.squad.some((pick) => pick.id === player.id),
     )
     .sort((a, b) => a.web_name.localeCompare(b.web_name));
+  useEffect(() => {
+    if (!focusTrigger) return;
+    trigger.current?.focus();
+    onFocused();
+  }, [focusTrigger, onFocused]);
   function close() {
     setReplacing(false);
-    requestAnimationFrame(() => trigger.current?.focus());
+    onClosed();
   }
   return (
     <div

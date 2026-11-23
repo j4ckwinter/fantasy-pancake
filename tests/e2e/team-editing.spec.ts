@@ -1,4 +1,11 @@
-import { expect, failHistory, test } from "./support/fixtures";
+import {
+  expect,
+  failHistory,
+  importResponse,
+  routeImport,
+  squadPicks,
+  test,
+} from "./support/fixtures";
 import {
   bottomOf,
   expectNoHorizontalOverflow,
@@ -206,4 +213,27 @@ test("squad replacement supports keyboard search, cancellation and touch selecti
   await expect(
     page.getByRole("button", { name: "Replace New Star", exact: true }),
   ).toBeVisible();
+});
+
+test("replacing an unavailable player keeps focus on the replaced row", async ({
+  page,
+}) => {
+  await routeImport(page, importResponse({ picks: squadPicks({ 7: 999 }) }));
+  await importTeam(page);
+  await page
+    .getByRole("button", {
+      name: "Replace Unavailable player #999",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("combobox", {
+      name: "Replacement for Unavailable player #999",
+      exact: true,
+    })
+    .fill("New Star");
+  await page.getByRole("option", { name: /New Star/ }).click();
+  await expect(
+    page.getByRole("button", { name: "Replace New Star", exact: true }),
+  ).toBeFocused();
 });
