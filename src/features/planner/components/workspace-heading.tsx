@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { ArrowUpRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import "./workspace-heading.css";
 import type { Settings } from "@/lib/schemas";
@@ -63,18 +64,35 @@ export function WorkspaceHeading({
               disabled={!canEdit}
               onClick={onEditTeam}
             >
-              Edit team details <span aria-hidden="true">↗</span>
+              Edit team details
+              <ArrowUpRightIcon aria-hidden="true" className="size-4" />
             </Button>
           )}
           <dl className="workspace-figures">
             <div>
-              <dt>{balancesFromImport ? "Deadline bank" : "In the bank"}</dt>
+              <dt>
+                {balancesFromImport ? (
+                  <span className="workspace-figures__estimate">
+                    Deadline bank
+                  </span>
+                ) : (
+                  "In the bank"
+                )}
+              </dt>
               <dd>
                 {Number.isFinite(settings.bank) ? money(settings.bank) : "—"}
               </dd>
             </div>
             <div>
-              <dt>{balancesFromImport ? "Assumed FTs" : "Free transfers"}</dt>
+              <dt>
+                {balancesFromImport ? (
+                  <span className="workspace-figures__estimate">
+                    Assumed FTs
+                  </span>
+                ) : (
+                  "Free transfers"
+                )}
+              </dt>
               <dd>{settings.freeTransfers}</dd>
             </div>
             {result?.weeks.length ? (
