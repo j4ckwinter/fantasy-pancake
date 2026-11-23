@@ -9,7 +9,7 @@ import {
 
 export const ROLL_POLICY_ID = "roll";
 
-export const actionSchema = z.object({
+const actionSchema = z.object({
   week: z.number().int(),
   outId: z.number().int(),
   inId: z.number().int(),

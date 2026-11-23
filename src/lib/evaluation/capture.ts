@@ -9,7 +9,6 @@ import { bestLineup, type Analysis } from "../model";
 import { weeklyScores } from "../model/scoring";
 import {
   ROLL_POLICY_ID,
-  actionSchema,
   snapshotSchema,
   type Action,
   type EvaluationSnapshot,
@@ -108,17 +107,7 @@ function analysisPolicies(
     scores,
     historyCoverage: null,
   }));
-  const plans = z
-    .array(
-      z.object({
-        kind: z.string(),
-        actions: z.array(actionSchema),
-        hit: z.number().int().nonnegative(),
-      }),
-    )
-    .optional()
-    .parse((analysis as Analysis & { plans?: unknown }).plans);
-  const planPolicies = (plans ?? []).map((plan, index): PolicySpec => ({
+  const planPolicies = analysis.plans.map((plan, index): PolicySpec => ({
     id: `plan-${index + 1}`,
     label: plan.kind,
     actions: plan.actions,

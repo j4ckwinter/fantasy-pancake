@@ -28,7 +28,7 @@ export type Analysis = {
   weeks: number[];
   baseline: Lineup[];
   moves: Move[];
-  plans?: TransferPlan[];
+  plans: TransferPlan[];
   threshold: number;
   rollReason: string;
 };
