@@ -267,6 +267,7 @@
   --color-hero-card-shadow: #0000004d;
   --shadow-hero-card: 0 18px 40px var(--color-hero-card-shadow);
   --shadow-focus-on-night: 0 0 0 3px var(--color-brand);
+  --segment-height: 32px;
 }
 
 @media (prefers-color-scheme: dark) {
