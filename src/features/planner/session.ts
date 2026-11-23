@@ -149,6 +149,7 @@ export function sessionReducer(
     case "evaluated":
       return {
         ...session,
+        priceConfirmed: false,
         settings: action.settings,
         result: action.result,
         lineupIndex: 0,
@@ -181,6 +182,7 @@ export function sessionReducer(
     case "settings-edited":
       return {
         ...session,
+        priceConfirmed: false,
         settings: action.settings,
         result: null,
         selection: null,
@@ -229,9 +231,9 @@ export function sessionReducer(
           }
         : { ...session, settings: action.settings };
     case "selected":
-      return { ...session, selection: action.selection };
+      return { ...session, selection: action.selection, priceConfirmed: false };
     case "selection-cleared":
-      return { ...session, selection: null };
+      return { ...session, selection: null, priceConfirmed: false };
     case "category-changed":
       return { ...session, planCategory: action.category };
     case "lineup-selected":

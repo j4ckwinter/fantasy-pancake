@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Analysis } from "@/lib/model";
 import type { Settings } from "@/lib/schemas";
 import { initialSession, sessionReducer, type Session } from "./session";
+import { planSelection } from "./selection";
 
 const settings: Settings = {
   version: 1,
@@ -62,5 +63,26 @@ describe("planner session", () => {
     });
     expect(next.error).toBe("");
     expect(next.reviewOpen).toBe(true);
+  });
+
+  it("drops the price confirmation once the user moves on", () => {
+    const confirmed = session({ priceConfirmed: true });
+    const plan = {
+      kind: "pair-now" as const,
+      actions: [],
+      gain: 3,
+      hit: 0,
+      remainingBank: 0,
+      freeTransfersAfterPlan: 0,
+      reasons: [],
+    };
+    const moves = [
+      { type: "selected", selection: planSelection(plan) },
+      { type: "selection-cleared" },
+      { type: "evaluated", settings, result: analysis([9]) },
+      { type: "settings-edited", settings },
+    ] as const;
+    for (const action of moves)
+      expect(sessionReducer(confirmed, action).priceConfirmed).toBe(false);
   });
 });
