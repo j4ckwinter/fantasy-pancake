@@ -7,7 +7,7 @@ import {
 } from "@/lib/schemas";
 
 const STORAGE_KEY = "fpl-planner-v1";
-type SettingsStorage = Pick<Storage, "getItem" | "setItem">;
+export type SettingsStorage = Pick<Storage, "getItem" | "setItem">;
 type RestoredSettings =
   | { status: "empty" }
   | { status: "invalid" }

@@ -1,11 +1,25 @@
 import type { Dispatch } from "react";
-import type { Data } from "@/lib/schemas";
+import type { Data, Settings } from "@/lib/schemas";
 import { errorMessage } from "@/lib/error-message";
 import { loadTeamPicks } from "./api";
-import { restoreSettings, saveSettings } from "./settings";
+import {
+  restoreSettings,
+  saveSettings,
+  type SettingsStorage,
+} from "./settings";
 import { prepareComparison } from "./comparison";
 import { checkTeamSettings, comparingPlans, restoringTeam } from "./messages";
 import type { SessionAction } from "./session";
+
+async function withTeamName(settings: Settings) {
+  if (settings.teamName) return settings;
+  try {
+    const imported = await loadTeamPicks(String(settings.entryId));
+    return { ...settings, teamName: imported.teamName };
+  } catch {
+    return settings;
+  }
+}
 
 export async function restoreSavedTeam(
   loaded: Data,
@@ -16,7 +30,7 @@ export async function restoreSavedTeam(
     showBusy,
     enriched,
   }: {
-    storage: Storage;
+    storage: SettingsStorage;
     isActive: () => boolean;
     dispatch: Dispatch<SessionAction>;
     showBusy: (message: string) => void;
@@ -30,19 +44,16 @@ export async function restoreSavedTeam(
   }
   if (restored.status !== "restored") return;
   showBusy(restoringTeam);
-  let saved = restored.settings;
-  if (!saved.teamName) {
-    try {
-      const imported = await loadTeamPicks(String(saved.entryId));
-      if (!isActive()) return;
-      saved = { ...saved, teamName: imported.teamName };
-      saveSettings(storage, saved);
-    } catch {
-      // A missing name must not prevent restoring the saved squad.
-    }
-  }
+  const saved = await withTeamName(restored.settings);
   if (!isActive()) return;
   dispatch({ type: "restored", settings: saved });
+  if (saved !== restored.settings) {
+    try {
+      saveSettings(storage, saved);
+    } catch {
+      dispatch({ type: "noticed", notice: "settings-not-saved" });
+    }
+  }
   showBusy(comparingPlans);
   try {
     const comparison = await prepareComparison(loaded, saved);
