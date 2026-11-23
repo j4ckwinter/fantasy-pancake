@@ -21,7 +21,7 @@
   align-items: center;
   gap: var(--space-1rem);
   padding: var(--space-1rem) var(--space-0-65rem);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-line);
 }
 .transfer-alternative.is-selected {
   background: var(--color-surface-selected);

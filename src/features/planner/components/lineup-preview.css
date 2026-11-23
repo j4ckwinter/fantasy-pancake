@@ -92,7 +92,7 @@
 }
 .lineup-switcher button[aria-pressed="true"] {
   background: var(--color-ink);
-  color: var(--color-accent);
+  color: var(--color-brand);
   box-shadow: var(--shadow-switcher-pressed);
 }
 .lineup-switcher button:hover:not([aria-pressed="true"]) {

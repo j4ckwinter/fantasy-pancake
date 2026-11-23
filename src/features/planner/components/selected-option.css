@@ -6,7 +6,7 @@
 }
 .price-notice {
   padding: var(--space-16);
-  background: var(--color-accent);
+  background: var(--color-brand);
   border-radius: var(--radius-12);
 }
 
@@ -15,7 +15,7 @@
 }
 .selected-option > details {
   border: 0;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-line);
   border-radius: 0;
   background: transparent;
 }

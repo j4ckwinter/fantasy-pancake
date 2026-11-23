@@ -63,7 +63,7 @@
 .team-settings .squad-summary-heading {
   margin: 0;
   padding: var(--space-20) 0;
-  border-block: 1px solid var(--color-border);
+  border-block: 1px solid var(--color-line);
   gap: var(--space-12);
 }
 .team-settings .squad-summary-heading h3 {
@@ -83,7 +83,7 @@
   font-size: var(--text-12);
 }
 .team-settings .squad-summary-heading button {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-line);
   border-radius: var(--radius-8);
   background: var(--color-white);
   flex-shrink: 0;
@@ -129,7 +129,7 @@
   z-index: var(--z-sticky-footer);
   padding: var(--space-12) 0 max(var(--space-12), env(safe-area-inset-bottom));
   background: var(--color-page);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-line);
 }
 .team-settings .squad-editor {
   gap: var(--space-18);

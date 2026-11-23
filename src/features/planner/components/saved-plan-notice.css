@@ -4,7 +4,7 @@
   justify-content: space-between;
   gap: var(--space-8) var(--space-16);
   padding: var(--space-8) 0;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-line);
   font-size: var(--text-12);
 }
 .saved-plan-notice > div {

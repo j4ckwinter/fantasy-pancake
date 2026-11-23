@@ -31,7 +31,7 @@
   max-width: 440px;
 }
 .planner-loading__eyebrow {
-  color: var(--color-accent);
+  color: var(--color-brand);
   font-size: var(--text-10);
   font-weight: 750;
   letter-spacing: 1.2px;
@@ -60,7 +60,7 @@
   display: block;
   height: 100%;
   width: 35%;
-  background: var(--color-accent);
+  background: var(--color-brand);
   animation: planner-loading 1.8s ease-in-out infinite alternate;
 }
 @keyframes planner-loading {

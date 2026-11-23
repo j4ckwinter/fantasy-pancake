@@ -29,10 +29,10 @@
   padding: var(--space-18) var(--space-28);
   background: var(--color-ink);
   color: var(--color-surface-subtle);
-  border-bottom: 3px solid var(--color-accent);
+  border-bottom: 3px solid var(--color-brand);
 }
 .player-details__header .eyebrow {
-  color: var(--color-accent);
+  color: var(--color-brand);
 }
 .player-details__header h2 {
   font-size: var(--text-sheet-title);

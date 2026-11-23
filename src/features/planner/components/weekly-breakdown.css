@@ -16,7 +16,7 @@
 .weekly-breakdown td {
   padding: var(--space-0-75rem) var(--space-0-5rem);
   text-align: right;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-line);
 }
 .weekly-breakdown th:first-child {
   text-align: left;

@@ -116,7 +116,7 @@
     var(--color-night-raised);
 }
 .workspace-heading--results .eyebrow {
-  color: var(--color-accent);
+  color: var(--color-brand);
 }
 .workspace-heading--results.workspace-heading h1 {
   font-size: var(--text-results-title);
@@ -142,10 +142,10 @@
   text-underline-offset: 4px;
 }
 .workspace-heading--results .workspace-heading__edit:hover {
-  color: var(--color-accent);
+  color: var(--color-brand);
 }
 .workspace-heading--results .workspace-heading__edit:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-brand);
   outline-offset: 4px;
 }
 .workspace-heading--results .workspace-figures {

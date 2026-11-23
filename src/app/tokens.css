@@ -1,7 +1,7 @@
 :root {
   --font-pancake: Inter, Arial, sans-serif;
-  --color-pancake-accent: var(--color-accent);
-  --color-pancake-surface-accent: var(--color-accent-strong);
+  --color-pancake-accent: var(--color-brand);
+  --color-pancake-surface-accent: var(--color-brand-strong);
   --color-pancake-control-border: var(--color-input-border);
   --color-pancake-control-focus: var(--color-focus);
   --radius-pancake-full: var(--radius-9);
@@ -31,7 +31,7 @@
   --color-surface-badge: #e0e7dc;
   --color-surface-tint-strong: #dae5ce;
   --color-surface-selected: #eaf6d6;
-  --color-border: #dce1dd;
+  --color-line: #dce1dd;
   --color-border-subtle: #dce3d8;
   --color-border-section: #d7ded1;
   --color-border-strong: #ccd6c7;
@@ -43,9 +43,9 @@
   --color-border-hover: #75836d;
   --color-border-selected: #9ab755;
   --color-input-border: #89918e;
-  --color-accent: #c6fa46;
-  --color-accent-strong: #b2ed28;
-  --color-accent-glint: #c6fa4607;
+  --color-brand: #c6fa46;
+  --color-brand-strong: #b2ed28;
+  --color-brand-glint: #c6fa4607;
   --color-night: #101b19;
   --color-night-raised: #172820;
   --color-night-active: #30432c;

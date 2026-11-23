@@ -6,6 +6,6 @@
 }
 .player-locks button[aria-pressed="true"] {
   background: var(--color-ink);
-  color: var(--color-accent);
+  color: var(--color-brand);
   border-color: var(--color-ink);
 }

@@ -37,7 +37,7 @@
     width: 21px;
     height: 21px;
     fill: none;
-    stroke: var(--color-accent);
+    stroke: var(--color-brand);
     stroke-width: 1.6;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -45,10 +45,10 @@
   .workspace-mobile-nav a[aria-current="location"],
   .workspace-mobile-nav a:active {
     background: var(--color-night-active);
-    color: var(--color-accent);
+    color: var(--color-brand);
   }
   .workspace-mobile-nav a:focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-brand);
     outline-offset: -2px;
     background: var(--color-night-active);
   }
