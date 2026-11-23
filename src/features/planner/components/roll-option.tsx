@@ -1,4 +1,5 @@
 import { Button, StatusChip } from "@jack.winter/pancake-ui";
+import { freeTransfersLabel } from "../format";
 
 export function RollOption({
   nextFreeTransfers,
@@ -17,7 +18,7 @@ export function RollOption({
         </span>
         <div className="roll-option__copy">
           <h3>Roll the transfer</h3>
-          <p>No hit · {nextFreeTransfers} free transfers next GW*</p>
+          <p>No hit · {freeTransfersLabel(nextFreeTransfers)} next GW*</p>
         </div>
         <StatusChip tone="success">Recommended</StatusChip>
         <Button variant="secondary" onClick={onPreview}>

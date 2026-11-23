@@ -22,3 +22,6 @@ export const scoreGainLabel = (weeks: number[]) =>
 
 export const teamLabel = (settings: Pick<Settings, "teamName" | "entryId">) =>
   settings.teamName || `Team #${settings.entryId}`;
+
+export const freeTransfersLabel = (count: number) =>
+  `${count} free transfer${count === 1 ? "" : "s"}`;
