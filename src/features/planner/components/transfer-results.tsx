@@ -1,10 +1,11 @@
 import { useRef } from "react";
-import { ArrowLeftRightIcon, ChevronDownIcon } from "lucide-react";
+import { ArrowLeftRightIcon, ChevronDownIcon, InfoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Banner } from "@/components/banner";
 import { EmptyState } from "@/components/empty-state";
 import type { Data, Settings } from "@/lib/schemas";
 import {
+  FORECAST_ACCURACY,
   freeTransferCap,
   nextWeekFreeTransfers,
   type Analysis,
@@ -21,6 +22,7 @@ import {
   type Selection,
 } from "../selection";
 import { noticeText, type Notice } from "../messages";
+import { accuracyNote, expectedPoints } from "../format";
 import { TransferPlans } from "./transfer-plans";
 import { GroupedTransfers } from "./grouped-transfers";
 import { PlayerLocks } from "./player-locks";
@@ -206,9 +208,9 @@ export function TransferResults({
                   />
                 ) : (
                   <p className="options-empty">
-                    No single transfer clears the {result.threshold.toFixed(1)}{" "}
-                    score-unit threshold. You can still compare your own move
-                    below.
+                    No single transfer clears the{" "}
+                    {expectedPoints(result.threshold)} threshold. You can still
+                    compare your own move below.
                   </p>
                 )}
               </>
@@ -224,6 +226,10 @@ export function TransferResults({
                 onPlayerSelect={onPlayerSelect}
               />
             )}
+            <p className="forecast-accuracy">
+              <InfoIcon aria-hidden="true" className="size-4" />
+              <span>{accuracyNote(FORECAST_ACCURACY)}</span>
+            </p>
           </section>
           <section className="planner-tools" aria-label="Fine-tune your plan">
             <div className="planner-tools__heading">

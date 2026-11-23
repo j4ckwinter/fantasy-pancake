@@ -206,7 +206,7 @@ test("results keep optional tools collapsed and the first recommendation easy to
     page.locator(".transfer-group").first().locator(".transfer-price-note"),
   ).toHaveCount(0);
   await expect(page.locator(".alternative-gain").first()).toContainText(
-    "Score gain · GW9–12",
+    "Expected gain · GW9–12",
   );
   if (test.info().project.use.isMobile) {
     await expect
@@ -367,5 +367,20 @@ test("the selected option explains its risks and assumptions", async ({
   await expect(
     page.getByRole("article", { name: "Selected transfer option" }),
   ).toContainText("season averages can miss recent changes");
+  await expectNoHorizontalOverflow(page);
+});
+
+test("the shortlist shows gains in expected points with a dated accuracy note", async ({
+  page,
+}) => {
+  await importTeam(page);
+  await expect(shortlistHeading(page)).toBeVisible();
+  await expect(page.locator(".alternative-gain strong").first()).toHaveText(
+    /^[+−]\d+\.\d pts$/,
+  );
+  const note = page.locator(".forecast-accuracy");
+  await expect(note).toContainText("Gains are expected FPL points.");
+  await expect(note).toContainText("on 23 Nov 2026");
+  await expect(note).toContainText("1.9 pts from the forecast");
   await expectNoHorizontalOverflow(page);
 });

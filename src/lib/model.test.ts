@@ -302,7 +302,7 @@ describe("roll explanation", () => {
     const { data, settings } = seasonContext();
     addPlayer(data);
     expect(analyze(data, settings).rollReason).toBe(
-      "Rolling scores zero improvement and keeps flexibility. Only moves exceeding 2 net score units are shown.",
+      "Rolling scores zero improvement and keeps flexibility. Only moves gaining more than 2 net expected points are shown.",
     );
   });
   it("points to larger plans when no single transfer qualifies", () => {
@@ -316,14 +316,14 @@ describe("roll explanation", () => {
       expected_assists: 1,
     });
     expect(analyze(data, settings).rollReason).toBe(
-      "No legal single transfer beats the 2-unit net improvement threshold. Larger or delayed plans are shown separately; rolling remains the no-hit baseline.",
+      "No legal single transfer beats the 2-point net gain threshold. Larger or delayed plans are shown separately; rolling remains the no-hit baseline.",
     );
   });
   it("recommends keeping the squad when nothing qualifies, noting the cap", () => {
     const { data, settings } = seasonContext();
     settings.freeTransfers = 5;
     expect(analyze(data, settings).rollReason).toBe(
-      "No evaluated transfer plan beats the 1-unit net improvement threshold. Keep the squad and retain flexibility. You are at the free-transfer cap, so rolling cannot add another saved transfer.",
+      "No evaluated transfer plan beats the 1-point net gain threshold. Keep the squad and retain flexibility. You are at the free-transfer cap, so rolling cannot add another saved transfer.",
     );
   });
 });
@@ -341,7 +341,7 @@ describe("incoming player risks", () => {
     const risks = evaluateTransfer(data, settings, 8, 100).move.risks;
     expect(risks).toEqual(
       expect.arrayContaining([
-        "Forecast weights and scoring probabilities are assumptions, not validated predictive accuracy.",
+        "Expected points are averages: in this season's backtest a player who played finished 1.9 points from the forecast in a typical gameweek.",
         "Recent match history is unavailable; season averages can miss recent changes in role.",
         "Small sample: fewer than 450 minutes; attacking rates are shrunk toward positional assumptions.",
         "Fewer than five season starts: the starting-role sample remains small.",

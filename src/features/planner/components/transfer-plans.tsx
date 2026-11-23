@@ -5,7 +5,7 @@ import type { TransferPlan } from "@/lib/model";
 import { planLabels, pricesChecked, type Selection } from "../selection";
 import { findPlayer } from "../players";
 import { PlayerLink } from "./player-link";
-import { minus, money, signed, scoreGainLabel } from "../format";
+import { expectedGainLabel, minus, money, signedPoints } from "../format";
 import "./transfer-group.css";
 import "./transfer-plans.css";
 
@@ -105,8 +105,8 @@ export function TransferPlans({
             </ol>
             <div className="plan-outcome">
               <div className="alternative-gain">
-                <strong>{signed(plan.gain)}</strong>
-                <span>{scoreGainLabel(weeks)}</span>
+                <strong>{signedPoints(plan.gain)}</strong>
+                <span>{expectedGainLabel(weeks)}</span>
               </div>
               <div className="plan-cost">
                 <span className="plan-cost__balance">

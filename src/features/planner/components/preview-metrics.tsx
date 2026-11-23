@@ -1,4 +1,4 @@
-import { money, signed, scoreGainLabel } from "../format";
+import { expectedGainLabel, money, signedPoints } from "../format";
 import "./preview-metrics.css";
 
 export function PreviewMetrics({
@@ -17,8 +17,8 @@ export function PreviewMetrics({
   return (
     <div className="metrics">
       <div className="metric">
-        <strong>{signed(gain)}</strong>
-        <span>{scoreGainLabel(weeks)}</span>
+        <strong>{signedPoints(gain)}</strong>
+        <span>{expectedGainLabel(weeks)}</span>
       </div>
       <div className="metric">
         <strong>{hit} pts</strong>

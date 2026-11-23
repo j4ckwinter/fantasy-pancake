@@ -15,7 +15,7 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Loaded FPL data and when it expires                               | `src/features/planner/use-planner-data.ts`, `freshness.ts`       |
 | Player details dialog data                                        | `src/features/planner/use-player-details.ts`                     |
 | Player and club lookups                                           | `src/features/planner/players.ts`                                |
-| Money, gain and label formatting                                  | `src/features/planner/format.ts`                                 |
+| Money, expected-points gain, accuracy note and label formatting   | `src/features/planner/format.ts`                                 |
 | Browser HTTP requests and response validation                     | `src/features/planner/api.ts`                                    |
 | Saved-settings compatibility, import defaults and price estimates | `src/features/planner/settings.ts`                               |
 | Selections, their labels and plan categories                      | `src/features/planner/selection.ts`                              |
@@ -33,13 +33,14 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Whether a transfer or batch is legal, and the squad it leaves     | `src/lib/model/transfer-legality.ts`                             |
 | Reasons shown for a single transfer                               | `src/lib/model/transfer-reasons.ts`                              |
 | Risk messages shown for an incoming player                        | `src/lib/model/player-risks.ts`                                  |
-| Rounding of reported score units                                  | `src/lib/model/round-score.ts`                                   |
+| Rounding of reported expected points                              | `src/lib/model/round-score.ts`                                   |
 | Captain ranking, vice-captain and bench order                     | `src/lib/model/captaincy.ts`                                     |
 | Chance a player appears in a gameweek                             | `src/lib/model/play-chance.ts`                                   |
 | Weekly captaincy for the current or a previewed squad             | `src/lib/model/captaincy-preview.ts`                             |
 | Position ids; per-position scoring weights and attacking priors   | `src/lib/model/position.ts`; `scoring.ts`, `forecast-history.ts` |
 | Match length, 60-minute appearances and recency half-life         | `src/lib/model/match-minutes.ts`, `recency.ts`                   |
 | Fitted forecast parameters and their uncalibrated reference       | `src/lib/model/calibrated-parameters.ts`                         |
+| Measured forecast accuracy quoted to users                        | `src/lib/model/forecast-accuracy.ts`                             |
 | Server-side FPL access and caching                                | `src/lib/fpl.ts`                                                 |
 | API route error responses and FPL id parsing                      | `src/app/api/error-response.ts`, `fpl-id.ts`                     |
 | Validated data contracts                                          | `src/lib/schemas.ts`                                             |

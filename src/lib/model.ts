@@ -27,13 +27,17 @@ export { upcomingWeeks } from "./model/schedule";
 export { scorePlayer } from "./model/scoring";
 export { bestLineup } from "./model/lineup";
 export {
+  FORECAST_ACCURACY,
+  type ForecastAccuracy,
+} from "./model/forecast-accuracy";
+export {
   TRANSFER_HIT_POINTS,
   freeTransferCap,
   nextWeekFreeTransfers,
 } from "./model/transfer-rules";
 
-const NET_GAIN_THRESHOLD = 2;
-const AT_CAP_NET_GAIN_THRESHOLD = 1;
+const NET_GAIN_THRESHOLD_POINTS = 2;
+const AT_CAP_NET_GAIN_THRESHOLD_POINTS = 1;
 const SHORTLIST_INCOMING_PLAYERS = 3;
 const SHORTLIST_OUTGOING_PER_INCOMING = 3;
 const AT_CAP_ROLL_NOTE =
@@ -47,8 +51,8 @@ function atFreeTransferCap(data: Data, settings: Settings): boolean {
 
 export function netGainThreshold(data: Data, settings: Settings): number {
   return atFreeTransferCap(data, settings)
-    ? AT_CAP_NET_GAIN_THRESHOLD
-    : NET_GAIN_THRESHOLD;
+    ? AT_CAP_NET_GAIN_THRESHOLD_POINTS
+    : NET_GAIN_THRESHOLD_POINTS;
 }
 
 export function analyze(data: Data, settings: Settings): Analysis {
@@ -147,8 +151,8 @@ function rollReason(
 ): string {
   const capNote = atCap ? AT_CAP_ROLL_NOTE : "";
   if (moveCount)
-    return `Rolling scores zero improvement and keeps flexibility. Only moves exceeding ${threshold} net score units are shown.${capNote}`;
+    return `Rolling scores zero improvement and keeps flexibility. Only moves gaining more than ${threshold} net expected points are shown.${capNote}`;
   if (planCount)
-    return `No legal single transfer beats the ${threshold}-unit net improvement threshold. Larger or delayed plans are shown separately; rolling remains the no-hit baseline.${capNote}`;
-  return `No evaluated transfer plan beats the ${threshold}-unit net improvement threshold. Keep the squad and retain flexibility.${capNote}`;
+    return `No legal single transfer beats the ${threshold}-point net gain threshold. Larger or delayed plans are shown separately; rolling remains the no-hit baseline.${capNote}`;
+  return `No evaluated transfer plan beats the ${threshold}-point net gain threshold. Keep the squad and retain flexibility.${capNote}`;
 }
