@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Data, History } from "../schemas";
 import { playerForecast, scorePlayer, usableHistory } from "../model";
 import { opponentFactors } from "./opponent-strength";
+import { CALIBRATED_PARAMETERS } from "./calibrated-parameters";
 import { gameSettings, player as fixturePlayer } from "./test-fixtures";
 
 const SEASON_MINUTES_PER_MATCH = 45;
@@ -51,10 +52,10 @@ function context() {
   return { data, player };
 }
 
-function twoMatchSeasonBlend(oldestFirst: number[], seasonMinutes: number) {
+function seasonPriorBlend(oldestFirst: number[], seasonMinutes: number) {
   const newestFirst = [...oldestFirst].reverse();
   const threeMatchHalfLife = newestFirst.map((_, index) => 2 ** (-index / 3));
-  const seasonMatches = 2;
+  const seasonMatches = CALIBRATED_PARAMETERS.seasonMinutesPriorMatches;
   const weightedRecent = newestFirst.reduce(
     (sum, value, index) => sum + value * threeMatchHalfLife[index],
     0,
@@ -262,13 +263,13 @@ describe("adaptive minutes", () => {
     [0, 90, 0, 90, 0, 90, 0, 90],
     [0, 0, 0, 0, 0, 0, 0, 90],
   ])(
-    "preserves the existing conservative blend for rotation and one-off starts: %j",
+    "blends rotation and one-off starts with the season-minutes prior: %j",
     (...minutes) => {
       const { data, player } = context();
       data.histories = { "1": history(minutes) };
       const forecast = playerForecast(data, player);
       expect(forecast.minutes).toBeCloseTo(
-        twoMatchSeasonBlend(minutes, SEASON_MINUTES_PER_MATCH),
+        seasonPriorBlend(minutes, SEASON_MINUTES_PER_MATCH),
       );
       expect(forecast.minutesBasis).toBe("blended");
     },
@@ -380,8 +381,8 @@ describe("opponents and availability", () => {
     const { data, player } = context();
     data.fixtures[8].team_h_difficulty = 5;
     expect(opponentFactors(data, player, data.fixtures[8])).toEqual({
-      attack: 0.76,
-      conceded: 1.3,
+      attack: 0.52,
+      conceded: 1.44,
     });
   });
   it("changes later weeks only under the explicit recovery scenario", () => {

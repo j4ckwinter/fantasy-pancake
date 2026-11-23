@@ -171,10 +171,15 @@ async function installDefaultRoutes(page: Page) {
   await routeImport(page, importResponse());
 }
 
+const WEBKIT_CANCELLED_PREFETCH = /\?_rsc=\S+ due to access control checks\.$/;
+
 export const test = base.extend({
   page: async ({ page }, provide) => {
     const pageErrors: string[] = [];
-    page.on("pageerror", (error) => pageErrors.push(error.message));
+    page.on("pageerror", (error) => {
+      if (!WEBKIT_CANCELLED_PREFETCH.test(error.message))
+        pageErrors.push(error.message);
+    });
     await page.clock.setFixedTime(START_TIME);
     const unstubbed = await failUnstubbedApiRequests(page);
     await installDefaultRoutes(page);

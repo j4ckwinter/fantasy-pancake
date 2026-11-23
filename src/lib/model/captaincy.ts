@@ -86,12 +86,12 @@ function captainOptions(
   const points = (player: Player | undefined) =>
     player ? (expectedPoints.get(player.id) ?? 0) : null;
   return ranked.map((player, index) => {
-    const own = points(player) ?? 0;
+    const own = roundScore(points(player) ?? 0);
     const next = points(ranked[index + 1]);
     return {
       playerId: player.id,
-      expectedPoints: roundScore(own),
-      gapToNext: next === null ? null : roundScore(own - next),
+      expectedPoints: own,
+      gapToNext: next === null ? null : roundScore(own - roundScore(next)),
     };
   });
 }

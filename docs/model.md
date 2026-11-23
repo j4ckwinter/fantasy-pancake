@@ -1,6 +1,6 @@
 # Recommendation model
 
-`forecast-v5` is a deterministic comparison heuristic, not a calibrated FPL points forecast. It compares keeping the squad, single transfers, selected pairs now and rolling before one transfer next week. No predictive improvement has yet been established from results.
+`forecast-v6` forecasts expected FPL points per player and gameweek, using parameters calibrated against this season's results (see [Calibration](#calibration)). It compares keeping the squad, single transfers, selected pairs now and rolling before one transfer next week. Forecasts carry measured error that can exceed the gap between closely ranked moves, and forecast transfer gains have been much larger than realised gains.
 
 ## Inputs and legality
 
@@ -18,24 +18,24 @@ Forecasts use at most eight recent completed matches with known fixture IDs, kic
 
 ## Minutes and performance rates
 
-Recent match-minute outcomes normally blend with two matches of season evidence. If the latest four eligible completed matches are all starts with positive minutes, usage before those four matches receives 25% of its normal recency weight and the season minutes prior falls to half a match. A subsequent non-start or missed match disables this adjustment. The same usage mixture determines expected minutes, appearance, starts and 60-minute probabilities. These thresholds are explicit uncalibrated assumptions, not inferred injury dates. Attacking, defensive and rare-event rate estimation retains its existing weighting. The season fallback approximates start/substitute/nonappearance outcomes from starts and average minutes. The resulting distribution separately represents appearance, starts and reaching 60 minutes. A recent starter can therefore gain forecast minutes while someone recently benched loses them. Missing data still has conservative limitations for new signings and club changes.
+Recent match-minute outcomes normally blend with half a match of season evidence (calibrated; it was two matches before `forecast-v6`). If the latest four eligible completed matches are all starts with positive minutes, usage before those four matches receives 25% of its normal recency weight and the season minutes prior is also half a match. A subsequent non-start or missed match disables this adjustment. The same usage mixture determines expected minutes, appearance, starts and 60-minute probabilities. The recent-role thresholds are uncalibrated assumptions, not inferred injury dates. Attacking, defensive and rare-event rate estimation retains its existing weighting. The season fallback approximates start/substitute/nonappearance outcomes from starts and average minutes. The resulting distribution separately represents appearance, starts and reaching 60 minutes. A recent starter can therefore gain forecast minutes while someone recently benched loses them. Missing data still has conservative limitations for new signings and club changes.
 
-Season xG and xA rates receive five full-match equivalents of positional prior evidence. xG priors for goalkeeper/defender/midfielder/forward are 0.01/0.06/0.20/0.35; xA priors are 0.01/0.08/0.15/0.10. Expected goals conceded uses a 1.4 prior. Recent rates are blended with two match-equivalents of these season rates. Defensive contributions, saves, bonus and yellow cards receive zero-valued season priors. Rare red cards, own goals, missed penalties and saved penalties use season totals divided by season per-90 exposure plus twenty zero-event match-equivalents, without recency weighting. If a season total is absent, use only observed eligible history totals and their exposure with the same prior. This deliberately conservative prior prevents one rare incident from being treated as recurring form; it is an explicit assumption, not a fitted event frequency. All weights are explicit modelling assumptions, not fitted parameters.
+Season xG and xA rates receive five full-match equivalents of positional prior evidence. xG priors for goalkeeper/defender/midfielder/forward are 0.01/0.06/0.20/0.35; xA priors are 0.01/0.08/0.15/0.10. Expected goals conceded uses a 1.4 prior. Recent rates are blended with eight match-equivalents of these season rates (calibrated; it was two). Bonus receives a season prior of 0.5 per 90 minutes (calibrated; it was zero). Defensive contributions, saves and yellow cards receive zero-valued season priors. Rare red cards, own goals, missed penalties and saved penalties use season totals divided by season per-90 exposure plus twenty zero-event match-equivalents, without recency weighting. If a season total is absent, use only observed eligible history totals and their exposure with the same prior. This deliberately conservative prior prevents one rare incident from being treated as recurring form; it is an explicit assumption, not a fitted event frequency. Weights not listed under [Calibration](#calibration) are modelling assumptions, not fitted parameters.
 
 For each possible minute outcome and fixture, scoring combines:
 
-- One appearance unit, plus one for reaching 60 minutes.
+- One appearance point, plus one for reaching 60 minutes.
 - Expected goals weighted 10/6/5/4 by position and expected assists weighted three, scaled by minutes and opponent defence.
 - Clean-sheet probability from a Poisson conceded-goal rate, eligible only at 60+ minutes, weighted 4/4/1/0 by position.
-- Two defensive contribution units multiplied by the Poisson probability of reaching the per-match threshold: ten for defenders, twelve for midfielders/forwards, none for goalkeepers.
+- Two defensive contribution points multiplied by the Poisson probability of reaching the per-match threshold: ten for defenders, twelve for midfielders/forwards, none for goalkeepers.
 - Goalkeeper save groups of three and saved-penalty rates.
 - Smoothed bonus, capped at three per outcome; cards, own goals, missed penalties and goalkeeper/defender conceded-goal groups of two are deducted.
 
-These are probability-aware approximations, not a complete simulation of FPL rules. Count distributions, event dependence, red-card interactions and bonus competition are simplified. BPS is available in history but not separately added on top of bonus. Set-piece orders explain roles without duplicating attacking credit.
+Each match's expected points are then multiplied by a calibrated per-position scale. These are probability-aware approximations, not a complete simulation of FPL rules. Count distributions, event dependence, red-card interactions and bonus competition are simplified. BPS is available in history but not separately added on top of bonus. Set-piece orders explain roles without duplicating attacking credit.
 
 ## Opponents and availability
 
-When available, the opponent's venue-specific defence adjusts attacking returns and its venue-specific attack adjusts expected goals conceded. Each strength is normalized against the league's corresponding venue strength and the resulting factor is bounded between 0.65 and 1.45. Missing strengths fall back to FPL difficulty multipliers: attack `1 + (3 − difficulty) × 0.12`, conceded `1 + (difficulty − 3) × 0.15`. These multipliers require calibration.
+When available, the opponent's venue-specific defence adjusts attacking returns and its venue-specific attack adjusts expected goals conceded. Each strength is normalized against the league's corresponding venue strength and the resulting factor is bounded between 0.65 and 1.45. Missing strengths fall back to FPL difficulty multipliers: attack `1 + (3 − difficulty) × 0.24`, conceded `1 + (difficulty − 3) × 0.22` (calibrated; they were 0.12 and 0.15). FPL published every team strength as zero in 2026/27, so this season the difficulty multipliers decide every fixture adjustment.
 
 The default availability scenario holds current flags constant. Injured, suspended, unavailable and not-in-squad flags score zero; otherwise supplied next-round probability or the existing status fallback applies. The alternative scenario assumes injured, suspended and doubtful players become fully available from the second planning week. Unavailable/not-in-squad players do not recover under this scenario. Neither option predicts a return date.
 
@@ -58,15 +58,15 @@ This is an approximation of automatic substitution. Each reserve's cover is comp
 
 Single transfers search all eligible players. Paired and delayed plans use four highest horizon-scoring and two cheapest unowned candidates per position. This bounded search is not exhaustive and can miss the best enabling move or a deferred specialist. The best qualifying pair-now and roll-then-transfer plan are shown in their own categories alongside grouped single-transfer options; these are alternatives, not cumulative recommendations.
 
-Each uncovered transfer costs four actual points and deducts four heuristic units once. Pairs can cost zero, four or eight. Rolling accrues one free transfer up to the API cap before the next-week move; first-week gain for a delayed move is zero. Remaining free transfers in plan cards are measured immediately after the last planned action, before further weekly accrual. Future purchase and selling prices are held at today's values. No longer sequences or future news changes are simulated.
+Each uncovered transfer costs four points and deducts four expected points once. Pairs can cost zero, four or eight. Rolling accrues one free transfer up to the API cap before the next-week move; first-week gain for a delayed move is zero. Remaining free transfers in plan cards are measured immediately after the last planned action, before further weekly accrual. Future purchase and selling prices are held at today's values. No longer sequences or future news changes are simulated.
 
-Net gain must exceed two units, or one at the free-transfer cap. These thresholds express an assumed flexibility margin, not a learned value. Model uncertainty can exceed differences between closely ranked moves.
+Net gain must exceed two expected points, or one at the free-transfer cap. These thresholds express an assumed flexibility margin, not a learned value. The season backtest kept them: realised gains did not rise with forecast gain in the decision replay, so the data gives no better cut-off, and two points over four gameweeks still stands for the value of a saved transfer. Model uncertainty can exceed differences between closely ranked moves.
 
 ## Evaluation
 
 Unit and browser tests verify calculation behavior, legality, data fallbacks and UI integration; they do not establish forecasting accuracy. Use [pre-deadline snapshot evaluation](evaluation.md) to freeze inputs, actions, starting XIs and captains before observing outcomes. Score against completed results without selecting a better XI afterwards. The baseline policies include model-selected holding, season minutes plus fixtures, and lagged points on the existing squad.
 
-Capture is manual via the download button. No database, scheduled collection or retrospective accuracy claim is provided. Evaluate multiple untouched deadlines, retain losing recommendations, distinguish unconfirmed budgets, and keep model versions identifiable before tuning parameters.
+Capture is programmatic. No database or scheduled collection is provided. The retrospective [season backtest](evaluation.md#season-backtest) is the source of the accuracy figures below; it cannot reproduce availability news, so prospective snapshots remain the stronger test. Evaluate multiple untouched deadlines, retain losing recommendations, distinguish unconfirmed budgets, and keep model versions identifiable before tuning parameters.
 
 ## Interactive exploration
 
@@ -77,3 +77,33 @@ The shortlist retains three distinct incoming players and up to three outgoing a
 Version 4 changes shortlist coverage and planning constraints; it does not claim an improvement in predictive accuracy.
 
 Version 5 adds the adaptive minutes weighting described above. The UI also reports the observed mean minutes across starts in the latest four eligible completed matches (with its sample count); this is distinct from expected minutes per match and is unavailable when there are no recent starts. Current availability remains a separate scoring adjustment.
+
+Version 6 calibrates six named parameters against this season's results and reports forecasts as expected FPL points. Shortlist, plan and preview gains change accordingly; legality, search and thresholds do not.
+
+## Calibration
+
+`src/lib/model/calibrated-parameters.ts` holds every fitted value, next to the uncalibrated values they replace:
+
+| parameter                                                                   | uncalibrated  | calibrated                |
+| --------------------------------------------------------------------------- | ------------- | ------------------------- |
+| scale on each match's expected points: GK / DEF / MID / FWD                 | 1 / 1 / 1 / 1 | 1.10 / 0.92 / 0.87 / 0.94 |
+| season minutes prior, in matches                                            | 2             | 0.5                       |
+| season weight in recent attacking and defensive rates, in match-equivalents | 2             | 8                         |
+| bonus prior per 90 minutes                                                  | 0             | 0.5                       |
+| attack change per difficulty step                                           | 0.12          | 0.24                      |
+| goals-conceded change per difficulty step                                   | 0.15          | 0.22                      |
+
+Provenance: fitted on 23 November 2026 from FPL data fetched that day for the 2026/27 season. Training used forecasts of GW3–6 made at the GW3–6 deadlines; validation used forecasts made at the GW7–10 deadlines (targets GW7–10). The fit minimises training mean squared error per player-gameweek by coordinate search over a fixed grid of plausible values, two passes, refitting the position scales by least squares at each step and rounding them to two decimals. Several values sit at the edge of that grid; the grid is the bound on how far one early-season sample may move the model. Refit with more gameweeks before trusting these values beyond this season. See [season backtest](evaluation.md#season-backtest) for how inputs are rebuilt without leaks.
+
+Validation results per player per gameweek (6,680 player-gameweeks; all players are treated as available):
+
+|              | MAE, all | MAE, players who appeared | bias, all | Spearman of horizon totals |
+| ------------ | -------- | ------------------------- | --------- | -------------------------- |
+| uncalibrated | 1.135    | 1.962                     | −0.06     | 0.763                      |
+| calibrated   | 1.111    | 1.934                     | −0.14     | 0.764                      |
+
+By position, calibration lowered validation MAE for defenders (1.29 → 1.28), midfielders (1.13 → 1.08) and forwards (1.14 → 1.13) but raised it for goalkeepers (0.67 → 0.70). Rank correlation did not change beyond noise: its rise of 0.0013 sits inside a player-clustered bootstrap interval of −0.0005 to +0.0044, so only the error reduction is a measured improvement. Across all players it mostly measures who plays at all; among the model's top 150 it is only about 0.3–0.4, and calibration helped it at two validation deadlines and hurt it at the other two. Defenders' top-10 hit rate fell (0.50 → 0.35). Bias became slightly more negative, because shrinking high forecasts also lowers fringe players' small forecasts. The improvement met the adoption rule but is small; treat it as a modest gain, not a step change.
+
+In the decision replay (125 seeded, ownership-weighted squads at the GW3–7 deadlines, which overlap the training period), the calibrated model's best single transfer had a mean forecast gain of 7.6 points over four gameweeks but realised 1.4 points over holding (standard error 1.4), beating holding for 57% of squads. Uncalibrated, it forecast 11.2 and realised 1.0. The best transfers chosen by season points per match and by points over the previous six matches lost 3.6 points on average (the two baselines coincide this early, when no player has more than six earlier matches). Forecast gains are therefore heavily optimistic: picking the largest of thousands of noisy differences inflates the winner.
+
+The planner quotes these measurements in a dated note below the shortlist and in each incoming player's risks. The quoted figures live in `src/lib/model/forecast-accuracy.ts`; update them, and their date, whenever the backtest is rerun or the parameters change.

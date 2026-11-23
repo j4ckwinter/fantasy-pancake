@@ -12,7 +12,7 @@ The planner UI no longer offers snapshot downloads. The evaluation library can c
 
 The two simple baselines test team selection on the existing squad; they do not search alternative transfers. The lagged-points policy reports the fraction of owned players with any history, and players without history score zero when selecting its lineup. Treat that baseline cautiously when coverage is incomplete.
 
-The model identifier is `forecast-v5`. Increment it when forecasting or planning behavior changes materially. Existing exported snapshots retain their frozen decisions; evaluation never reruns the latest forecast to choose players retrospectively.
+The model identifier is `forecast-v6`. Increment it when forecasting or planning behavior changes materially. Existing exported snapshots retain their frozen decisions; evaluation never reruns the latest forecast to choose players retrospectively.
 
 ## Capture safeguards
 
@@ -51,3 +51,39 @@ The report sums the actual points of the frozen starters, doubles the frozen cap
 If the schedule changes after capture, leave the prediction snapshot intact and supply the actual schedule in the outcomes file. The original lineup decisions still stand, so a postponement can legitimately reduce their realized value. The evaluator uses players' club affiliations at capture; real-world club transfers during the horizon need separate review. This evaluator is a prospective research tool, not an exact reconstruction of an FPL manager's live score or an exhaustive historical backtester.
 
 Programmatic capture freezes the recommendations supplied in `analysis`. There is no planner export control or automatic inclusion of the currently selected custom comparison.
+
+## Season backtest
+
+The season backtest replays this season's completed deadlines to measure forecast accuracy and fit the [calibrated parameters](model.md#calibration). It complements snapshot evaluation; it does not replace prospective snapshots, because it cannot see what managers saw at each deadline.
+
+```sh
+node scripts/fetch-backtest-data.ts
+node scripts/backtest.ts .cache/backtest/<date> > backtest.json
+```
+
+The first script caches `bootstrap-static`, `fixtures` and every player's `element-summary` under `.cache/backtest/<date>/`, which is gitignored. It sends one request at a time with at least 300ms between requests and resumes from files already cached. The second script reads the cache, performs no network requests and writes a JSON report to stdout. Never commit the cached data.
+
+For each completed gameweek D from GW3 onward, the backtest rebuilds what the model could have seen just before D's deadline:
+
+- History rows count only when their round is before D and their kickoff is before D's deadline.
+- Season aggregates (minutes, starts, xG, xA, xGC, defensive contributions, saves, bonus, cards, own goals and penalties) are summed from those rows, never taken from current bootstrap totals.
+- Price and ownership come from the latest earlier row's `value` and `selected`. Club comes from that row's fixture, so mid-season moves between Premier League clubs are respected.
+- Players with no earlier row were not yet in the game and are left out.
+- Fixtures count as finished only if they kicked off before the deadline.
+
+Known gaps and leaks:
+
+- Every player is treated as available, because historical injury and suspension flags cannot be recovered. Measured error therefore includes unforeseeable absences that the live app partly handles through flags.
+- Set-piece orders are cleared, since only current orders are published. They affect only reasons text.
+- Fixture difficulty, schedule changes and team strengths come from the current data. FPL published all team strengths as zero this season, so the model used difficulty multipliers throughout and no strength leak arises. Difficulty ratings and rescheduled fixtures are a small known leak.
+- Players removed from the game before the data was fetched are missing.
+
+The model forecasts the next four gameweeks from each deadline, and each forecast is compared with the player's actual `total_points` for that round. Double gameweeks sum both rows; a blank scores zero. Reported per position and overall:
+
+- mean absolute error and bias per player per gameweek, over all players and over players who appeared;
+- Spearman rank correlation of horizon totals, averaged over deadlines;
+- the top-N hit rate: the share of the model's top N (10 per position, 20 overall) whose actual total reached the N-th best actual total.
+
+The split is time-ordered. Training uses forecasts for gameweeks up to GW6 made at deadlines GW3–6. Validation uses forecasts made at deadlines from GW7 onward, after every training outcome was known. Calibrated values are adopted only if they lower validation mean absolute error and raise validation rank correlation over the uncalibrated values. The rank-correlation test is a strict comparison with no margin, so it can pass on noise; for forecast-v6 it did, and only the error reduction is meaningful. The search grid was narrowed after inspecting wider grids, so the validation set is not a fully untouched holdout.
+
+The decision replay samples 25 squads per deadline whose four-week horizon has finished. Each slot is drawn with probability proportional to the square of that player's ownership at the deadline, within the £100.0m budget and club limit, using a fixed seed. For each squad, the model's best single transfer is compared with holding and with the best single transfer under two baselines: season points per match and points over the previous six matches. All policies pick their XI and captain with the model's forecast. That keeps lineup choices comparable but does not fully isolate the transfer: a player a baseline brings in can be benched by the model's lineup choice, which tilts the comparison towards the model, and baseline results move with the model's parameters. The model's transfer counts as recommended when its forecast gain exceeds the shortlist threshold.

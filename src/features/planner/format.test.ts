@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  accuracyNote,
   displayedLead,
+  expectedGainLabel,
   expectedPoints,
   freeTransfersLabel,
   signed,
+  signedPoints,
 } from "./format";
 
 describe("formatting", () => {
@@ -27,9 +30,35 @@ describe("free transfer counts", () => {
 });
 
 describe("expected points", () => {
-  it("shows one decimal with the app's unit wording", () => {
-    expect(expectedPoints(7.36)).toBe("7.4 units");
-    expect(expectedPoints(0)).toBe("0.0 units");
+  it("shows one decimal in points", () => {
+    expect(expectedPoints(7.36)).toBe("7.4 pts");
+    expect(expectedPoints(0)).toBe("0.0 pts");
+  });
+
+  it("labels gains and thresholds in points", () => {
+    expect(signedPoints(3.44)).toBe("+3.4 pts");
+    expect(signedPoints(-0.96)).toBe("−1.0 pts");
+    expect(expectedPoints(2)).toBe("2.0 pts");
+    expect(expectedGainLabel([9, 10, 11, 12])).toBe("Expected gain · GW9–12");
+    expect(expectedGainLabel([])).toBe("Expected gain");
+  });
+
+  it("dates and quotes the measured forecast error", () => {
+    expect(
+      accuracyNote({
+        measuredOn: "2026-11-23",
+        season: "2026/27",
+        firstValidationGameweek: 7,
+        lastValidationGameweek: 10,
+        firstReplayDeadline: 3,
+        lastReplayDeadline: 7,
+        meanAbsoluteErrorWhenPlaying: 1.9,
+        replayedTopTransferForecastGain: 7.6,
+        replayedTopTransferRealisedGain: 1.4,
+      }),
+    ).toBe(
+      "Gains are expected FPL points. Checked against GW7–10 of 2026/27 on 23 Nov 2026, forecasts for players who played were off by 1.9 pts a gameweek on average. Treat big gains with care: replaying the GW3–7 deadlines, top transfers forecast +7.6 pts over four gameweeks but realised +1.4 pts over holding, which is not reliably above zero.",
+    );
   });
 });
 

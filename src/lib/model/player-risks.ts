@@ -1,6 +1,7 @@
 import type { AvailabilityScenario, Data, Player } from "../schemas";
 import { playerForecast } from "./forecast-history";
 import { LONG_APPEARANCE_MINUTES } from "./match-minutes";
+import { FORECAST_ACCURACY } from "./forecast-accuracy";
 import {
   DEFAULT_AVAILABILITY_SCENARIO,
   availability,
@@ -18,7 +19,7 @@ export function playerRisks(
 ): string[] {
   const forecast = playerForecast(data, player);
   const result = [
-    "Forecast weights and scoring probabilities are assumptions, not validated predictive accuracy.",
+    `Expected points are averages: in this season's backtest, forecasts for players who played were off by ${FORECAST_ACCURACY.meanAbsoluteErrorWhenPlaying} points a gameweek on average.`,
   ];
   result.push(
     forecast.historyMatches

@@ -187,7 +187,7 @@ test("custom errors follow the submitted players and weekly gains deduct the hit
   await expect(totalCells).toHaveCount(3);
   const totals = await totalCells.allTextContents();
   const [gross, hit, net] = totals.map((value) =>
-    Number(value.replace("−", "-")),
+    Number(value.replace("−", "-").replace(" pts", "")),
   );
   expect(hit).toBe(-4);
   expect(Math.abs(gross + hit - net)).toBeLessThan(0.11);

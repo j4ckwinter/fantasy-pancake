@@ -1,5 +1,5 @@
 import type { Lineup } from "@/lib/model";
-import { minus, signed } from "../format";
+import { expectedPoints, minus, signed, signedPoints } from "../format";
 import "./weekly-breakdown.css";
 
 export function WeeklyBreakdown({
@@ -26,7 +26,7 @@ export function WeeklyBreakdown({
     <div className="weekly-breakdown">
       <div className="comparison-table-wrap">
         <table>
-          <caption>Weekly starting XI and captain scores</caption>
+          <caption>Weekly starting XI and captain expected points</caption>
           <thead>
             <tr>
               <th scope="col">GW</th>
@@ -52,22 +52,21 @@ export function WeeklyBreakdown({
       <dl className="weekly-breakdown__totals">
         <div>
           <dt>Gross horizon gain</dt>
-          <dd>{signed(netGain + hit)}</dd>
+          <dd>{signedPoints(netGain + hit)}</dd>
         </div>
         <div>
           <dt>Transfer hit · deducted once</dt>
-          <dd>{hit ? `${minus}${hit.toFixed(1)}` : "0.0"}</dd>
+          <dd>{hit ? `${minus}${expectedPoints(hit)}` : expectedPoints(0)}</dd>
         </div>
         <div>
           <dt>Net horizon gain</dt>
-          <dd>{signed(netGain)}</dd>
+          <dd>{signedPoints(netGain)}</dd>
         </div>
       </dl>
       <p className="comparison-note">
-        Heuristic score units, not projected FPL points. Weekly gains include
-        changes to the optimised XI and captain. The hit is deducted from the
-        horizon total once; displayed weekly values may differ slightly from
-        totals due to rounding.
+        Expected FPL points. Weekly gains include changes to the optimised XI
+        and captain. The hit is deducted from the horizon total once; displayed
+        weekly values may differ slightly from totals due to rounding.
       </p>
     </div>
   );

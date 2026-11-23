@@ -17,7 +17,7 @@ export function transferReasons(
   weekCount: number,
 ): string[] {
   const reasons = [
-    `Changes the optimised starting XI and captain total by ${roundScore(grossGain)} score units across ${weekCount} gameweeks before the hit.`,
+    `Changes the optimised starting XI and captain total by ${roundScore(grossGain)} expected points across ${weekCount} gameweeks before the hit.`,
     `${Math.round(expectedMinutes(data, incoming))} estimated minutes per match from recent history where available, blended with season usage; venue and opponent strengths adjust attacking and clean-sheet scores.`,
   ];
   if (incoming.penalties_order === FIRST_IN_ORDER)

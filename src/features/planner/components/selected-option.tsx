@@ -8,7 +8,7 @@ import { PlayerComparison } from "./player-comparison";
 import type { Data, Settings } from "@/lib/schemas";
 import { pricesChecked, selectedOption, type Selection } from "../selection";
 import { findPlayer } from "../players";
-import { signed } from "../format";
+import { expectedPoints, signedPoints } from "../format";
 import { SellingPriceCheck } from "./selling-price-check";
 import { priceConfirmed as priceConfirmedMessage } from "../messages";
 import "./selected-option.css";
@@ -74,8 +74,8 @@ export function SelectedOption({
                   <StatusBadge tone="neutral">
                     Below shortlist threshold
                   </StatusBadge>{" "}
-                  This option does not clear the {threshold.toFixed(1)}{" "}
-                  score-unit margin for making a transfer.
+                  This option does not clear the {expectedPoints(threshold)}{" "}
+                  margin for making a transfer.
                 </p>
               )}
               {preview && (
@@ -119,10 +119,10 @@ export function SelectedOption({
                         selection.move.gainPersistent && (
                         <p className="muted">
                           Availability scenarios:{" "}
-                          {signed(selection.move.gainPersistent)} if flags
-                          persist; {signed(selection.move.gainRecovery)} if
-                          flagged players recover after next gameweek. These are
-                          scenarios, not a confidence interval.
+                          {signedPoints(selection.move.gainPersistent)} if flags
+                          persist; {signedPoints(selection.move.gainRecovery)}{" "}
+                          if flagged players recover after next gameweek. These
+                          are scenarios, not a confidence interval.
                         </p>
                       )}
                   </>

@@ -25,7 +25,7 @@ import your team, then compare singles, two transfers, or rolling before a later
 
 imports use your last published deadline squad and bank, with one free transfer by default. check your balances in **Edit team details** and confirm selling prices when previewing a move. saved plans stay yours until you choose **Refresh from FPL**. Free Hit squads need correcting before comparison.
 
-scores are heuristics, not predicted FPL points. there’s no backtested accuracy claim. see the [model assumptions](docs/model.md).
+gains are expected FPL points, calibrated on this season’s results. i replayed the season to check: from GW7–10, a player who played typically finished about 1.9 points from the forecast in a gameweek, and big transfer gains run very optimistic (replayed top transfers forecast +7.6 and realised +1.4 over four gameweeks). treat the shortlist as a nudge, not a promise. see the [model assumptions](docs/model.md#calibration) and [how the backtest works](docs/evaluation.md#season-backtest).
 
 ## verification
 
@@ -61,6 +61,7 @@ CI tests a production build across Chromium desktop/mobile, Firefox and WebKit m
 | `src/lib/model.ts`, `model/`                                           | pure scoring, squad rules and planning                  |
 | `src/lib/fpl.ts`, `schemas.ts`                                         | server-side FPL access, caching and data contracts      |
 | `src/lib/evaluation.ts`, `evaluation/`, `scripts/evaluate-snapshot.ts` | frozen decisions and offline outcome evaluation         |
+| `scripts/fetch-backtest-data.ts`, `scripts/backtest.ts`                | season backtest and calibration                         |
 
 keep fetching and persistence out of presentation components, and browser code out of the model. preserve public model exports and version-1 saved settings. [AGENTS.md](AGENTS.md) has the iteration rules.
 

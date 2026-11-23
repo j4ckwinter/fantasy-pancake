@@ -63,7 +63,7 @@ describe("bounded transfer planning", () => {
         (sum, lineup, index) => sum + lineup.score - kept[index + 1].score,
         0,
       );
-    expect(roll.gain).toBe(23.74);
+    expect(roll.gain).toBe(20.42);
     expect(roll.gain).toBeCloseTo(laterGain, 1);
     settings.freeTransfers = 5;
     const atCap = planOfKind(

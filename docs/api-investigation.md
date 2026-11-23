@@ -4,7 +4,7 @@ Observed on 31 October 2026, before application implementation. Requests were ma
 
 ## Current implementation update
 
-The observations below describe the initial investigation. The current `forecast-v5` pipeline consumes selected per-match histories, venue-specific team strengths and additional scoring events, with partial-data fallback. It offers explicit availability scenarios and bounded paired/deferred plans. See [current model](model.md) and [snapshot evaluation](evaluation.md) for implemented behavior and limits; initial-model descriptions below are historical.
+The observations below describe the initial investigation. The current `forecast-v6` pipeline consumes selected per-match histories, venue-specific team strengths and additional scoring events, with partial-data fallback. It offers explicit availability scenarios and bounded paired/deferred plans. See [current model](model.md) and [snapshot evaluation](evaluation.md) for implemented behavior and limits; initial-model descriptions below are historical.
 
 ## Endpoints checked
 

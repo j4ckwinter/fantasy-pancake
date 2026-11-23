@@ -2,7 +2,7 @@ import { CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { playerForecast, type Move } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
-import { minus, money, signed, scoreGainLabel } from "../format";
+import { expectedGainLabel, minus, money, signedPoints } from "../format";
 import { FixtureStrip } from "./fixture-strip";
 import { findClub, findPlayer } from "../players";
 import { PlayerLink } from "./player-link";
@@ -99,8 +99,8 @@ export function GroupedTransfers({
                       </span>
                     </div>
                     <div className="alternative-gain">
-                      <strong>{signed(move.gain)}</strong>
-                      <span>{scoreGainLabel(weeks)}</span>
+                      <strong>{signedPoints(move.gain)}</strong>
+                      <span>{expectedGainLabel(weeks)}</span>
                       {move.hit > 0 && (
                         <span className="alternative-hit">
                           {minus}

@@ -4,6 +4,10 @@ import { opponentFactors, type OpponentFactors } from "./opponent-strength";
 import { LONG_APPEARANCE_MINUTES, fullMatches } from "./match-minutes";
 import { positionOf, type Position } from "./position";
 import { scheduledTeamFixtures, upcomingWeeks } from "./schedule";
+import {
+  CALIBRATED_PARAMETERS,
+  type ForecastParameters,
+} from "./calibrated-parameters";
 
 type PositionScoring = {
   goalPoints: number;
@@ -133,14 +137,17 @@ export function scorePlayer(
   player: Player,
   week: number,
   scenario: AvailabilityScenario = DEFAULT_AVAILABILITY_SCENARIO,
+  parameters: ForecastParameters = CALIBRATED_PARAMETERS,
 ): number {
-  const forecast = playerForecast(data, player);
+  const forecast = playerForecast(data, player, parameters);
   const playing = weekAvailability(data, player, week, scenario);
   if (!playing || !forecast.minutes) return 0;
+  const position = positionOf(player);
+  const rules = POSITION_SCORING[position];
+  const scale = parameters.positionScale[position];
   return scheduledTeamFixtures(data.fixtures, player.team, week).reduce(
     (sum, fixture) => {
-      const factors = opponentFactors(data, player, fixture);
-      const rules = POSITION_SCORING[positionOf(player)];
+      const factors = opponentFactors(data, player, fixture, parameters);
       const matchScore = forecast.outcomes.reduce(
         (expected, outcome) =>
           !outcome.minutes || !outcome.probability
@@ -150,7 +157,7 @@ export function scorePlayer(
                 outcomePoints(forecast, rules, factors, outcome.minutes),
         0,
       );
-      return sum + playing * matchScore;
+      return sum + playing * scale * matchScore;
     },
     0,
   );
