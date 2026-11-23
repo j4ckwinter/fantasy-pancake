@@ -24,3 +24,9 @@
     padding: var(--space-16);
   }
 }
+
+.comparison-note {
+  font-size: var(--text-0-8rem);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}

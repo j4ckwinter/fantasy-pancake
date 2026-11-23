@@ -1,6 +1,6 @@
 import type { Lineup } from "@/lib/model";
 import { minus, signed } from "../format";
-import "./comparison-panels.css";
+import "./weekly-breakdown.css";
 
 export function WeeklyBreakdown({
   weeks,

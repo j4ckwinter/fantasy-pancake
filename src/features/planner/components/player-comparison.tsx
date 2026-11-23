@@ -2,8 +2,8 @@ import { playerForecast } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
 import { money } from "../format";
 import { FixtureStrip } from "./fixture-strip";
-import "./comparison-panels.css";
 import { findPlayer } from "../players";
+import "./player-comparison.css";
 
 export function PlayerComparison({
   data,
