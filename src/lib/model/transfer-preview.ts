@@ -1,6 +1,11 @@
-import type { AvailabilityScenario, Data, Player, Settings } from "../schemas";
+import type { AvailabilityScenario, Data, Settings } from "../schemas";
 import type { Lineup, Move, TransferAction } from "./types";
-import { excessClubIds, validateSquad } from "./squad-rules";
+import { validateSquad } from "./squad-rules";
+import {
+  applyTransfers,
+  startingState,
+  transferRules,
+} from "./transfer-legality";
 import { fixturesFor, upcomingWeeks } from "./schedule";
 import {
   DEFAULT_AVAILABILITY_SCENARIO,
@@ -27,9 +32,8 @@ export function transferContext(data: Data, settings: Settings) {
   const errors = validateSquad(data, settings);
   if (errors.length) throw new Error(errors.join(" "));
   const weeks = upcomingWeeks(data);
-  const byId = new Map(
-    data.bootstrap.elements.map((player) => [player.id, player]),
-  );
+  const rules = transferRules(data, settings);
+  const { byId } = rules;
   const squad = settings.squad.map((pick) => byId.get(pick.id)!);
   const scores = weeks.map(
     (week) =>
@@ -41,66 +45,21 @@ export function transferContext(data: Data, settings: Settings) {
       ),
   );
   const baseline = scores.map((values) => bestLineup(data, squad, values));
-  return { data, settings, weeks, byId, squad, scores, baseline };
+  const start = startingState(settings, squad);
+  return {
+    data,
+    settings,
+    weeks,
+    byId,
+    squad,
+    scores,
+    baseline,
+    rules,
+    start,
+  };
 }
 
 type Context = ReturnType<typeof transferContext>;
-
-function applyTransfers(
-  data: Data,
-  settings: Settings,
-  squad: Player[],
-  prices: Map<number, number>,
-  bank: number,
-  actions: TransferAction[],
-) {
-  const byId = new Map(
-    data.bootstrap.elements.map((player) => [player.id, player]),
-  );
-  const owned = new Set(squad.map((player) => player.id));
-  const outgoingIds = new Set<number>();
-  const incomingIds = new Set<number>();
-  for (const { outId, inId } of actions) {
-    const outgoing = byId.get(outId);
-    const incoming = byId.get(inId);
-    if (!outgoing || !owned.has(outId))
-      throw new Error("The outgoing player must belong to your squad.");
-    if (settings.lockedPlayerIds?.includes(outId))
-      throw new Error(
-        `${outgoing.web_name} is locked. Unlock them to compare this transfer.`,
-      );
-    if (!incoming) throw new Error("Choose a valid incoming player.");
-    if (owned.has(inId))
-      throw new Error("The incoming player is already in your squad.");
-    if (outgoingIds.has(outId) || incomingIds.has(inId))
-      throw new Error("Each player can appear only once in a transfer batch.");
-    if (!incoming.can_select || !incoming.can_transact)
-      throw new Error("The incoming player is not available for transfers.");
-    if (incoming.element_type !== outgoing.element_type)
-      throw new Error("Choose players in the same position.");
-    outgoingIds.add(outId);
-    incomingIds.add(inId);
-    bank += (prices.get(outId) ?? outgoing.now_cost) - incoming.now_cost;
-  }
-  if (bank < 0)
-    throw new Error(
-      "This transfer is unaffordable with your bank and selling prices.",
-    );
-  const replacements = new Map(
-    actions.map((action) => [action.outId, byId.get(action.inId)!]),
-  );
-  const changed = squad.map((player) => replacements.get(player.id) ?? player);
-  if (
-    actions.length &&
-    excessClubIds(changed, data.bootstrap.game_settings.squad_team_limit).length
-  )
-    throw new Error("This transfer exceeds the club player limit.");
-  for (const { outId, inId } of actions) {
-    prices.delete(outId);
-    prices.set(inId, byId.get(inId)!.now_cost);
-  }
-  return { squad: changed, bank };
-}
 
 export function previewTransfers(
   data: Data,
@@ -108,24 +67,17 @@ export function previewTransfers(
   actions: TransferAction[],
 ): Lineup[] {
   const context = transferContext(data, settings);
-  const { weeks, scores } = context;
+  const { weeks, scores, rules } = context;
   if (actions.some((action) => !weeks.includes(action.week)))
     throw new Error("Choose a gameweek within the forecast horizon.");
-  let squad = context.squad;
-  let bank = settings.bank;
-  const prices = new Map(
-    settings.squad.map((pick) => [pick.id, pick.sellingPrice]),
-  );
+  let state = context.start;
   return weeks.map((week, index) => {
-    ({ squad, bank } = applyTransfers(
-      data,
-      settings,
-      squad,
-      prices,
-      bank,
+    state = applyTransfers(
+      rules,
+      state,
       actions.filter((action) => action.week === week),
-    ));
-    const lineup = bestLineup(data, squad, scores[index]);
+    );
+    const lineup = bestLineup(data, state.squad, scores[index]);
     return { ...lineup, score: roundScore(lineup.score) };
   });
 }
@@ -135,15 +87,12 @@ export function evaluatePreparedTransfer(
   outId: number,
   inId: number,
 ): { move: Move; lineups: Lineup[] } {
-  const { data, settings, weeks, byId, squad, scores, baseline } = context;
+  const { data, settings, weeks, byId, scores, baseline } = context;
   if (!weeks.length) throw new Error("No upcoming gameweeks are available.");
   const { squad: changed, bank: remainingBank } = applyTransfers(
-    data,
-    settings,
-    squad,
-    new Map(settings.squad.map((pick) => [pick.id, pick.sellingPrice])),
-    settings.bank,
-    [{ week: weeks[0], outId, inId }],
+    context.rules,
+    context.start,
+    [{ outId, inId }],
   );
   const outgoing = byId.get(outId)!;
   const incoming = byId.get(inId)!;

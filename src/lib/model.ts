@@ -1,6 +1,7 @@
 import type { Data, Settings } from "./schemas";
 import type { Analysis, Move } from "./model/types";
-import { excessClubIds, validateSquad } from "./model/squad-rules";
+import { validateSquad } from "./model/squad-rules";
+import { checkTransfers } from "./model/transfer-legality";
 import { upcomingWeeks } from "./model/schedule";
 import { planTransfers } from "./model/planning";
 import {
@@ -53,29 +54,12 @@ export function analyze(data: Data, settings: Settings): Analysis {
         "No upcoming gameweeks are available. Recheck when the next season or schedule is published.",
     };
   const context = transferContext(data, settings);
-  const { byId, squad, scores, baseline } = context;
-  const owned = new Set(squad.map((player) => player.id));
+  const { squad, scores, baseline, rules, start } = context;
   const moves: Move[] = [];
-  for (const pick of settings.squad) {
-    if (settings.lockedPlayerIds?.includes(pick.id)) continue;
-    const outgoing = byId.get(pick.id)!;
+  for (const outgoing of squad) {
     for (const incoming of data.bootstrap.elements) {
-      if (
-        owned.has(incoming.id) ||
-        incoming.element_type !== outgoing.element_type ||
-        !incoming.can_select ||
-        !incoming.can_transact ||
-        settings.bank + pick.sellingPrice < incoming.now_cost
-      )
-        continue;
-      const changed = squad.map((player) =>
-        player.id === outgoing.id ? incoming : player,
-      );
-      if (
-        excessClubIds(changed, data.bootstrap.game_settings.squad_team_limit)
-          .length
-      )
-        continue;
+      const swap = { outId: outgoing.id, inId: incoming.id };
+      if (!checkTransfers(rules, start, [swap]).legal) continue;
       const { move } = evaluatePreparedTransfer(
         context,
         outgoing.id,

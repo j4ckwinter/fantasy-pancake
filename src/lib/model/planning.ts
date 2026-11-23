@@ -1,7 +1,12 @@
 import type { AvailabilityScenario, Data, Player, Settings } from "../schemas";
 import type { Lineup, TransferPlan } from "./types";
 import { bestLineup } from "./lineup";
-import { excessClubIds } from "./squad-rules";
+import {
+  checkTransfers,
+  isTransferable,
+  startingState,
+  transferRules,
+} from "./transfer-legality";
 import { roundScore } from "./round-score";
 import {
   freeTransferCap,
@@ -40,8 +45,7 @@ export function planTransfers(
       (player) =>
         player.element_type === position &&
         !owned.has(player.id) &&
-        player.can_select &&
-        player.can_transact,
+        isTransferable(player),
     );
     const best = [...eligible]
       .sort((a, b) => horizonScore(b) - horizonScore(a) || a.id - b.id)
@@ -79,9 +83,8 @@ export function planTransfers(
     settings.freeTransfers,
     cap,
   );
-  const salePrice = new Map(
-    settings.squad.map((pick) => [pick.id, pick.sellingPrice]),
-  );
+  const rules = transferRules(data, settings);
+  const start = startingState(settings, squad);
   const bestPlans = new Map<TransferPlan["kind"], TransferPlan>();
   const planKey = (plan: TransferPlan) =>
     plan.actions.map((action) => `${action.outId}:${action.inId}`).join(",");
@@ -106,43 +109,33 @@ export function planTransfers(
   ];
   for (let i = 0; i < squad.length; i++) {
     const outgoing = squad[i];
-    if (settings.lockedPlayerIds?.includes(outgoing.id)) continue;
     for (const incoming of candidates.get(outgoing.element_type) ?? []) {
-      const remainingBank =
-        settings.bank + (salePrice.get(outgoing.id) ?? 0) - incoming.now_cost;
-      if (weeks.length > 1 && remainingBank >= 0) {
-        const changed = squad.map((player) =>
-          player.id === outgoing.id ? incoming : player,
-        );
-        if (
-          !excessClubIds(changed, data.bootstrap.game_settings.squad_team_limit)
-            .length
-        ) {
-          const hit = transferHit(1, deferredFreeTransfers);
-          keep({
-            kind: "roll-then-transfer",
-            actions: [
-              { week: weeks[1], outId: outgoing.id, inId: incoming.id },
-            ],
-            gain: roundScore(
-              gains(changed)
-                .slice(1)
-                .reduce((sum, value) => sum + value, 0) - hit,
-            ),
-            hit,
-            remainingBank,
-            freeTransfersAfterPlan: freeTransfersLeft(1, deferredFreeTransfers),
-            reasons: [
-              `Keep your squad in GW${weeks[0]}, accrue one free transfer up to the ${cap}-transfer cap, then move in GW${weeks[1]}.`,
-              "Gain compares the remaining horizon with keeping today's squad; the first gameweek contributes no change.",
-              ...assumptions,
-            ],
-          });
-        }
+      const single = checkTransfers(rules, start, [
+        { outId: outgoing.id, inId: incoming.id },
+      ]);
+      if (weeks.length > 1 && single.legal) {
+        const { squad: changed, bank: remainingBank } = single.state;
+        const hit = transferHit(1, deferredFreeTransfers);
+        keep({
+          kind: "roll-then-transfer",
+          actions: [{ week: weeks[1], outId: outgoing.id, inId: incoming.id }],
+          gain: roundScore(
+            gains(changed)
+              .slice(1)
+              .reduce((sum, value) => sum + value, 0) - hit,
+          ),
+          hit,
+          remainingBank,
+          freeTransfersAfterPlan: freeTransfersLeft(1, deferredFreeTransfers),
+          reasons: [
+            `Keep your squad in GW${weeks[0]}, accrue one free transfer up to the ${cap}-transfer cap, then move in GW${weeks[1]}.`,
+            "Gain compares the remaining horizon with keeping today's squad; the first gameweek contributes no change.",
+            ...assumptions,
+          ],
+        });
       }
       for (let j = i + 1; j < squad.length; j++) {
         const secondOutgoing = squad[j];
-        if (settings.lockedPlayerIds?.includes(secondOutgoing.id)) continue;
         for (const secondIncoming of candidates.get(
           secondOutgoing.element_type,
         ) ?? []) {
@@ -153,25 +146,12 @@ export function planTransfers(
             incoming.id > secondIncoming.id
           )
             continue;
-          const pairBank =
-            remainingBank +
-            (salePrice.get(secondOutgoing.id) ?? 0) -
-            secondIncoming.now_cost;
-          if (pairBank < 0) continue;
-          const changed = squad.map((player) =>
-            player.id === outgoing.id
-              ? incoming
-              : player.id === secondOutgoing.id
-                ? secondIncoming
-                : player,
-          );
-          if (
-            excessClubIds(
-              changed,
-              data.bootstrap.game_settings.squad_team_limit,
-            ).length
-          )
-            continue;
+          const pair = checkTransfers(rules, start, [
+            { outId: outgoing.id, inId: incoming.id },
+            { outId: secondOutgoing.id, inId: secondIncoming.id },
+          ]);
+          if (!pair.legal) continue;
+          const { squad: changed, bank: pairBank } = pair.state;
           keep({
             kind: "pair-now",
             actions: [
