@@ -108,15 +108,6 @@
   transform: rotate(1.5deg);
   box-shadow: 12px 14px 0 #0004;
 }
-
-.steps {
-  padding: 21px 0;
-  border-bottom: 1px solid #cbd2ca;
-  margin-bottom: 28px;
-}
-.steps > ol {
-  gap: 36px;
-}
 .card {
   padding: 26px;
   border: 1px solid #d8ded7;
@@ -173,70 +164,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px 20px;
 }
-.player-row {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: 13px;
-  align-items: center;
-  padding: 14px;
-  border: 1px solid #e0e5df;
-  border-radius: 8px;
-  background: #f7f9f5;
-  min-width: 0;
-  transition: border-color 0.15s;
-}
-.player-row:focus-within {
-  border-color: #677b4b;
-  background: #fff;
-}
-.position-icon {
-  display: grid;
-  place-items: center;
-  position: relative;
-  width: 42px;
-  height: 48px;
-  clip-path: polygon(20% 0, 80% 0, 100% 16%, 100% 80%, 50% 100%, 0 80%, 0 16%);
-  font-size: 10px;
-  font-weight: 800;
-  background: #d2edb1;
-  color: #263d1b;
-}
-.position-1 {
-  background: #d1c5fb;
-  color: #38256d;
-}
-.position-3 {
-  background: #c6fa46;
-  color: #2e4011;
-}
-.position-4 {
-  background: #ffd2b4;
-  color: #6c3418;
-}
-.player-select {
-  min-width: 0;
-}
-.player-select select {
-  font-size: 12px;
-  width: 100%;
-}
-.player-row .pancake-field-label {
-  font-size: 10px;
-}
-.player-club {
-  display: block;
-  font-size: 10px;
-  color: #56614e;
-  margin-top: 6px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-.player-price input {
-  font-size: 15px;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-}
 .results-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 330px;
@@ -247,46 +174,6 @@
   display: grid;
   gap: 18px;
   min-width: 0;
-}
-.roll {
-  background: #dfd7fa;
-  border: 1px solid #bfb2e4;
-  position: relative;
-  overflow: hidden;
-}
-.roll-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 16px 0;
-}
-.roll-title h3 {
-  font-size: 25px;
-  margin: 0;
-  letter-spacing: -1px;
-}
-.roll-symbol {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #b6a5ed;
-  color: #2d2050;
-  font-size: 28px;
-  line-height: 1;
-}
-.roll > p {
-  font-size: 12px;
-  margin-bottom: 8px;
-  max-width: 720px;
-}
-.roll > .muted {
-  font-size: 10px;
-  color: #51466d;
-}
-.roll-threshold {
-  display: none;
 }
 .metrics {
   display: grid;
@@ -311,35 +198,6 @@
   margin-top: 5px;
   color: #56634d;
 }
-.roll .metrics {
-  border-color: #bfb2de;
-  padding: 12px 0;
-  margin: 16px 0;
-}
-.roll .metric span {
-  color: #504268;
-}
-.move-card {
-  position: relative;
-  padding: 24px;
-  min-width: 0;
-  overflow: hidden;
-}
-.move-card-featured {
-  border: 2px solid #9fcf34;
-  box-shadow: 0 4px 0 #c6fa4650;
-}
-.move-topline {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 15px;
-  margin-bottom: 0;
-}
-.move-topline > .pancake-chip {
-  margin-left: auto;
-}
 .option-number {
   font-size: 31px;
   line-height: 1;
@@ -347,151 +205,9 @@
   letter-spacing: -2px;
   color: #4a5b3a;
 }
-.option-caption {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 1.1px;
-  color: #536544;
-}
-.move-card-featured .option-number {
-  background: var(--lime);
-  padding: 5px 8px;
-  border-radius: 3px;
-  color: #263616;
-}
-.transfer-pair {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 0;
-}
-.direction-label {
-  font: 10px monospace;
-  letter-spacing: 1px;
-  color: #5a6851;
-  display: block;
-  margin-bottom: 8px;
-}
-.transfer-pair h3 {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-.out {
-  font-size: 21px;
-  font-weight: 600;
-  color: #6a7365;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
-}
-.transfer-club {
-  display: block;
-  font-size: 10px;
-  color: #5f6958;
-  margin-top: 5px;
-}
-.transfer-arrow {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--ink);
-  color: var(--lime);
-  display: grid;
-  place-items: center;
-  font-size: 20px;
-}
-.move-card .metrics {
-  background: #f0f5e8;
-  border: 1px solid #dce6cc;
-  border-radius: 6px;
-  padding: 16px;
-}
-.move-card-featured .metrics {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: white;
-}
-.move-card-featured .metric:first-child strong {
-  color: var(--lime);
-  font-size: 35px;
-}
-.move-card-featured .metric span {
-  color: #c6d2c0;
-}
-.move-card > p.muted {
-  font-size: 11px;
-}
-.move-card details {
-  margin-top: 14px;
-}
-.move-card summary {
-  font-size: 11px !important;
-}
-.move-card details p {
-  font-size: 11px;
-  color: var(--muted);
-}
-.reasons {
-  font-size: 12px;
-  line-height: 1.7;
-  padding-left: 17px;
-  margin: 12px 0;
-}
-.reasons li {
-  margin-bottom: 7px;
-}
-.risks {
-  font-size: 11px;
-  color: #755025;
-  margin-top: 10px;
-}
-.risks ul {
-  padding-left: 17px;
-}
 .analysis-sidebar {
   display: grid;
   gap: 20px;
-}
-.sidebar-note {
-  padding: 22px;
-  background: var(--ink);
-  color: white;
-  border-radius: 10px;
-}
-.sidebar-note .eyebrow {
-  color: var(--lime);
-}
-.sidebar-note h3 {
-  font-size: 24px;
-  margin: 14px 0;
-  letter-spacing: -0.8px;
-}
-.sidebar-note p {
-  font-size: 12px;
-  color: #c1ccc0;
-}
-.threshold-number {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  font-size: 58px;
-  line-height: 1.3;
-  letter-spacing: -3px;
-  font-weight: 700;
-  color: var(--lime);
-  border-block: 1px solid #465043;
-  padding: 8px 0;
-  margin: 20px 0;
-}
-.threshold-number span {
-  font-size: 11px;
-  letter-spacing: 0;
-  line-height: 1.5;
-  color: #c1ccc0;
-  max-width: 90px;
 }
 footer {
   display: flex;
@@ -506,43 +222,6 @@ footer {
 }
 footer a {
   text-underline-offset: 4px;
-}
-@media (min-width: 1150px) {
-  .move-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    column-gap: 24px;
-  }
-  .move-topline {
-    grid-column: 1/-1;
-  }
-  .move-card .transfer-pair {
-    align-self: center;
-    margin-bottom: 8px;
-  }
-  .move-card .metrics {
-    margin: 0 0 12px;
-  }
-  .move-card > p.muted {
-    grid-column: 1;
-    margin: 0;
-    align-self: center;
-  }
-  .move-card > .fixture-strip {
-    grid-column: 2;
-    grid-row: 3;
-    margin: 0;
-  }
-  .move-card > details {
-    grid-column: 1;
-    grid-row: 4;
-    align-self: start;
-  }
-  .move-card > .risks {
-    grid-column: 2;
-    grid-row: 4;
-    align-self: start;
-  }
 }
 @media (max-width: 1150px) {
   main {
@@ -601,12 +280,6 @@ footer a {
   .import-card h2 {
     font-size: 18px;
   }
-  .steps {
-    padding: 18px 0;
-  }
-  .steps > ol {
-    gap: 15px;
-  }
   .card {
     padding: 20px;
   }
@@ -618,30 +291,6 @@ footer a {
   .section-title h2 {
     font-size: 25px;
   }
-  .player-row {
-    grid-template-columns: 32px minmax(0, 1fr);
-    padding: 12px 8px;
-    gap: 8px;
-  }
-  .position-icon {
-    width: 32px;
-    height: 40px;
-    font-size: 8px;
-  }
-  .player-row .pancake-field-label {
-    font-size: 10px;
-  }
-  .player-select select {
-    font-size: 11px;
-    padding-inline: 8px;
-  }
-  .player-price input {
-    font-size: 13px;
-    padding-inline: 8px;
-  }
-  .player-club {
-    font-size: 9px;
-  }
   .results-layout {
     grid-template-columns: 1fr;
   }
@@ -650,23 +299,8 @@ footer a {
     max-width: 460px;
     justify-self: center;
   }
-  .transfer-pair h3 {
-    font-size: 25px;
-  }
-  .out {
-    font-size: 20px;
-  }
   .metric strong {
     font-size: 30px;
-  }
-  .roll-title h3 {
-    font-size: 24px;
-  }
-  .move-topline {
-    gap: 8px;
-  }
-  .option-caption {
-    font-size: 8px;
   }
   .hero .pitch-board__players {
     min-height: 260px;
@@ -695,32 +329,11 @@ footer a {
   .card {
     padding: 16px;
   }
-  .player-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .position-icon {
-    display: none;
-  }
-  .transfer-pair {
-    gap: 6px;
-    grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr);
-  }
-  .transfer-arrow {
-    width: 25px;
-    height: 25px;
-  }
-  .transfer-pair h3 {
-    font-size: 22px;
-  }
   .metric strong {
     font-size: 26px;
   }
-  .move-card-featured .metric:first-child strong {
-    font-size: 29px;
-  }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .move-card,
   .pitch-board {
     animation: reveal 0.25s ease-out;
   }
@@ -849,12 +462,6 @@ footer a {
   letter-spacing: -1px;
   font-variant-numeric: tabular-nums;
 }
-.planner-workspace .steps {
-  padding: 14px 0 20px;
-}
-.lineup-panel {
-  min-width: 0;
-}
 .lineup-switcher {
   display: flex;
   gap: 4px;
@@ -981,19 +588,11 @@ footer a {
 .workspace-heading h1:focus {
   outline: none;
 }
-
-.import-help {
-  overflow-wrap: anywhere;
-  font-size: 11px;
-}
 .import-form input {
   min-height: 48px;
 }
 .squad-summary-heading {
   margin-top: 28px;
-}
-.selling-checks {
-  margin: 24px 0;
 }
 .selling-check-grid {
   display: grid;
@@ -1017,16 +616,6 @@ footer a {
   padding: 16px;
   background: var(--lime);
   border-radius: 12px;
-}
-
-.transfer-plans {
-  margin-block: 32px;
-}
-.evaluation-capture {
-  margin-block: 24px;
-}
-.evaluation-capture .muted {
-  margin-top: 12px;
 }
 
 @media (max-width: 780px) {

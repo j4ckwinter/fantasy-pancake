@@ -9,12 +9,6 @@
 .workspace-section > .transfer-plan-grid {
   margin-top: 1rem;
 }
-.selected-option-heading {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  justify-content: space-between;
-}
 .workspace-squad {
   display: grid;
   gap: 1rem;
@@ -32,17 +26,6 @@
 }
 .selected-option {
   border-color: var(--ink);
-}
-.selected-option-heading h3 {
-  margin: 0.4rem 0 1rem;
-}
-.selected-option__metrics {
-  margin-bottom: 1rem;
-}
-.view-lineup-link {
-  color: var(--ink);
-  font-weight: 700;
-  text-underline-offset: 0.2em;
 }
 #lineup-comparison {
   scroll-margin-top: 1rem;
@@ -477,29 +460,6 @@
     outline-offset: 3px;
   }
 }
-
-.selected-option-heading {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 12px;
-}
-.selected-option-heading > div {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-.selected-option-heading .eyebrow {
-  flex-basis: 100%;
-}
-.selected-option-heading h3 {
-  margin: 0;
-}
-.selected-option-heading .view-lineup-link {
-  font-size: 12px;
-  white-space: nowrap;
-}
 .lineup-preview__actions {
   display: flex;
   align-items: center;
@@ -526,17 +486,6 @@
   display: none;
 }
 @media (max-width: 780px) {
-  .selected-option-heading {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-  .selected-option-heading .view-lineup-link {
-    justify-self: start;
-  }
-  .selected-option__metrics {
-    display: none;
-  }
   .lineup-preview__summary {
     display: block;
     padding: 12px;
