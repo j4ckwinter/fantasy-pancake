@@ -58,9 +58,8 @@ export function LineupPreview({
   const after = mode === "after" && !!changed;
   const lineup = after ? changed : baseline;
   if (!lineup || !baseline) return null;
-  const name = (id: number | null) =>
-    (id === null ? undefined : findPlayer(data.bootstrap.elements, id))
-      ?.web_name ?? "None";
+  const name = (id: number) =>
+    findPlayer(data.bootstrap.elements, id)?.web_name ?? "None";
   const entered = changed?.ids.filter((id) => !baseline.ids.includes(id)) ?? [];
   const exited = baseline.ids.filter(
     (id) => changed && !changed.ids.includes(id),

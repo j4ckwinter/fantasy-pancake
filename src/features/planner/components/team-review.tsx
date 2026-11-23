@@ -4,6 +4,7 @@ import {
   Select,
   TextField,
 } from "@jack.winter/pancake-ui";
+import { freeTransferCap, TRANSFER_HIT_POINTS } from "@/lib/model";
 import type { Data, Settings } from "@/lib/schemas";
 import { SquadEditor } from "./squad-editor";
 import { noticeText, type Notice } from "../messages";
@@ -40,8 +41,7 @@ export function TeamReview({
   onUpdate: (settings: Settings) => void;
   onUpdateSquad: (settings: Settings) => void;
 }) {
-  const maxTransfers =
-    1 + data.bootstrap.game_settings.max_extra_free_transfers;
+  const maxTransfers = freeTransferCap(data.bootstrap.game_settings);
   return (
     <section
       className={`team-settings${editingTeam ? " team-settings--expanded" : ""}`}
@@ -109,7 +109,7 @@ export function TeamReview({
         </div>
         {settings.freeTransfers === 0 && (
           <p className="team-settings-note">
-            Your next transfer costs 4 points.
+            Your next transfer costs {TRANSFER_HIT_POINTS} points.
           </p>
         )}
         <details className="forecast-settings">

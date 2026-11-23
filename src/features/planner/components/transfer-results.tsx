@@ -1,7 +1,14 @@
 import { useRef } from "react";
 import { BannerToast, Button, EmptyState } from "@jack.winter/pancake-ui";
 import type { Data, Settings } from "@/lib/schemas";
-import type { Analysis, Lineup, Move, TransferPlan } from "@/lib/model";
+import {
+  freeTransferCap,
+  nextWeekFreeTransfers,
+  type Analysis,
+  type Lineup,
+  type Move,
+  type TransferPlan,
+} from "@/lib/model";
 import {
   planCategoryLabels,
   pricesChecked,
@@ -98,10 +105,8 @@ export function TransferResults({
     }
   }
   const customPanel = useRef<HTMLDetailsElement>(null);
-  const plans = result.plans ?? [];
+  const plans = result.plans;
   const categoryPlans = plans.filter((plan) => plan.kind === category);
-  const maxTransfers =
-    1 + data.bootstrap.game_settings.max_extra_free_transfers;
   const incomingCount = new Set(result.moves.map((move) => move.inId)).size;
   return (
     <section
@@ -172,9 +177,9 @@ export function TransferResults({
             {!(result.moves.length || plans.length) &&
               result.weeks.length > 0 && (
                 <RollOption
-                  nextFreeTransfers={Math.min(
-                    maxTransfers,
-                    settings.freeTransfers + 1,
+                  nextFreeTransfers={nextWeekFreeTransfers(
+                    settings.freeTransfers,
+                    freeTransferCap(data.bootstrap.game_settings),
                   )}
                   reason={result.rollReason}
                   onPreview={onClearSelection}

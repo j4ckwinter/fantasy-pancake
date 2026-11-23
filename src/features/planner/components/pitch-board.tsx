@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { Lineup } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
 import { findClub, findPlayer } from "../players";
 import { PlayerLink } from "./player-link";
@@ -135,7 +136,7 @@ export function PitchBoard({
   onPlayerSelect,
 }: {
   data: Data;
-  lineup: { ids: number[]; captain: number | null };
+  lineup: Lineup;
   week: number;
   variant: "before" | "after";
   highlightIds: number[];

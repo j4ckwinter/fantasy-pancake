@@ -118,7 +118,7 @@ export function reselect(
   if (!previous || !result.weeks.length) return null;
   if (previous.kind === "move")
     return reselectMove(previous, result, data, settings);
-  const plan = (result.plans ?? []).find((candidate) =>
+  const plan = result.plans.find((candidate) =>
     sameTransfers(candidate, previous.plan),
   );
   return plan ? planSelection(plan) : null;
