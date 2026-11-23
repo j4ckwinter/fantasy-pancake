@@ -6,6 +6,7 @@ import {
   upcomingWeeks,
   validateSquad,
   overLimitClubs,
+  evaluateTransfer,
 } from "./model";
 import { addPlayer, seasonContext } from "./model/test-fixtures";
 
@@ -16,14 +17,18 @@ describe("squad validation", () => {
     settings.squad[7].id = settings.squad[0].id;
     expect(validateSquad(data, settings).join(" ")).toContain("only once");
     expect(validateSquad(data, settings).join(" ")).toContain("MID");
-    expect(() => analyze(data, settings)).toThrow();
+    expect(() => analyze(data, settings)).toThrow(
+      "Each player can appear only once.",
+    );
   });
   it("rejects impossible prices, invalid bank and missing players", () => {
     const { data, settings } = seasonContext();
     settings.squad[0].sellingPrice = 51;
     expect(validateSquad(data, settings).join(" ")).toContain("cannot exceed");
     settings.bank = -1;
-    expect(validateSquad(data, settings)).not.toEqual([]);
+    expect(validateSquad(data, settings)).toEqual([
+      "Enter valid bank, selling prices and free transfers for all 15 players.",
+    ]);
     settings.bank = 0;
     settings.squad[0].id = 999;
     expect(validateSquad(data, settings).join(" ")).toContain("no longer");
@@ -140,7 +145,7 @@ describe("legal recommendations", () => {
       "Keep your squad in GW11, then move in GW12. You already hold the 5-transfer cap, so rolling does not add a free transfer.",
     );
   });
-  it("is deterministic, does not mutate inputs, and returns at most three worthwhile moves", () => {
+  it("is deterministic, does not mutate inputs, and keeps at most three outgoing alternatives for one incoming player", () => {
     const { data, settings } = seasonContext();
     addPlayer(data);
     const before = JSON.stringify({ data, settings });
@@ -232,5 +237,125 @@ describe("fixtures, minutes and uncertainty", () => {
     });
     expect(analyze(data, settings).weeks).toEqual([]);
     expect(analyze(data, settings).rollReason).toContain("No upcoming");
+  });
+});
+
+describe("squad validation messages", () => {
+  it("rejects free transfers above the game's cap", () => {
+    const { data, settings } = seasonContext();
+    data.bootstrap.game_settings.max_extra_free_transfers = 1;
+    settings.freeTransfers = 3;
+    expect(validateSquad(data, settings)).toEqual([
+      "Free transfers exceed the current game limit.",
+    ]);
+  });
+  it("asks for the game's squad size when it differs from the saved squad", () => {
+    const { data, settings } = seasonContext();
+    data.bootstrap.game_settings.squad_squadsize = 16;
+    expect(validateSquad(data, settings)).toEqual(["Select 16 players."]);
+  });
+});
+
+describe("starting XI rules", () => {
+  it("reports missing position rules", () => {
+    const { data } = seasonContext();
+    data.bootstrap.element_types = data.bootstrap.element_types.slice(0, 3);
+    expect(() => bestLineup(data, data.bootstrap.elements, new Map())).toThrow(
+      "Position rules are unavailable.",
+    );
+  });
+  it("reports a squad that cannot field a legal XI", () => {
+    const { data } = seasonContext();
+    const twoDefenders = data.bootstrap.elements.filter(
+      (p) => p.element_type !== 2 || p.id < 5,
+    );
+    expect(() => bestLineup(data, twoDefenders, new Map())).toThrow(
+      "This squad cannot form a legal starting XI.",
+    );
+  });
+  it("breaks equal scores by the lower player id", () => {
+    const { data } = seasonContext();
+    const lineup = bestLineup(
+      data,
+      data.bootstrap.elements,
+      new Map(data.bootstrap.elements.map((p) => [p.id, 1])),
+    );
+    expect(lineup.captain).toBe(1);
+    expect(lineup.ids).toContain(1);
+    expect(lineup.ids).not.toContain(2);
+  });
+});
+
+describe("planning horizon", () => {
+  it("starts at the first unfinished gameweek before a season has a current one", () => {
+    const { data } = seasonContext();
+    data.bootstrap.events.forEach((event) => {
+      event.is_next = false;
+      event.is_current = false;
+    });
+    expect(upcomingWeeks(data)).toEqual([11, 12, 13, 14]);
+  });
+});
+
+describe("roll explanation", () => {
+  it("explains rolling against shown single transfers", () => {
+    const { data, settings } = seasonContext();
+    addPlayer(data);
+    expect(analyze(data, settings).rollReason).toBe(
+      "Rolling scores zero improvement and keeps flexibility. Only moves exceeding 2 net score units are shown.",
+    );
+  });
+  it("points to larger plans when no single transfer qualifies", () => {
+    const { data, settings } = seasonContext();
+    addPlayer(data, { element_type: 4, now_cost: 70 });
+    addPlayer(data, {
+      id: 101,
+      element_type: 2,
+      now_cost: 30,
+      expected_goals: 1,
+      expected_assists: 1,
+    });
+    expect(analyze(data, settings).rollReason).toBe(
+      "No legal single transfer beats the 2-unit net improvement threshold. Larger or delayed plans are shown separately; rolling remains the no-hit baseline.",
+    );
+  });
+  it("recommends keeping the squad when nothing qualifies, noting the cap", () => {
+    const { data, settings } = seasonContext();
+    settings.freeTransfers = 5;
+    expect(analyze(data, settings).rollReason).toBe(
+      "No evaluated transfer plan beats the 1-unit net improvement threshold. Keep the squad and retain flexibility. You are at the free-transfer cap, so rolling cannot add another saved transfer.",
+    );
+  });
+});
+
+describe("incoming player risks", () => {
+  it("lists sample, minutes, probability and availability risks", () => {
+    const { data, settings } = seasonContext();
+    addPlayer(data, {
+      minutes: 300,
+      starts: 3,
+      status: "d",
+      chance_of_playing_next_round: null,
+      news: "Knock",
+    });
+    const risks = evaluateTransfer(data, settings, 8, 100).move.risks;
+    expect(risks).toEqual(
+      expect.arrayContaining([
+        "Forecast weights and scoring probabilities are assumptions, not validated predictive accuracy.",
+        "Recent match history is unavailable; season averages can miss recent changes in role.",
+        "Small sample: fewer than 450 minutes; attacking rates are shrunk toward positional assumptions.",
+        "Fewer than five season starts: the starting-role sample remains small.",
+        "No explicit next-round playing probability is supplied by FPL.",
+        "Availability flag: Knock.",
+        "Current availability is held constant across the horizon; a short absence may be overstated.",
+      ]),
+    );
+    expect(risks.join(" ")).toMatch(
+      /Uncertain minutes: estimated \d+ per match, \d+% chance of reaching 60 minutes before availability adjustments\./,
+    );
+    settings.availabilityScenario = "recover-next-week";
+    expect(evaluateTransfer(data, settings, 8, 100).move.risks).toContain(
+      "Scenario assumes full availability from the second planning week; this is not a predicted recovery date.",
+    );
   });
 });
