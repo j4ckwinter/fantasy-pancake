@@ -381,6 +381,7 @@ test("the shortlist shows gains in expected points with a dated accuracy note", 
   const note = page.locator(".forecast-accuracy");
   await expect(note).toContainText("Gains are expected FPL points.");
   await expect(note).toContainText("on 23 Nov 2026");
-  await expect(note).toContainText("1.9 pts from the forecast");
+  await expect(note).toContainText("off by 1.9 pts a gameweek on average");
+  await expect(note).toContainText("realised +1.4 pts over holding");
   await expectNoHorizontalOverflow(page);
 });

@@ -19,7 +19,7 @@ export function playerRisks(
 ): string[] {
   const forecast = playerForecast(data, player);
   const result = [
-    `Expected points are averages: in this season's backtest a player who played finished ${FORECAST_ACCURACY.meanAbsoluteErrorWhenPlaying} points from the forecast in a typical gameweek.`,
+    `Expected points are averages: in this season's backtest, forecasts for players who played were off by ${FORECAST_ACCURACY.meanAbsoluteErrorWhenPlaying} points a gameweek on average.`,
   ];
   result.push(
     forecast.historyMatches

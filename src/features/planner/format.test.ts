@@ -50,12 +50,14 @@ describe("expected points", () => {
         season: "2026/27",
         firstValidationGameweek: 7,
         lastValidationGameweek: 10,
+        firstReplayDeadline: 3,
+        lastReplayDeadline: 7,
         meanAbsoluteErrorWhenPlaying: 1.9,
         replayedTopTransferForecastGain: 7.6,
         replayedTopTransferRealisedGain: 1.4,
       }),
     ).toBe(
-      "Gains are expected FPL points. Checked against GW7–10 of 2026/27 on 23 Nov 2026, a player who played finished 1.9 pts from the forecast in a typical gameweek. Big gains run optimistic: replayed top transfers forecast +7.6 pts and realised +1.4 pts.",
+      "Gains are expected FPL points. Checked against GW7–10 of 2026/27 on 23 Nov 2026, forecasts for players who played were off by 1.9 pts a gameweek on average. Treat big gains with care: replaying the GW3–7 deadlines, top transfers forecast +7.6 pts over four gameweeks but realised +1.4 pts over holding, which is not reliably above zero.",
     );
   });
 });

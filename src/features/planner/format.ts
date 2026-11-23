@@ -34,7 +34,7 @@ const measuredDate = (isoDate: string) =>
   });
 
 export const accuracyNote = (accuracy: ForecastAccuracy) =>
-  `Gains are expected FPL points. Checked against GW${accuracy.firstValidationGameweek}–${accuracy.lastValidationGameweek} of ${accuracy.season} on ${measuredDate(accuracy.measuredOn)}, a player who played finished ${expectedPoints(accuracy.meanAbsoluteErrorWhenPlaying)} from the forecast in a typical gameweek. Big gains run optimistic: replayed top transfers forecast ${signedPoints(accuracy.replayedTopTransferForecastGain)} and realised ${signedPoints(accuracy.replayedTopTransferRealisedGain)}.`;
+  `Gains are expected FPL points. Checked against GW${accuracy.firstValidationGameweek}–${accuracy.lastValidationGameweek} of ${accuracy.season} on ${measuredDate(accuracy.measuredOn)}, forecasts for players who played were off by ${expectedPoints(accuracy.meanAbsoluteErrorWhenPlaying)} a gameweek on average. Treat big gains with care: replaying the GW${accuracy.firstReplayDeadline}–${accuracy.lastReplayDeadline} deadlines, top transfers forecast ${signedPoints(accuracy.replayedTopTransferForecastGain)} over four gameweeks but realised ${signedPoints(accuracy.replayedTopTransferRealisedGain)} over holding, which is not reliably above zero.`;
 
 export const teamLabel = (settings: Pick<Settings, "teamName" | "entryId">) =>
   settings.teamName || `Team #${settings.entryId}`;

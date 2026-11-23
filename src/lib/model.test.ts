@@ -341,7 +341,7 @@ describe("incoming player risks", () => {
     const risks = evaluateTransfer(data, settings, 8, 100).move.risks;
     expect(risks).toEqual(
       expect.arrayContaining([
-        "Expected points are averages: in this season's backtest a player who played finished 1.9 points from the forecast in a typical gameweek.",
+        "Expected points are averages: in this season's backtest, forecasts for players who played were off by 1.9 points a gameweek on average.",
         "Recent match history is unavailable; season averages can miss recent changes in role.",
         "Small sample: fewer than 450 minutes; attacking rates are shrunk toward positional assumptions.",
         "Fewer than five season starts: the starting-role sample remains small.",
