@@ -4,6 +4,9 @@ export const importingSquad = "Importing the latest published squad…";
 export const comparingPlans =
   "Loading recent matches and comparing transfer plans…";
 export const checkTeamSettings = "Please check your team settings.";
+export const requestFailed = "The request failed. Please try again.";
+export const unexpectedResponse =
+  "The server sent an unexpected response. Please try again.";
 export const priceConfirmed =
   "Selling price confirmed. The shortlist has been recalculated; unaffordable moves have been removed.";
 
