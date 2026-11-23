@@ -198,6 +198,7 @@ export function sessionReducer(
     case "custom-compared":
       return {
         ...session,
+        priceConfirmed: false,
         settings: action.settings,
         result: action.result,
         lineupIndex: lineupWithin(session.lineupIndex, action.result),

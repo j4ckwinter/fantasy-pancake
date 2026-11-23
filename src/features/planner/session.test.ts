@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Analysis } from "@/lib/model";
 import type { Settings } from "@/lib/schemas";
 import { initialSession, sessionReducer, type Session } from "./session";
-import { planSelection } from "./selection";
+import { planSelection, transferSelection } from "./selection";
 
 const settings: Settings = {
   version: 1,
@@ -108,5 +108,34 @@ describe("planner session", () => {
     ] as const;
     for (const action of results)
       expect(sessionReducer(lastWeek, action).lineupIndex).toBe(1);
+  });
+
+  it("drops the price confirmation when a custom comparison replaces the preview", () => {
+    const confirmed = session({ priceConfirmed: true });
+    const custom = transferSelection(
+      [],
+      9,
+      {
+        outId: 8,
+        inId: 16,
+        cost: 0,
+        remainingBank: 0,
+        hit: 0,
+        gain: 1,
+        immediateGain: 1,
+        grossGain: 1,
+        reasons: [],
+        risks: [],
+        fixtures: [],
+      },
+      true,
+    );
+    const next = sessionReducer(confirmed, {
+      type: "custom-compared",
+      settings,
+      result: analysis([9, 10]),
+      selection: custom,
+    });
+    expect(next.priceConfirmed).toBe(false);
   });
 });
