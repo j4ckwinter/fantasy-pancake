@@ -1,64 +1,69 @@
 .workspace-heading--results.workspace-heading {
   display: flex;
   align-items: center;
-  gap: 24px;
-  margin: 8px 0 0;
-  scroll-margin-top: 16px;
-  padding: 14px 24px;
-  border: 1px solid #263c32;
-  border-radius: 14px;
-  color: #f7faef;
+  gap: var(--space-24);
+  margin: var(--space-8) 0 0;
+  scroll-margin-top: var(--space-16);
+  padding: var(--space-14) var(--space-24);
+  border: 1px solid var(--color-night-border-heading);
+  border-radius: var(--radius-14);
+  color: var(--color-on-night-heading);
   background:
-    radial-gradient(ellipse at top right, #30452b 0, transparent 65%), #12251c;
+    radial-gradient(
+      ellipse at top right,
+      var(--color-night-heading-glow) 0,
+      transparent 65%
+    ),
+    var(--color-night-heading);
 }
 .workspace-heading--results .eyebrow {
-  color: var(--lime);
+  color: var(--color-accent);
 }
 .workspace-heading--results.workspace-heading h1 {
-  font-size: clamp(28px, 3vw, 40px);
+  font-size: var(--text-results-title);
   letter-spacing: -1.3px;
-  margin: 10px 0 0;
+  margin: var(--space-10) 0 0;
 }
 .workspace-heading--results .workspace-heading__summary {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 10px;
+  gap: var(--space-10);
 }
 .workspace-heading--results .workspace-heading__edit {
   min-height: 32px;
   padding: 0;
-  color: #e9efdf;
+  color: var(--color-on-night-soft);
   background: transparent;
   border: none;
   border-radius: 0;
-  font-size: 12px;
-  gap: 12px;
+  font-size: var(--text-12);
+  gap: var(--space-12);
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 .workspace-heading--results .workspace-heading__edit:hover {
-  color: var(--lime);
+  color: var(--color-accent);
 }
 .workspace-heading--results .workspace-heading__edit:focus-visible {
-  outline: 2px solid var(--lime);
+  outline: 2px solid var(--color-accent);
   outline-offset: 4px;
 }
 .workspace-heading--results .workspace-figures {
   margin: 0;
-  gap: 22px;
+  gap: var(--space-22);
 }
 .workspace-heading--results .workspace-figures > div {
   padding: 0;
   border: none;
 }
 .workspace-heading--results .workspace-figures dt {
-  color: #bdcbb5;
-  font-size: 10px;
+  color: var(--color-on-night-label);
+  font-size: var(--text-10);
 }
 .workspace-heading--results .workspace-figures dd {
-  font-size: 28px;
-  color: #f7faef;
+  font-size: var(--text-28);
+  color: var(--color-on-night-heading);
 }
 .workspace-horizon {
   white-space: nowrap;
@@ -66,23 +71,23 @@
 @media (max-width: 780px) {
   .workspace-heading--results.workspace-heading {
     display: block;
-    padding: 18px 18px 14px;
+    padding: var(--space-18) var(--space-18) var(--space-14);
   }
   .workspace-heading--results .workspace-heading__summary {
-    margin-top: 14px;
-    gap: 8px;
+    margin-top: var(--space-14);
+    gap: var(--space-8);
     align-items: stretch;
   }
   .workspace-heading--results .workspace-figures {
     order: -1;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    border-top: 1px solid #40513d;
-    padding-top: 12px;
+    gap: var(--space-8);
+    border-top: 1px solid var(--color-night-border-figures);
+    padding-top: var(--space-12);
   }
   .workspace-heading--results .workspace-figures dd {
-    font-size: 25px;
+    font-size: var(--text-25);
   }
   .workspace-heading--results .workspace-heading__edit {
     align-self: flex-start;
@@ -91,31 +96,31 @@
 
 .workspace-heading--editing.workspace-heading {
   max-width: 720px;
-  margin: 20px auto 0;
+  margin: var(--space-20) auto 0;
   border: 0;
-  padding: 16px 0 8px;
+  padding: var(--space-16) 0 var(--space-8);
 }
 .workspace-heading--editing.workspace-heading h1 {
-  font-size: clamp(32px, 5vw, 42px);
-  margin: 6px 0 0;
+  font-size: var(--text-editing-title);
+  margin: var(--space-6) 0 0;
 }
 @media (max-width: 780px) {
   .workspace-heading--results.workspace-heading {
-    padding: 10px 16px;
+    padding: var(--space-10) var(--space-16);
   }
   .workspace-heading--results.workspace-heading h1 {
-    font-size: 25px;
-    margin-top: 6px;
+    font-size: var(--text-25);
+    margin-top: var(--space-6);
   }
   .workspace-heading--results .workspace-heading__summary {
-    margin-top: 10px;
-    gap: 4px;
+    margin-top: var(--space-10);
+    gap: var(--space-4);
   }
   .workspace-heading--results .workspace-figures {
-    padding-top: 8px;
+    padding-top: var(--space-8);
   }
   .workspace-heading--results .workspace-figures dd {
-    font-size: 22px;
+    font-size: var(--text-22);
   }
   .workspace-heading--results .workspace-heading__edit {
     min-height: 28px;

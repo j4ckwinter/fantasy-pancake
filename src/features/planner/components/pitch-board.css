@@ -1,56 +1,54 @@
 .pitch-board {
-  --pitch-ink: #101b19;
-  --pitch-lime: #d2ff58;
   min-width: 0;
   overflow: hidden;
   position: relative;
-  padding: 24px 18px 16px;
-  border: 1px solid #263c35;
-  border-top: 5px solid var(--pitch-lime);
-  border-radius: 10px;
-  background: var(--pitch-ink);
-  color: #f5f9ef;
-  box-shadow: 0 16px 32px #101b191c;
+  padding: var(--space-24) var(--space-18) var(--space-16);
+  border: 1px solid var(--color-night-border);
+  border-top: 5px solid var(--color-pitch-accent);
+  border-radius: var(--radius-10);
+  background: var(--color-night);
+  color: var(--color-on-night);
+  box-shadow: var(--shadow-pitch-board);
 }
 .pitch-board__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 0 2px 20px;
+  gap: var(--space-10);
+  padding: 0 var(--space-2) var(--space-20);
 }
 .pitch-board__eyebrow {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #bdd2c4;
-  font: 700 9px/1.5 var(--font-pancake);
+  gap: var(--space-6);
+  color: var(--color-on-pitch-eyebrow);
+  font: 700 var(--text-9)/1.5 var(--font-pancake);
   letter-spacing: 1.3px;
 }
 .pitch-board__signal {
   width: 5px;
   height: 5px;
   flex: none;
-  background: var(--pitch-lime);
+  background: var(--color-pitch-accent);
 }
 .pitch-board__header h2 {
-  color: #f5f9ef;
-  font-size: clamp(20px, 2vw, 28px);
+  color: var(--color-on-night);
+  font-size: var(--text-pitch-title);
   letter-spacing: -1px;
   line-height: 1.1;
   font-weight: 750;
-  margin: 8px 0 0;
+  margin: var(--space-8) 0 0;
 }
 .pitch-board__formation {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--space-3);
   white-space: nowrap;
-  color: #101b19;
-  background: var(--pitch-lime);
-  border-radius: 3px;
-  padding: 8px 10px;
-  font-size: 16px;
+  color: var(--color-night);
+  background: var(--color-pitch-accent);
+  border-radius: var(--radius-3);
+  padding: var(--space-8) var(--space-10);
+  font-size: var(--text-16);
   font-weight: 750;
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
@@ -58,53 +56,53 @@
   transform: rotate(3deg);
 }
 .pitch-board__formation small {
-  font: 700 7px/1.2 var(--font-pancake);
+  font: 700 var(--text-7)/1.2 var(--font-pancake);
   letter-spacing: 1.3px;
 }
 .pitch-board__field {
   position: relative;
   isolation: isolate;
-  margin: 0 0 14px;
-  border-radius: 4px;
-  background-color: #1a3028;
+  margin: 0 0 var(--space-14);
+  border-radius: var(--radius-4);
+  background-color: var(--color-pitch-field);
   background-image:
-    linear-gradient(#9ac79309 1px, transparent 1px),
-    linear-gradient(90deg, #9ac79309 1px, transparent 1px);
+    linear-gradient(var(--color-pitch-stripe) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-pitch-stripe) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 .pitch-board__markings {
   position: absolute;
-  z-index: -1;
+  z-index: var(--z-below);
   inset: 0;
   width: 100%;
   height: 100%;
-  color: #95bd9566;
+  color: var(--color-pitch-markings);
 }
 .pitch-board__players {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   min-height: 350px;
-  padding: 20px 6px;
-  gap: 18px;
+  padding: var(--space-20) var(--space-6);
+  gap: var(--space-18);
 }
 .pitch-board__row {
   position: relative;
   display: flex;
   justify-content: space-evenly;
   align-items: start;
-  gap: 4px;
+  gap: var(--space-4);
 }
 .pitch-board__row::before {
   content: attr(data-position);
   position: absolute;
-  left: -5px;
-  top: 9px;
+  left: calc(-1 * var(--space-5));
+  top: var(--space-9);
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font: 600 7px/1 monospace;
+  font: 600 var(--text-7)/1 monospace;
   letter-spacing: 1px;
-  color: #b3cbb5;
+  color: var(--color-pitch-row-label);
 }
 .pitch-board__player {
   display: flex;
@@ -122,42 +120,48 @@
   display: block;
   width: 35px;
   height: 33px;
-  color: var(--pitch-lime);
-  filter: drop-shadow(0 4px 0 #0b141a70);
+  color: var(--color-pitch-accent);
+  filter: var(--shadow-shirt);
 }
 .pitch-board__shirt--keeper {
-  color: #bda1ff;
+  color: var(--color-keeper-kit);
+}
+.pitch-board__shirt-outline {
+  stroke: var(--color-shirt-ink);
+}
+.pitch-board__shirt-trim {
+  fill: var(--color-shirt-ink);
 }
 .pitch-board__name {
-  margin-top: 7px;
+  margin-top: var(--space-7);
   max-width: 100%;
-  padding: 3px 4px;
-  border-radius: 2px;
-  background: #0c1814;
-  color: #f5f9ef;
-  font-size: 10px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-2);
+  background: var(--color-night-name);
+  color: var(--color-on-night);
+  font-size: var(--text-10);
   font-weight: 700;
   overflow-wrap: anywhere;
 }
 .pitch-board__club {
-  margin-top: 4px;
-  color: #cfdfce;
-  font-size: 8px;
+  margin-top: var(--space-4);
+  color: var(--color-on-pitch-club);
+  font-size: var(--text-8);
   letter-spacing: 1px;
 }
 .pitch-board__captain {
   position: absolute;
-  right: -9px;
-  top: -4px;
+  right: calc(-1 * var(--space-9));
+  top: calc(-1 * var(--space-4));
   display: grid;
   place-items: center;
   width: 18px;
   height: 18px;
-  border: 2px solid #101b19;
+  border: 2px solid var(--color-night);
   border-radius: 50%;
-  color: #101b19;
-  background: #ff986e;
-  font-size: 10px;
+  color: var(--color-night);
+  background: var(--color-captain);
+  font-size: var(--text-10);
   font-weight: 800;
 }
 .pitch-board__player--illustration .pitch-board__shirt {
@@ -168,22 +172,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 11px 2px 0;
-  border-top: 1px solid #3d5145;
+  gap: var(--space-12);
+  padding: var(--space-11) var(--space-2) 0;
+  border-top: 1px solid var(--color-pitch-rule);
 }
 .pitch-board__caption {
   margin: 0;
-  color: #c8d9cd;
-  font-size: 10px;
+  color: var(--color-on-night-muted);
+  font-size: var(--text-10);
   line-height: 1.5;
 }
 .pitch-board__legend {
   display: inline-flex;
-  gap: 5px;
+  gap: var(--space-5);
   align-items: center;
-  color: #c8d9cd;
-  font-size: 9px;
+  color: var(--color-on-night-muted);
+  font-size: var(--text-9);
   white-space: nowrap;
 }
 .pitch-board__legend b {
@@ -191,108 +195,108 @@
   place-items: center;
   width: 14px;
   height: 14px;
-  font-size: 8px;
-  background: #ff986e;
-  color: #101b19;
+  font-size: var(--text-8);
+  background: var(--color-captain);
+  color: var(--color-night);
   border-radius: 50%;
 }
 .fixture-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-  margin: 18px 0;
+  gap: var(--space-6);
+  margin: var(--space-18) 0;
 }
 .fixture-strip__week {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: var(--space-5);
 }
 .fixture-strip__label {
-  font-size: 10px;
-  color: #515b53;
+  font-size: var(--text-10);
+  color: var(--color-fixture-label);
   font-weight: 750;
   letter-spacing: 0.7px;
 }
 .fixture-strip__match {
-  border-radius: 5px;
-  padding: 9px 6px;
-  background: #e2ddfa;
-  border-bottom: 3px solid #b6a6e5;
-  color: #312747;
+  border-radius: var(--radius-5);
+  padding: var(--space-9) var(--space-6);
+  background: var(--color-fixture-medium);
+  border-bottom: 3px solid var(--color-fixture-medium-border);
+  color: var(--color-fixture-medium-text);
 }
 .fixture-strip__match strong {
   display: block;
-  font-size: 12px;
+  font-size: var(--text-12);
   white-space: nowrap;
   line-height: 1.3;
   letter-spacing: -0.3px;
 }
 .fixture-strip__match strong span {
-  font-size: 9px;
+  font-size: var(--text-9);
   font-weight: 500;
 }
 .fixture-strip__difficulty {
   display: block;
-  font-size: 9px;
-  margin-top: 4px;
+  font-size: var(--text-9);
+  margin-top: var(--space-4);
 }
 .fixture-strip__match--1,
 .fixture-strip__match--2 {
-  background: #d7f887;
-  border-color: #96ba3d;
-  color: #253512;
+  background: var(--color-fixture-easy);
+  border-color: var(--color-fixture-easy-border);
+  color: var(--color-fixture-easy-text);
 }
 .fixture-strip__match--4 {
-  background: #ffdf8a;
-  border-color: #cfaa41;
-  color: #4d3813;
+  background: var(--color-fixture-hard);
+  border-color: var(--color-fixture-hard-border);
+  color: var(--color-fixture-hard-text);
 }
 .fixture-strip__match--5 {
-  background: #ffb39c;
-  border-color: #d58268;
-  color: #59261e;
+  background: var(--color-fixture-very-hard);
+  border-color: var(--color-fixture-very-hard-border);
+  color: var(--color-fixture-very-hard-text);
 }
 .fixture-strip__match--blank {
-  background: #e9ece8;
-  border-color: #b6c0b2;
+  background: var(--color-fixture-blank);
+  border-color: var(--color-fixture-blank-border);
   border-bottom-style: dashed;
-  color: #495542;
+  color: var(--color-fixture-blank-text);
 }
 @media (max-width: 420px) {
   .pitch-board {
-    padding: 20px 12px 14px;
+    padding: var(--space-20) var(--space-12) var(--space-14);
   }
   .pitch-board__players {
     min-height: 320px;
-    padding: 18px 5px;
+    padding: var(--space-18) var(--space-5);
   }
   .pitch-board__shirt {
     width: 29px;
     height: 28px;
   }
   .pitch-board__name {
-    font-size: 9px;
-    padding: 3px 2px;
+    font-size: var(--text-9);
+    padding: var(--space-3) var(--space-2);
   }
   .pitch-board__header h2 {
-    font-size: 23px;
+    font-size: var(--text-23);
   }
   .pitch-board__eyebrow {
-    font-size: 8px;
+    font-size: var(--text-8);
     letter-spacing: 1px;
   }
   .fixture-strip {
-    gap: 4px;
+    gap: var(--space-4);
   }
   .fixture-strip__match {
-    padding: 8px 4px;
+    padding: var(--space-8) var(--space-4);
   }
   .fixture-strip__match strong {
-    font-size: 11px;
+    font-size: var(--text-11);
   }
   .fixture-strip__difficulty {
-    font-size: 8px;
+    font-size: var(--text-8);
   }
 }
 
@@ -300,42 +304,42 @@ button.pitch-board__player {
   border: 0;
   background: transparent;
   font: inherit;
-  padding: 4px 2px;
-  border-radius: 6px;
+  padding: var(--space-4) var(--space-2);
+  border-radius: var(--radius-6);
   cursor: pointer;
 }
 button.pitch-board__player:hover .pitch-board__name,
 button.pitch-board__player:focus-visible .pitch-board__name {
-  background: #c6fa46;
-  color: #171c1b;
+  background: var(--color-accent);
+  color: var(--color-ink);
 }
 button.pitch-board__player:focus-visible {
-  outline: 2px solid #c6fa46;
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 .pitch-board__player--entered .pitch-board__name {
-  background: #c6fa46;
-  color: #171c1b;
-  box-shadow: 0 0 0 2px #101914;
+  background: var(--color-accent);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-entered-name);
 }
 .pitch-board__player--entered .pitch-board__club::after {
   content: " · NEW XI";
 }
 .lineup-preview__selection {
-  padding: 20px 0 12px;
+  padding: var(--space-20) 0 var(--space-12);
 }
 .lineup-preview__selection h3 {
-  margin: 8px 0;
-  font-size: 20px;
+  margin: var(--space-8) 0;
+  font-size: var(--text-20);
   letter-spacing: -0.5px;
 }
 .lineup-preview__selection p,
 .lineup-preview__changes p {
-  font-size: 12px;
+  font-size: var(--text-12);
   line-height: 1.6;
 }
 .lineup-preview__mode {
-  margin-top: 8px;
+  margin-top: var(--space-8);
 }
 .lineup-preview__mode button:disabled {
   opacity: 0.4;
@@ -343,39 +347,39 @@ button.pitch-board__player:focus-visible {
 }
 .lineup-preview__changes {
   display: grid;
-  gap: 14px;
-  padding: 16px 14px;
-  border-top: 1px solid #dce3d8;
+  gap: var(--space-14);
+  padding: var(--space-16) var(--space-14);
+  border-top: 1px solid var(--color-border-subtle);
 }
 .lineup-preview__changes p {
   margin: 0;
 }
 .lineup-preview__changes strong {
-  color: var(--muted);
-  margin-bottom: 4px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
   display: block;
-  font-size: 11px;
+  font-size: var(--text-11);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 .lineup-preview__bench > div {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
+  gap: var(--space-6);
+  margin-top: var(--space-8);
 }
 .lineup-preview__bench button {
-  border: 1px solid #c6cebc;
-  border-radius: 999px;
-  background: white;
-  color: var(--ink);
+  border: 1px solid var(--color-border-bench);
+  border-radius: var(--radius-999);
+  background: var(--color-white);
+  color: var(--color-ink);
   min-height: 36px;
-  padding: 7px 11px;
+  padding: var(--space-7) var(--space-11);
   font: inherit;
-  font-size: 11px;
+  font-size: var(--text-11);
   cursor: pointer;
 }
 .lineup-preview__bench button:focus-visible {
-  outline: 2px solid #171c1b;
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }

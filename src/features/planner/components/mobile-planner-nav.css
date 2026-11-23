@@ -6,28 +6,29 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     position: fixed;
-    inset: auto 12px calc(10px + env(safe-area-inset-bottom));
-    z-index: 20;
+    inset: auto var(--space-12)
+      calc(var(--space-10) + env(safe-area-inset-bottom));
+    z-index: var(--z-mobile-nav);
     max-width: 420px;
     margin-inline: auto;
-    padding: 6px;
-    border: 1px solid #42513d;
-    border-radius: 20px;
-    background: #172820;
-    box-shadow: 0 6px 24px #10201930;
+    padding: var(--space-6);
+    border: 1px solid var(--color-night-border-strong);
+    border-radius: var(--radius-20);
+    background: var(--color-night-raised);
+    box-shadow: var(--shadow-mobile-nav);
   }
   .workspace-mobile-nav a {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: var(--space-5);
     min-height: 52px;
-    padding: 6px 10px;
-    border-radius: 14px;
-    color: #e7efdf;
+    padding: var(--space-6) var(--space-10);
+    border-radius: var(--radius-14);
+    color: var(--color-on-nav);
     text-decoration: none;
-    font-size: 11px;
+    font-size: var(--text-11);
     font-weight: 650;
     line-height: 1.2;
     -webkit-tap-highlight-color: transparent;
@@ -36,23 +37,23 @@
     width: 21px;
     height: 21px;
     fill: none;
-    stroke: var(--lime);
+    stroke: var(--color-accent);
     stroke-width: 1.6;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
   .workspace-mobile-nav a[aria-current="location"],
   .workspace-mobile-nav a:active {
-    background: #30432c;
-    color: var(--lime);
+    background: var(--color-night-active);
+    color: var(--color-accent);
   }
   .workspace-mobile-nav a:focus-visible {
-    outline: 2px solid var(--lime);
+    outline: 2px solid var(--color-accent);
     outline-offset: -2px;
-    background: #30432c;
+    background: var(--color-night-active);
   }
   .planner-workspace:has(.workspace-mobile-nav) {
-    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--space-100) + env(safe-area-inset-bottom));
   }
   html:has(.workspace-mobile-nav) {
     scroll-padding-bottom: calc(100px + env(safe-area-inset-bottom));

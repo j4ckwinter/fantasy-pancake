@@ -15,14 +15,21 @@ function Shirt({ goalkeeper = false }: { goalkeeper?: boolean }) {
     >
       <path
         d="M16 3 5 9 1 22l10 5 4-7v21h18V20l4 7 10-5-4-13-11-6-8 5-8-5Z"
+        className="pitch-board__shirt-outline"
         fill="currentColor"
-        stroke="#101914"
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
-      <path d="m17 4 7 5 7-5M15 19l18 12v8L15 27Z" fill="#101914" />
-      <path d="m7 10 7 4M34 14l7-4M17 38h14" stroke="#101914" strokeWidth="2" />
-      <path d="M27 15h4v4h-4z" fill="#101914" />
+      <path
+        className="pitch-board__shirt-trim"
+        d="m17 4 7 5 7-5M15 19l18 12v8L15 27Z"
+      />
+      <path
+        className="pitch-board__shirt-outline"
+        d="m7 10 7 4M34 14l7-4M17 38h14"
+        strokeWidth="2"
+      />
+      <path className="pitch-board__shirt-trim" d="M27 15h4v4h-4z" />
     </svg>
   );
 }
