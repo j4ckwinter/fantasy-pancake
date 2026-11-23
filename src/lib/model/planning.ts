@@ -195,7 +195,7 @@ function rollPlans(
         hit: 0,
         remainingBank: check.state.bank,
         freeTransfersAfterPlan: freeTransfersLeft(1, deferredFreeTransfers),
-        reasons: [...rollReasons(weeks, cap), ...assumptions],
+        reasons: [...rollReasons(weeks, cap, freeTransfers), ...assumptions],
       },
     ];
   });
@@ -260,9 +260,15 @@ function planAssumptions(settings: Settings): string[] {
   ];
 }
 
-function rollReasons(weeks: number[], cap: number): string[] {
+function rollReasons(
+  weeks: number[],
+  cap: number,
+  freeTransfers: number,
+): string[] {
   return [
-    `Keep your squad in GW${weeks[0]}, accrue one free transfer up to the ${cap}-transfer cap, then move in GW${weeks[1]}.`,
+    freeTransfers >= cap
+      ? `Keep your squad in GW${weeks[0]}, then move in GW${weeks[1]}. You already hold the ${cap}-transfer cap, so rolling does not add a free transfer.`
+      : `Keep your squad in GW${weeks[0]}, accrue one free transfer up to the ${cap}-transfer cap, then move in GW${weeks[1]}.`,
     "Gain compares the remaining horizon with keeping today's squad; the first gameweek contributes no change.",
   ];
 }

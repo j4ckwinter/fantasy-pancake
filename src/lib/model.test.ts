@@ -252,6 +252,21 @@ describe("legal recommendations", () => {
     expect(result.threshold).toBe(1);
     expect(result.rollReason).toContain("cannot add another");
   });
+  it("words the roll-then-transfer reason by whether rolling can add a free transfer", () => {
+    const { data, settings } = context();
+    addStar(data);
+    const rollReason = () =>
+      analyze(data, settings).plans?.find(
+        (plan) => plan.kind === "roll-then-transfer",
+      )?.reasons[0];
+    expect(rollReason()).toBe(
+      "Keep your squad in GW11, accrue one free transfer up to the 5-transfer cap, then move in GW12.",
+    );
+    settings.freeTransfers = 5;
+    expect(rollReason()).toBe(
+      "Keep your squad in GW11, then move in GW12. You already hold the 5-transfer cap, so rolling does not add a free transfer.",
+    );
+  });
   it("is deterministic, does not mutate inputs, and returns at most three worthwhile moves", () => {
     const { data, settings } = context();
     addStar(data);
