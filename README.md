@@ -52,6 +52,8 @@ CI tests a production build across Chromium desktop/mobile, Firefox and WebKit m
 | where                                                                  | what belongs there                                      |
 | ---------------------------------------------------------------------- | ------------------------------------------------------- |
 | `src/app/`                                                             | routes, layout and global styles                        |
+| `src/app/tokens.css`, `breakpoints.ts`                                 | design tokens and named breakpoints                     |
+| `src/features/planner/shared.css`, `components/*.css`                  | shared and per-component styles                         |
 | `src/features/planner/planner.tsx`                                     | screen composition                                      |
 | `src/features/planner/session.ts`, `use-planner.ts`                    | session transitions and the async flows that drive them |
 | `src/features/planner/api.ts`, `settings.ts`                           | HTTP validation, imports and saved settings             |

@@ -21,7 +21,11 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Selections, their labels and plan categories                      | `src/features/planner/selection.ts`                              |
 | Planner status, notice and error messages                         | `src/features/planner/messages.ts`                               |
 | Rendering and local UI interactions                               | `src/features/planner/components/`                               |
-| Planner styling                                                   | `src/features/planner/planner.css` and component styles          |
+| Design tokens and Pancake UI overrides                            | `src/app/tokens.css`                                             |
+| Named layout breakpoints for media queries and scripts            | `src/app/breakpoints.ts`                                         |
+| Rules that keep style values on tokens and breakpoints            | `src/app/style-tokens.test.ts`                                   |
+| Styles that several planner components share                      | `src/features/planner/shared.css`                                |
+| A component's own styles, imported by that component              | `src/features/planner/components/<component>.css`                |
 | Recommendation orchestration and public model exports             | `src/lib/model.ts`                                               |
 | Scoring, squad rules, scheduling and lineup selection             | `src/lib/model/`                                                 |
 | Hit cost, free-transfer cap and weekly accrual                    | `src/lib/model/transfer-rules.ts`                                |
