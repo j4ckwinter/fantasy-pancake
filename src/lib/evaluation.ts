@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  STARTING_XI_SIZE,
   dataSchema,
   fixtureSchema,
   historySchema,
@@ -11,8 +12,11 @@ import {
 import { bestLineup, scorePlayer, upcomingWeeks, type Analysis } from "./model";
 import { playsIn, scheduledTeamFixtures } from "./model/schedule";
 import { seasonMinutesPerMatch } from "./model/minutes-forecast";
+import { fullMatches } from "./model/match-minutes";
 
 export const MODEL_VERSION = "forecast-v5";
+const FIXTURE_EASE_BASE = 6;
+const LAGGED_POINTS_MATCHES = 6;
 const actionSchema = z.object({
   week: z.number().int(),
   outId: z.number().int(),
@@ -20,7 +24,7 @@ const actionSchema = z.object({
 });
 const frozenLineupSchema = z.object({
   week: z.number().int(),
-  ids: z.array(z.number().int()).length(11),
+  ids: z.array(z.number().int()).length(STARTING_XI_SIZE),
   captain: z.number().int(),
 });
 const policySchema = z.object({
@@ -206,8 +210,8 @@ export function createSnapshot(
         return fixtures(player, week).reduce(
           (sum, fixture) =>
             sum +
-            (minutes / 90) *
-              (6 -
+            fullMatches(minutes) *
+              (FIXTURE_EASE_BASE -
                 (fixture.team_h === player.team
                   ? fixture.team_h_difficulty
                   : fixture.team_a_difficulty)),
@@ -227,7 +231,7 @@ export function createSnapshot(
           .sort(
             (a, b) => Date.parse(b.kickoff_time) - Date.parse(a.kickoff_time),
           )
-          .slice(0, 6);
+          .slice(0, LAGGED_POINTS_MATCHES);
         return rows.length
           ? (rows.reduce((sum, row) => sum + row.total_points, 0) /
               rows.length) *
@@ -286,7 +290,7 @@ export function evaluateSnapshot(
         continue;
       }
       if (
-        new Set(lineup.ids).size !== 11 ||
+        new Set(lineup.ids).size !== STARTING_XI_SIZE ||
         !lineup.ids.includes(lineup.captain)
       )
         throw new Error("Invalid frozen lineup or captain.");

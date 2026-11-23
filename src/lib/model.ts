@@ -32,6 +32,8 @@ export {
 
 const NET_GAIN_THRESHOLD = 2;
 const AT_CAP_NET_GAIN_THRESHOLD = 1;
+const SHORTLIST_INCOMING_PLAYERS = 3;
+const SHORTLIST_OUTGOING_PER_INCOMING = 3;
 
 export function analyze(data: Data, settings: Settings): Analysis {
   const errors = validateSquad(data, settings);
@@ -89,11 +91,18 @@ export function analyze(data: Data, settings: Settings): Analysis {
       a.inId - b.inId ||
       a.outId - b.outId,
   );
-  const incomingIds = [...new Set(moves.map((move) => move.inId))].slice(0, 3);
+  const incomingIds = [...new Set(moves.map((move) => move.inId))].slice(
+    0,
+    SHORTLIST_INCOMING_PLAYERS,
+  );
   const counts = new Map<number, number>();
   const shortlisted = moves.filter((move) => {
     const count = counts.get(move.inId) ?? 0;
-    if (!incomingIds.includes(move.inId) || count >= 3) return false;
+    if (
+      !incomingIds.includes(move.inId) ||
+      count >= SHORTLIST_OUTGOING_PER_INCOMING
+    )
+      return false;
     counts.set(move.inId, count + 1);
     return true;
   });

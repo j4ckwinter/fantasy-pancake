@@ -1,4 +1,5 @@
 import {
+  SQUAD_SIZE,
   settingsSchema,
   type Data,
   type Player,
@@ -37,7 +38,7 @@ export function validateSquad(data: Data, settings: Settings): string[] {
   const parsed = settingsSchema.safeParse(settings);
   if (!parsed.success)
     return [
-      "Enter valid bank, selling prices and free transfers for all 15 players.",
+      `Enter valid bank, selling prices and free transfers for all ${SQUAD_SIZE} players.`,
     ];
   const errors: string[] = [];
   const { bootstrap } = data;

@@ -12,6 +12,8 @@ import {
 import { DEFAULT_AVAILABILITY_SCENARIO } from "./scoring";
 import { POSITIONS } from "./position";
 
+const STRONG_CANDIDATES_PER_POSITION = 4;
+const CHEAP_CANDIDATES_PER_POSITION = 2;
 const SCENARIO_ASSUMPTION: Record<AvailabilityScenario, string> = {
   persistent:
     "Assumes current availability persists; short absences could make this plan less attractive.",
@@ -43,7 +45,7 @@ export function planTransfers(
     );
     const best = [...eligible]
       .sort((a, b) => horizonScore(b) - horizonScore(a) || a.id - b.id)
-      .slice(0, 4);
+      .slice(0, STRONG_CANDIDATES_PER_POSITION);
     const cheap = [...eligible]
       .sort(
         (a, b) =>
@@ -51,7 +53,7 @@ export function planTransfers(
           horizonScore(b) - horizonScore(a) ||
           a.id - b.id,
       )
-      .slice(0, 2);
+      .slice(0, CHEAP_CANDIDATES_PER_POSITION);
     candidates.set(position, [
       ...new Map([...best, ...cheap].map((p) => [p.id, p])).values(),
     ]);

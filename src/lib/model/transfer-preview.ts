@@ -13,6 +13,7 @@ import { bestLineup } from "./lineup";
 import { roundScore } from "./round-score";
 import { transferHit } from "./transfer-rules";
 
+const AVAILABILITY_SENSITIVE_GAIN_DIFFERENCE = 1;
 const ALTERNATE_SCENARIO: Record<AvailabilityScenario, AvailabilityScenario> = {
   persistent: "recover-next-week",
   "recover-next-week": "persistent",
@@ -228,7 +229,10 @@ export function addAvailabilitySensitivity(
     );
     move.gainPersistent = selected === "persistent" ? move.gain : gain;
     move.gainRecovery = selected === "recover-next-week" ? move.gain : gain;
-    if (Math.abs(move.gainPersistent - move.gainRecovery) >= 1)
+    if (
+      Math.abs(move.gainPersistent - move.gainRecovery) >=
+      AVAILABILITY_SENSITIVE_GAIN_DIFFERENCE
+    )
       move.risks.push(
         `Availability-sensitive: net gain is ${move.gainPersistent} with persistent availability and ${move.gainRecovery} if flagged players recover from week two. These are scenarios, not confidence bounds.`,
       );

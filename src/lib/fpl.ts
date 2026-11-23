@@ -9,6 +9,8 @@ import {
 
 const ROOT = "https://fantasy.premierleague.com/api/";
 const TTL = 300_000;
+const REQUEST_TIMEOUT_MS = 12_000;
+const MAX_CACHED_RESPONSES = 200;
 const cache = new Map<
   string,
   { expires: number; value: unknown; fetchedAt: string }
@@ -37,7 +39,7 @@ async function request<T>(
     promise = (async () => {
       const response = await fetch(ROOT + path, {
         cache: "no-store",
-        signal: AbortSignal.timeout(12000),
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         headers: { Accept: "application/json" },
       });
       if (!response.ok)
@@ -49,7 +51,8 @@ async function request<T>(
         );
       const value = schema.parse(await response.json());
       const fetchedAt = new Date().toISOString();
-      if (cache.size >= 200) cache.delete(cache.keys().next().value!);
+      if (cache.size >= MAX_CACHED_RESPONSES)
+        cache.delete(cache.keys().next().value!);
       cache.set(path, { value, fetchedAt, expires: Date.now() + TTL });
       return { value, fetchedAt };
     })();
