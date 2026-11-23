@@ -273,18 +273,7 @@ export function sessionReducer(
     case "editing-toggled":
       return { ...session, editingTeam: !session.editingTeam };
     case "team-switched":
-      return {
-        ...session,
-        reviewSnapshot: null,
-        reviewOpen: false,
-        editingTeam: false,
-        selection: null,
-        result: null,
-        settings: null,
-        savedPlan: false,
-        confirmedPrices: [],
-        notice: null,
-      };
+      return { ...initialSession, teamId: session.teamId };
     case "retried":
       return { ...session, error: "" };
   }

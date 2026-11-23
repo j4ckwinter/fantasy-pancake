@@ -302,6 +302,7 @@ export function usePlanner() {
 
   function switchTeam() {
     operation.invalidate();
+    details.closePlayer();
     dispatch({ type: "team-switched" });
   }
 
