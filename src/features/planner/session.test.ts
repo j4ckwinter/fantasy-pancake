@@ -97,4 +97,16 @@ describe("planner session", () => {
       "import-caveat",
     );
   });
+
+  it("keeps the chosen gameweek inside a shorter refreshed horizon", () => {
+    const lastWeek = session({ lineupIndex: 3 });
+    const shorter = analysis([37, 38]);
+    const results = [
+      { type: "restore-compared", result: shorter },
+      { type: "price-confirmed", settings, id: 1, result: shorter },
+      { type: "lock-toggled", settings, result: shorter },
+    ] as const;
+    for (const action of results)
+      expect(sessionReducer(lastWeek, action).lineupIndex).toBe(1);
+  });
 });

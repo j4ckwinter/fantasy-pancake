@@ -98,6 +98,10 @@ function withPrice(ids: number[], id: number) {
   return [...new Set([...ids, id])];
 }
 
+function lineupWithin(index: number, result: Analysis) {
+  return Math.max(0, Math.min(index, result.weeks.length - 1));
+}
+
 function inSquad(settings: Settings) {
   return (id: number) => settings.squad.some((pick) => pick.id === id);
 }
@@ -126,7 +130,11 @@ export function sessionReducer(
         notice: "restored",
       };
     case "restore-compared":
-      return { ...session, result: action.result };
+      return {
+        ...session,
+        result: action.result,
+        lineupIndex: lineupWithin(session.lineupIndex, action.result),
+      };
     case "import-started":
       return { ...session, error: "" };
     case "imported": {
@@ -176,6 +184,7 @@ export function sessionReducer(
         ...session,
         settings: action.settings,
         result: action.result,
+        lineupIndex: lineupWithin(session.lineupIndex, action.result),
         selection: action.selection,
       };
     case "custom-comparison-failed":
@@ -216,6 +225,7 @@ export function sessionReducer(
         settings: action.settings,
         confirmedPrices: withPrice(session.confirmedPrices, action.id),
         result: action.result,
+        lineupIndex: lineupWithin(session.lineupIndex, action.result),
         error: "",
         priceConfirmed: true,
       };
@@ -231,6 +241,7 @@ export function sessionReducer(
             ...session,
             settings: action.settings,
             result: action.result,
+            lineupIndex: lineupWithin(session.lineupIndex, action.result),
             selection: null,
             customError: "",
           }
