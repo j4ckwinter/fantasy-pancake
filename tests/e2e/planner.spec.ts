@@ -1,144 +1,33 @@
-import { test, expect, type Page } from "@playwright/test";
-import type { Data, Player } from "../../src/lib/schemas";
+import {
+  expect,
+  failHistory,
+  fixtureData,
+  importResponse,
+  NEW_STAR_INDEX,
+  newDefender,
+  routeData,
+  routeImport,
+  squadPicks,
+  test,
+  withPlayer,
+} from "./support/fixtures";
+import {
+  chooseIncoming,
+  compareTransfer,
+  expectNoHorizontalOverflow,
+  gate,
+  importTeam,
+  openCustomComparison,
+  removeSavedTeamName,
+  replaceSquadPlayer,
+  saveAndViewShortlist,
+  savedSettings,
+  savedSettingsText,
+  saveShortlistButton,
+  seedSavedSettings,
+  shortlistHeading,
+} from "./support/planner";
 
-async function openCustomComparison(page: Page) {
-  if (!(await page.getByLabel("Player to sell").isVisible())) {
-    await page.locator("#planner-compare > summary").click();
-  }
-}
-
-async function chooseIncoming(page: Page, name: string) {
-  await page.getByRole("combobox", { name: "Player to buy" }).fill(name);
-  await page.getByRole("option", { name: new RegExp(name) }).click();
-}
-
-async function replaceSquadPlayer(
-  page: Page,
-  outgoing: string,
-  incoming: string,
-) {
-  await page
-    .getByRole("button", { name: `Replace ${outgoing}`, exact: true })
-    .click();
-  await page
-    .getByRole("combobox", { name: `Replacement for ${outgoing}`, exact: true })
-    .fill(incoming);
-  await page.getByRole("option", { name: new RegExp(incoming) }).click();
-}
-
-function fixtureData(): Data {
-  const elements: Player[] = [
-    1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 3,
-  ].map((position, i) => ({
-    id: i + 1,
-    web_name: i === 15 ? "New Star" : `Player ${i + 1}`,
-    team: Math.floor(i / 3) + 1,
-    element_type: position,
-    now_cost: 50,
-    status: "a",
-    news: "",
-    can_select: true,
-    can_transact: true,
-    chance_of_playing_next_round: null,
-    minutes: 720,
-    starts: 8,
-    expected_goals: i === 15 ? 12 : 1,
-    expected_assists: 1,
-    expected_goals_conceded: 10,
-    defensive_contribution: 40,
-    saves: 10,
-    creativity: 10,
-    penalties_order: null,
-    corners_and_indirect_freekicks_order: null,
-    direct_freekicks_order: null,
-  }));
-  return {
-    fetchedAt: "2026-10-31T18:00:00Z",
-    bootstrap: {
-      elements,
-      teams: Array.from({ length: 20 }, (_, i) => ({
-        id: i + 1,
-        name: `Team ${i + 1}`,
-        short_name: `T${i + 1}`,
-      })),
-      events: Array.from({ length: 12 }, (_, i) => ({
-        id: i + 1,
-        name: `Gameweek ${i + 1}`,
-        deadline_time: "2026-10-31T12:00:00Z",
-        finished: i < 8,
-        is_current: i === 7,
-        is_next: i === 8,
-      })),
-      element_types: [
-        {
-          id: 1,
-          singular_name_short: "GKP",
-          squad_select: 2,
-          squad_min_play: 1,
-          squad_max_play: 1,
-        },
-        {
-          id: 2,
-          singular_name_short: "DEF",
-          squad_select: 5,
-          squad_min_play: 3,
-          squad_max_play: 5,
-        },
-        {
-          id: 3,
-          singular_name_short: "MID",
-          squad_select: 5,
-          squad_min_play: 2,
-          squad_max_play: 5,
-        },
-        {
-          id: 4,
-          singular_name_short: "FWD",
-          squad_select: 3,
-          squad_min_play: 1,
-          squad_max_play: 3,
-        },
-      ],
-      game_settings: {
-        squad_squadsize: 15,
-        squad_squadplay: 11,
-        squad_team_limit: 3,
-        max_extra_free_transfers: 4,
-      },
-    },
-    fixtures: Array.from({ length: 12 }, (_, w) =>
-      Array.from({ length: 6 }, (_, i) => ({
-        id: w * 6 + i,
-        event: w + 1,
-        team_h: i + 1,
-        team_a: i + 11,
-        team_h_difficulty: 3,
-        team_a_difficulty: 3,
-        finished: w < 8,
-        kickoff_time: "2026-10-31T12:00:00Z",
-      })),
-    ).flat(),
-  };
-}
-
-test.beforeEach(async ({ page }) => {
-  await page.route("**/api/history/*", (route) =>
-    route.fulfill({ json: { history: [] } }),
-  );
-  await page.route("**/api/data", (route) =>
-    route.fulfill({ json: fixtureData() }),
-  );
-  await page.route("**/api/import?*", (route) =>
-    route.fulfill({
-      json: {
-        active_chip: null,
-        entry_history: { event: 8, bank: 5 },
-        picks: Array.from({ length: 15 }, (_, i) => ({ element: i + 1 })),
-        fetchedAt: "2026-10-31T18:00:00Z",
-      },
-    }),
-  );
-});
 test("keyboard import releases the input before replacing the form", async ({
   page,
 }) => {
@@ -153,10 +42,7 @@ test("keyboard import releases the input before replacing the form", async ({
     });
   });
   await input.press("Enter");
-  const heading = page.getByRole("heading", {
-    name: "Your transfer shortlist",
-    exact: true,
-  });
+  const heading = shortlistHeading(page);
   await expect(heading).toBeFocused();
   await expect(page.locator("html")).toHaveAttribute(
     "data-import-blur-connected",
@@ -180,9 +66,7 @@ test("import, correct, confirm, compare and restore settings", async ({
 }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (e) => pageErrors.push(e.message));
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await expect(page.getByText("Team #123 · GW8 picks")).toBeVisible();
   await expect(page.getByRole("checkbox")).toHaveCount(0);
@@ -194,12 +78,8 @@ test("import, correct, confirm, compare and restore settings", async ({
   await replaceSquadPlayer(page, "New Star", "Player 8");
   await page.getByLabel("Bank balance (£m)").fill("0.4");
   await page.getByLabel("Free transfers remaining").selectOption("0");
-  await page
-    .getByRole("button", { name: /^(Save & view shortlist|View shortlist)/ })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Your transfer shortlist", exact: true }),
-  ).toBeFocused();
+  await saveAndViewShortlist(page);
+  await expect(shortlistHeading(page)).toBeFocused();
   await expect(
     page.getByText("Roll the transfer", { exact: true }),
   ).toHaveCount(0);
@@ -252,29 +132,20 @@ test("import, correct, confirm, compare and restore settings", async ({
     fullPage: true,
     animations: "disabled",
   });
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
-    ),
-  ).toBe(true);
+  await expectNoHorizontalOverflow(page);
   await page.reload();
   await page.getByRole("button", { name: "Edit team details" }).click();
   await expect(page.getByLabel("Bank balance (£m)")).toHaveValue("0.4");
   await expect(page.getByRole("checkbox")).toHaveCount(0);
-  await page
-    .getByRole("button", { name: /^(Save & view shortlist|View shortlist)/ })
-    .click();
+  await saveAndViewShortlist(page);
   await expect(page.locator(".transfer-price-note")).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });
 test("displays import errors and allows retry", async ({ page }) => {
-  await page.route("**/api/import?*", (route) =>
-    route.fulfill({
-      status: 404,
-      json: {
-        error: "No published FPL data was found for that team or gameweek.",
-      },
-    }),
+  await routeImport(
+    page,
+    { error: "No published FPL data was found for that team or gameweek." },
+    404,
   );
   await page.goto("/");
   await page.getByLabel("FPL team ID").fill("999");
@@ -285,16 +156,14 @@ test("displays import errors and allows retry", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Import team" })).toBeEnabled();
 });
 test("empty horizon and invalid stored settings are safe", async ({ page }) => {
-  await page.addInitScript(() =>
-    localStorage.setItem("fpl-planner-v1", '{"version":99}'),
-  );
+  await seedSavedSettings(page, '{"version":99}');
   const data = fixtureData();
   data.bootstrap.events.forEach((e) => {
     e.is_next = false;
     e.is_current = false;
     e.finished = true;
   });
-  await page.route("**/api/data", (route) => route.fulfill({ json: data }));
+  await routeData(page, data);
   await page.goto("/");
   await expect(
     page.getByText(
@@ -311,10 +180,8 @@ test("a confirmed over-limit squad only gets corrective transfers", async ({
 }) => {
   const data = fixtureData();
   data.bootstrap.elements[7].team = 1;
-  await page.route("**/api/data", (route) => route.fulfill({ json: data }));
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await routeData(page, data);
+  await importTeam(page);
   await expect(page.getByText("Check this club-limit exception")).toBeVisible();
   await expect(page.locator(".transfer-group")).toHaveCount(1);
   await expect(page.locator(".transfer-group").first()).toContainText(
@@ -330,15 +197,11 @@ test("selling-price confirmation removes unaffordable moves", async ({
 }) => {
   const data = fixtureData();
   data.bootstrap.elements[7].team = 1;
-  await page.route("**/api/data", (route) => route.fulfill({ json: data }));
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await routeData(page, data);
+  await importTeam(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByLabel("Bank balance (£m)").fill("0");
-  await page
-    .getByRole("button", { name: /^(Save & view shortlist|View shortlist)/ })
-    .click();
+  await saveAndViewShortlist(page);
   await expect(page.locator(".transfer-group")).toHaveCount(1);
   await expect(page.locator(".transfer-group")).not.toContainText(
     "Selling prices are estimates unless checked",
@@ -406,11 +269,7 @@ test("import controls align without overflow", async ({ page }) => {
       Math.abs(fieldBox.y + fieldBox.height - buttonBox.y - buttonBox.height),
     ).toBeLessThan(2);
   }
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: `test-results/import-${test.info().project.name}.png`,
     fullPage: true,
@@ -426,7 +285,7 @@ test("recent histories and availability scenario are connected", async ({
   });
   data.bootstrap.elements[7].status = "i";
   data.bootstrap.elements[7].expected_goals = 5;
-  await page.route("**/api/data", (route) => route.fulfill({ json: data }));
+  await routeData(page, data);
   await page.route("**/api/history/*", (route) => {
     const id = Number(route.request().url().split("/").at(-1));
     const player = data.bootstrap.elements.find((player) => player.id === id)!;
@@ -447,17 +306,13 @@ test("recent histories and availability scenario are connected", async ({
       },
     });
   });
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByText("Advanced options", { exact: true }).click();
   await page
     .getByLabel("Availability assumption")
     .selectOption("recover-next-week");
-  await page
-    .getByRole("button", { name: /^(Save & view shortlist|View shortlist)/ })
-    .click();
+  await saveAndViewShortlist(page);
   await page
     .locator(".transfer-group")
     .getByRole("button", { name: "New Star", exact: true })
@@ -467,10 +322,7 @@ test("recent histories and availability scenario are connected", async ({
     page.getByRole("dialog").locator("tbody tr").first(),
   ).toContainText("90");
   await page.keyboard.press("Escape");
-  await openCustomComparison(page);
-  await page.getByLabel("Player to sell").selectOption("8");
-  await chooseIncoming(page, "New Star");
-  await page.getByRole("button", { name: "Compare my transfer" }).click();
+  await compareTransfer(page, "8", "New Star");
   await page.locator("#selected-option > summary").click();
   await page
     .getByText("Why this option · risks and assumptions", { exact: true })
@@ -492,11 +344,7 @@ test("recent histories and availability scenario are connected", async ({
     path: `test-results/forecasts-${test.info().project.name}.png`,
     fullPage: true,
   });
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await expectNoHorizontalOverflow(page);
   await page.reload();
   await page.getByRole("button", { name: "Edit team details" }).click();
   await expect(page.getByLabel("Availability assumption")).toHaveValue(
@@ -507,15 +355,9 @@ test("recent histories and availability scenario are connected", async ({
 test("history failures fall back without blocking comparisons", async ({
   page,
 }) => {
-  await page.route("**/api/history/*", (route) =>
-    route.fulfill({ status: 503, json: { error: "Unavailable" } }),
-  );
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Your transfer shortlist", exact: true }),
-  ).toBeVisible();
+  await failHistory(page);
+  await importTeam(page);
+  await expect(shortlistHeading(page)).toBeVisible();
   await expect(page.locator(".transfer-group")).toHaveCount(1);
   await page
     .getByRole("button", { name: /Preview Player .* to New Star/ })
@@ -527,46 +369,25 @@ test("history failures fall back without blocking comparisons", async ({
 test("editing inputs during history loading cannot publish stale results", async ({
   page,
 }) => {
-  await page.route("**/api/history/*", (route) =>
-    route.fulfill({ status: 503, json: { error: "Unavailable" } }),
-  );
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await failHistory(page);
+  await importTeam(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByLabel("Bank balance (£m)").fill("0.6");
-  let release: () => void = () => {};
-  const gate = new Promise<void>((resolve) => {
-    release = resolve;
-  });
+  const history = gate();
   await page.route("**/api/history/*", async (route) => {
-    await gate;
+    await history.opened;
     await route.fulfill({ json: { history: [] } });
   });
-  await page
-    .getByRole("button", { name: /^(Save & view shortlist|View shortlist)/ })
-    .click();
-  await expect(
-    page.getByRole("button", {
-      name: /^(Save & view shortlist|View shortlist)/,
-    }),
-  ).toBeDisabled();
+  await saveAndViewShortlist(page);
+  await expect(saveShortlistButton(page)).toBeDisabled();
   await page.getByLabel("Bank balance (£m)").fill("1.2");
-  release();
-  await expect(
-    page.getByRole("button", {
-      name: /^(Save & view shortlist|View shortlist)/,
-    }),
-  ).toBeEnabled();
+  history.release();
+  await expect(saveShortlistButton(page)).toBeEnabled();
   await expect(
     page.getByRole("heading", { name: "Your team", exact: true }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: /^(Save & view shortlist|View shortlist)/ })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Your transfer shortlist", exact: true }),
-  ).toBeVisible();
+  await saveAndViewShortlist(page);
+  await expect(shortlistHeading(page)).toBeVisible();
   await expect(page.locator(".workspace-figures")).toContainText("£1.2m");
 });
 
@@ -574,22 +395,12 @@ test("pair plans show combined transfers and correct hits", async ({
   page,
 }) => {
   const data = fixtureData();
-  data.bootstrap.elements.push({
-    ...data.bootstrap.elements[15],
-    id: 17,
-    web_name: "New Defender",
-    element_type: 2,
-    expected_goals: 10,
-  });
-  await page.route("**/api/data", (route) => route.fulfill({ json: data }));
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  withPlayer(data, NEW_STAR_INDEX, newDefender);
+  await routeData(page, data);
+  await importTeam(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByLabel("Free transfers remaining").selectOption("2");
-  await page
-    .getByRole("button", { name: /^(Save & view shortlist|View shortlist)/ })
-    .click();
+  await saveAndViewShortlist(page);
   await page
     .getByRole("button", { name: "Two transfers", exact: true })
     .click();
@@ -602,9 +413,7 @@ test("pair plans show combined transfers and correct hits", async ({
   await expect(pair).not.toContainText("Provisional");
   await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByLabel("Free transfers remaining").selectOption("0");
-  await page
-    .getByRole("button", { name: /^(Save & view shortlist|View shortlist)/ })
-    .click();
+  await saveAndViewShortlist(page);
   await page
     .getByRole("button", { name: "Two transfers", exact: true })
     .click();
@@ -624,19 +433,13 @@ test("pair plans show combined transfers and correct hits", async ({
     path: `test-results/plan-cards-${test.info().project.name}.png`,
     fullPage: true,
   });
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await expectNoHorizontalOverflow(page);
 });
 
 test("groups incoming options and preserves player locks across reload", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await expect(page.locator(".transfer-group")).toHaveCount(1);
   await expect(
     page.locator(".transfer-group .transfer-alternative"),
@@ -688,14 +491,9 @@ test("custom comparisons preview below-threshold moves without changing the squa
     team: 6,
     web_name: "Steady Midfielder",
   });
-  await page.route("**/api/data", (route) => route.fulfill({ json: data }));
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
-  await openCustomComparison(page);
-  await page.getByLabel("Player to sell").selectOption("8");
-  await chooseIncoming(page, "Steady Midfielder");
-  await page.getByRole("button", { name: "Compare my transfer" }).click();
+  await routeData(page, data);
+  await importTeam(page);
+  await compareTransfer(page, "8", "Steady Midfielder");
   await page.locator("#selected-option > summary").click();
   const selected = page.getByRole("article", {
     name: "Selected transfer option",
@@ -759,11 +557,7 @@ test("custom comparisons preview below-threshold moves without changing the squa
     fullPage: true,
     animations: "disabled",
   });
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await expectNoHorizontalOverflow(page);
   if (test.info().project.use.isMobile) {
     await expect(
       page.getByRole("navigation", { name: "Planner sections" }),
@@ -797,9 +591,7 @@ test("custom comparisons preview below-threshold moves without changing the squa
 test("pitch players open details and Escape returns keyboard focus", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   const player = page
     .getByLabel("Baseline starting lineup")
     .getByRole("button", { name: /View .* details/ })
@@ -841,9 +633,7 @@ test("pitch players open details and Escape returns keyboard focus", async ({
 test("delayed plans preserve the first-week XI and only change later weeks", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await expect(
     page.getByLabel("Baseline starting lineup").locator(".pitch-board__name"),
   ).toHaveCount(11);
@@ -878,32 +668,22 @@ test("delayed plans preserve the first-week XI and only change later weeks", asy
 test("clearing the preview cancels an in-flight custom comparison", async ({
   page,
 }) => {
-  await page.route("**/api/history/*", (route) =>
-    route.fulfill({ status: 503, json: { error: "Unavailable" } }),
-  );
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await failHistory(page);
+  await importTeam(page);
   await expect(page.getByLabel("Baseline starting lineup")).toBeVisible();
-  let release: () => void = () => {};
-  const gate = new Promise<void>((resolve) => {
-    release = resolve;
-  });
+  const history = gate();
   await page.route("**/api/history/*", async (route) => {
-    await gate;
+    await history.opened;
     await route.fulfill({ json: { history: [] } });
   });
-  await openCustomComparison(page);
-  await page.getByLabel("Player to sell").selectOption("8");
-  await chooseIncoming(page, "New Star");
-  await page.getByRole("button", { name: "Compare my transfer" }).click();
+  await compareTransfer(page, "8", "New Star");
   await expect(
     page.getByRole("button", { name: "Comparing…", exact: true }),
   ).toBeDisabled();
   await page
     .getByRole("button", { name: "Clear preview", exact: true })
     .click();
-  release();
+  history.release();
   await expect(
     page.getByRole("button", { name: "Compare my transfer", exact: true }),
   ).toBeEnabled();
@@ -932,10 +712,8 @@ test("preview preserves desktop position and takes mobile users to the new XI", 
       team: 6,
     },
   );
-  await page.route("**/api/data", (route) => route.fulfill({ json: data }));
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await routeData(page, data);
+  await importTeam(page);
   await expect(page.locator(".transfer-group")).toHaveCount(3);
   const choices = page.getByRole("button", {
     name: /Preview Player .* to New Star/,
@@ -1020,19 +798,12 @@ test("custom errors follow the submitted players and weekly gains deduct the hit
     web_name: "Expensive Midfielder",
     now_cost: 100,
   });
-  await page.route("**/api/data", (route) => route.fulfill({ json: data }));
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await routeData(page, data);
+  await importTeam(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByLabel("Free transfers remaining").selectOption("0");
-  await page
-    .getByRole("button", { name: /^(Save & view shortlist|View shortlist)/ })
-    .click();
-  await openCustomComparison(page);
-  await page.getByLabel("Player to sell").selectOption("8");
-  await chooseIncoming(page, "Expensive Midfielder");
-  await page.getByRole("button", { name: "Compare my transfer" }).click();
+  await saveAndViewShortlist(page);
+  await compareTransfer(page, "8", "Expensive Midfielder");
   await expect(page.locator(".custom-transfer-error")).toContainText(
     "unaffordable",
   );
@@ -1068,12 +839,8 @@ test("custom errors follow the submitted players and weekly gains deduct the hit
 test("results keep optional tools collapsed and the first recommendation easy to reach", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Your transfer shortlist", exact: true }),
-  ).toBeVisible();
+  await importTeam(page);
+  await expect(shortlistHeading(page)).toBeVisible();
   await expect(page.locator(".steps")).toHaveCount(0);
   await expect(
     page.getByRole("group", { name: "Before or after transfers" }),
@@ -1133,27 +900,15 @@ test("results keep optional tools collapsed and the first recommendation easy to
   await expect(page.getByLabel("Player to sell")).not.toBeVisible();
   await page.locator("#planner-compare > summary").click();
   await expect(page.getByLabel("Player to sell")).toHaveValue("8");
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await expectNoHorizontalOverflow(page);
 });
 
 test("normal import opens recommendations directly and keeps assumptions editable", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Your transfer shortlist", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", {
-      name: /^(Save & view shortlist|View shortlist)/,
-    }),
-  ).toHaveCount(0);
+  await importTeam(page);
+  await expect(shortlistHeading(page)).toBeVisible();
+  await expect(saveShortlistButton(page)).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: "Confirm the details", exact: true }),
   ).toHaveCount(0);
@@ -1176,30 +931,18 @@ test("normal import opens recommendations directly and keeps assumptions editabl
     path: `test-results/workspace-overview-${test.info().project.name}.png`,
     animations: "disabled",
   });
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await expectNoHorizontalOverflow(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await expect(page.locator(".squad-editor")).toHaveCount(0);
-  await expect(
-    page.getByRole("button", {
-      name: /^(Save & view shortlist|View shortlist)/,
-    }),
-  ).toBeVisible();
+  await expect(saveShortlistButton(page)).toBeVisible();
   await page.screenshot({
     path: `test-results/team-settings-${test.info().project.name}.png`,
     fullPage: true,
   });
   await page.getByLabel("Bank balance (£m)").fill("1.2");
   await page.getByLabel("Free transfers remaining").selectOption("2");
-  await page
-    .getByRole("button", { name: /^(Save & view shortlist|View shortlist)/ })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Your transfer shortlist", exact: true }),
-  ).toBeVisible();
+  await saveAndViewShortlist(page);
+  await expect(shortlistHeading(page)).toBeVisible();
   await expect(page.locator(".workspace-figures")).toContainText("£1.2m");
   await expect(
     page.locator(".workspace-figures").getByText("2", { exact: true }),
@@ -1209,19 +952,8 @@ test("normal import opens recommendations directly and keeps assumptions editabl
 test("Free Hit imports require permanent-squad correction before recommending", async ({
   page,
 }) => {
-  await page.route("**/api/import?*", (route) =>
-    route.fulfill({
-      json: {
-        active_chip: "freehit",
-        entry_history: { event: 8, bank: 5 },
-        picks: Array.from({ length: 15 }, (_, i) => ({ element: i + 1 })),
-        fetchedAt: "2026-10-31T18:00:00Z",
-      },
-    }),
-  );
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await routeImport(page, importResponse({ active_chip: "freehit" }));
+  await importTeam(page);
   await expect(
     page.getByText("This is a Free Hit squad.", { exact: false }),
   ).toBeVisible();
@@ -1233,22 +965,14 @@ test("Free Hit imports require permanent-squad correction before recommending", 
     .boundingBox();
   const players = await page.locator(".squad-editor").boundingBox();
   expect(freeHitNotice!.y + freeHitNotice!.height).toBeLessThan(players!.y);
-  await expect(
-    page.getByRole("heading", { name: "Your transfer shortlist", exact: true }),
-  ).toHaveCount(0);
-  await expect(
-    page.getByRole("button", {
-      name: /^(Save & view shortlist|View shortlist)/,
-    }),
-  ).toBeVisible();
+  await expect(shortlistHeading(page)).toHaveCount(0);
+  await expect(saveShortlistButton(page)).toBeVisible();
 });
 
 test("the XI panel uses the page scroll rather than a nested scrollbar", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   const squad = page.locator(".workspace-squad");
   await expect(squad).toBeVisible();
   const scrollStyles = await squad.evaluate((element) => ({
@@ -1278,11 +1002,7 @@ test("the XI panel uses the page scroll rather than a nested scrollbar", async (
     fullPage: true,
     animations: "disabled",
   });
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await expectNoHorizontalOverflow(page);
 });
 
 test("returning starters distinguish expected minutes from recent starting minutes", async ({
@@ -1291,7 +1011,7 @@ test("returning starters distinguish expected minutes from recent starting minut
   const data = fixtureData();
   data.bootstrap.elements[7].minutes = 319;
   data.bootstrap.elements[7].starts = 4;
-  await page.route("**/api/data", (route) => route.fulfill({ json: data }));
+  await routeData(page, data);
   await page.route("**/api/history/8", (route) =>
     route.fulfill({
       json: {
@@ -1310,12 +1030,8 @@ test("returning starters distinguish expected minutes from recent starting minut
       },
     }),
   );
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Your transfer shortlist", exact: true }),
-  ).toBeVisible();
+  await importTeam(page);
+  await expect(shortlistHeading(page)).toBeVisible();
   await page.getByText("Bench and XI changes", { exact: true }).click();
   await page
     .getByRole("complementary", { name: "Lineup comparison" })
@@ -1349,9 +1065,7 @@ test("returning starters distinguish expected minutes from recent starting minut
 test("incoming picker requires a choice and supports keyboard search", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await openCustomComparison(page);
   await expect(page.getByLabel("Player to sell")).toHaveValue("");
   await expect(
@@ -1405,12 +1119,9 @@ test("incoming picker requires a choice and supports keyboard search", async ({
 test("loading panel follows real requests and respects reduced motion", async ({
   page,
 }) => {
-  let releaseData!: () => void;
-  const waitingForData = new Promise<void>((resolve) => {
-    releaseData = resolve;
-  });
+  const data = gate();
   await page.route("**/api/data", async (route) => {
-    await waitingForData;
+    await data.opened;
     await route.fulfill({ json: fixtureData() });
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -1427,22 +1138,16 @@ test("loading panel follows real requests and respects reduced motion", async ({
     path: `test-results/loading-${test.info().project.name}.png`,
     fullPage: true,
   });
-  releaseData();
+  data.release();
   await expect(loading).toHaveCount(0);
   await expect(page.getByLabel("FPL team ID")).toBeVisible();
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await expectNoHorizontalOverflow(page);
 });
 
 test("mobile navigation reaches each section and opens comparison", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await expect(page.locator(".transfer-group")).toBeVisible();
   const nav = page.getByRole("navigation", { name: "Planner sections" });
   if (!test.info().project.use.isMobile) {
@@ -1475,19 +1180,13 @@ test("mobile navigation reaches each section and opens comparison", async ({
     path: `test-results/mobile-navigation-${test.info().project.name}.png`,
     animations: "disabled",
   });
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await expectNoHorizontalOverflow(page);
 });
 
 test("preview buttons toggle singles and plans back to the current XI", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   const single = page
     .getByRole("button", { name: /Preview Player .* to New Star/ })
     .first();
@@ -1536,9 +1235,7 @@ test("preview buttons toggle singles and plans back to the current XI", async ({
 });
 
 test("changing plan category clears the preview", async ({ page }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   const choice = page
     .getByRole("button", { name: /Preview Player .* to New Star/ })
     .first();
@@ -1570,9 +1267,7 @@ test("changing plan category clears the preview", async ({ page }) => {
 test("team editing can return or discard without recalculating or saving drafts", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await page
     .getByRole("button", { name: /Preview Player .* to New Star/ })
     .first()
@@ -1586,9 +1281,7 @@ test("team editing can return or discard without recalculating or saving drafts"
   });
   await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByRole("button", { name: "View shortlist" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Your transfer shortlist", exact: true }),
-  ).toBeVisible();
+  await expect(shortlistHeading(page)).toBeVisible();
   await expect(
     page.locator('.preview-toggle[aria-pressed="true"]'),
   ).toHaveCount(1);
@@ -1618,27 +1311,19 @@ test("team editing can return or discard without recalculating or saving drafts"
 test("team updates clear import guidance and keep the expanded action reachable", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByRole("button", { name: "Edit team", exact: true }).click();
   await page
     .getByRole("button", { name: "Replace Player 8", exact: true })
     .scrollIntoViewIfNeeded();
-  const action = await page
-    .getByRole("button", { name: /^(Save & view shortlist|View shortlist)/ })
-    .boundingBox();
+  const action = await saveShortlistButton(page).boundingBox();
   expect(action).not.toBeNull();
   expect(action!.y).toBeGreaterThanOrEqual(0);
   expect(action!.y + action!.height).toBeLessThanOrEqual(
     page.viewportSize()!.height,
   );
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
+  await expectNoHorizontalOverflow(page);
   await page.screenshot({
     path: `test-results/team-expanded-${test.info().project.name}.png`,
     fullPage: true,
@@ -1646,9 +1331,7 @@ test("team updates clear import guidance and keep the expanded action reachable"
   await page.getByRole("button", { name: "Hide players" }).click();
   await expect(page.locator(".squad-editor")).toHaveCount(0);
   await page.getByLabel("Free transfers remaining").selectOption("2");
-  await page
-    .getByRole("button", { name: /^(Save & view shortlist|View shortlist)/ })
-    .click();
+  await saveAndViewShortlist(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await expect(page.getByLabel("Free transfers remaining")).toHaveValue("2");
   await expect(
@@ -1659,9 +1342,7 @@ test("team updates clear import guidance and keep the expanded action reachable"
 test("returning from team editing preserves the plan category and selected plan", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await page
     .getByRole("button", { name: "Roll then move", exact: true })
     .click();
@@ -1679,9 +1360,7 @@ test("returning from team editing preserves the plan category and selected plan"
 test("squad replacement supports keyboard search, cancellation and touch selection", async ({
   page,
 }, testInfo) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await expect(page.getByLabel("Availability assumption")).not.toBeVisible();
   await page.getByRole("button", { name: "Edit team", exact: true }).click();
@@ -1733,20 +1412,8 @@ test("squad replacement supports keyboard search, cancellation and touch selecti
 test("team names appear in both headings and survive saved sessions", async ({
   page,
 }) => {
-  await page.route("**/api/import?*", (route) =>
-    route.fulfill({
-      json: {
-        teamName: "The Pancake XI",
-        active_chip: null,
-        entry_history: { event: 8, bank: 5 },
-        picks: Array.from({ length: 15 }, (_, i) => ({ element: i + 1 })),
-        fetchedAt: "2026-10-31T18:00:00Z",
-      },
-    }),
-  );
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await routeImport(page, importResponse({ teamName: "The Pancake XI" }));
+  await importTeam(page);
   await expect(page.locator(".workspace-heading .eyebrow")).toContainText(
     "The Pancake XI",
   );
@@ -1761,24 +1428,14 @@ test("team names appear in both headings and survive saved sessions", async ({
     "The Pancake XI",
   );
   await expect(page.locator(".workspace-figures")).toContainText("£1.2m");
-  await page.evaluate(() => {
-    const saved = JSON.parse(localStorage.getItem("fpl-planner-v1")!);
-    delete saved.teamName;
-    localStorage.setItem("fpl-planner-v1", JSON.stringify(saved));
-  });
+  await removeSavedTeamName(page);
   await page.reload();
   await expect(page.locator(".workspace-heading .eyebrow")).toContainText(
     "The Pancake XI",
   );
   await expect(page.locator(".workspace-figures")).toContainText("£1.2m");
-  await page.route("**/api/import?*", (route) =>
-    route.fulfill({ status: 503, json: { error: "Unavailable" } }),
-  );
-  await page.evaluate(() => {
-    const saved = JSON.parse(localStorage.getItem("fpl-planner-v1")!);
-    delete saved.teamName;
-    localStorage.setItem("fpl-planner-v1", JSON.stringify(saved));
-  });
+  await routeImport(page, { error: "Unavailable" }, 503);
+  await removeSavedTeamName(page);
   await page.reload();
   await expect(page.locator(".workspace-heading .eyebrow")).toContainText(
     "Team #123",
@@ -1790,9 +1447,7 @@ test("shortlist and saved-plan controls fit a 320px viewport", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 740 });
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   for (const name of ["Singles", "Two transfers", "Roll then move"]) {
     await page.getByRole("button", { name, exact: true }).click();
     await expect
@@ -1811,9 +1466,7 @@ test("shortlist and saved-plan controls fit a 320px viewport", async ({
 test("saved plans remain intact until an explicit successful FPL refresh", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByLabel("Bank balance (£m)").fill("1.2");
   await page.getByLabel("Free transfers remaining").selectOption("3");
@@ -1822,53 +1475,32 @@ test("saved plans remain intact until an explicit successful FPL refresh", async
   const savedPlan = page.getByRole("complementary", { name: "Saved plan" });
   await expect(savedPlan).toContainText("Saved plan · GW8 picks");
   await expect(page.locator(".workspace-figures")).toContainText("£1.2m");
-  const original = await page.evaluate(() =>
-    localStorage.getItem("fpl-planner-v1"),
-  );
-  await page.route("**/api/import?*", (route) =>
-    route.fulfill({
-      status: 503,
-      json: { error: "FPL temporarily unavailable" },
-    }),
-  );
+  const original = await savedSettingsText(page);
+  await routeImport(page, { error: "FPL temporarily unavailable" }, 503);
   await savedPlan.getByRole("button", { name: "Refresh from FPL" }).click();
   await expect(
     page.getByText("FPL temporarily unavailable", { exact: true }),
   ).toBeVisible();
   await expect(savedPlan).toBeVisible();
   await expect(page.locator(".workspace-figures")).toContainText("£1.2m");
-  expect(
-    await page.evaluate(() => localStorage.getItem("fpl-planner-v1")),
-  ).toBe(original);
-  await page.route("**/api/import?*", (route) =>
-    route.fulfill({
-      json: {
-        active_chip: null,
-        entry_history: { event: 9, bank: 8 },
-        picks: Array.from({ length: 15 }, (_, i) => ({
-          element: i === 7 ? 999 : i + 1,
-        })),
-        fetchedAt: "2026-10-31T18:00:00Z",
-      },
+  expect(await savedSettingsText(page)).toBe(original);
+  await routeImport(
+    page,
+    importResponse({
+      entry_history: { event: 9, bank: 8 },
+      picks: squadPicks({ 7: 999 }),
     }),
   );
   await savedPlan.getByRole("button", { name: "Refresh from FPL" }).click();
   await expect(page.getByText(/Player 999 is no longer/)).toBeVisible();
   await expect(savedPlan).toContainText("Saved plan · GW8 picks");
-  expect(
-    await page.evaluate(() => localStorage.getItem("fpl-planner-v1")),
-  ).toBe(original);
-  await page.route("**/api/import?*", (route) =>
-    route.fulfill({
-      json: {
-        teamName: "Refreshed XI",
-        active_chip: null,
-        entry_history: { event: 9, bank: 8 },
-        picks: Array.from({ length: 15 }, (_, i) => ({
-          element: i === 7 ? 16 : i + 1,
-        })),
-        fetchedAt: "2026-10-31T18:00:00Z",
-      },
+  expect(await savedSettingsText(page)).toBe(original);
+  await routeImport(
+    page,
+    importResponse({
+      teamName: "Refreshed XI",
+      entry_history: { event: 9, bank: 8 },
+      picks: squadPicks({ 7: 16 }),
     }),
   );
   await savedPlan.getByRole("button", { name: "Refresh from FPL" }).click();
@@ -1877,9 +1509,7 @@ test("saved plans remain intact until an explicit successful FPL refresh", async
     "Refreshed XI",
   );
   await expect(page.locator(".workspace-figures")).toContainText("£0.8m");
-  const refreshed = await page.evaluate(() =>
-    JSON.parse(localStorage.getItem("fpl-planner-v1")!),
-  );
+  const refreshed = await savedSettings(page);
   expect(refreshed.sourceGameweek).toBe(9);
   expect(refreshed.freeTransfers).toBe(1);
   expect(refreshed.squad.map((pick: { id: number }) => pick.id)).toContain(16);
@@ -1914,9 +1544,7 @@ test("expired planning data and histories refresh on focus without replacing the
     historyRequests++;
     return route.fulfill({ json: { history: [] } });
   });
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await expect(page.locator(".workspace-horizon")).toHaveText("GW9–12");
   await page
     .getByRole("button", { name: "Preview Player 8 to New Star" })
@@ -1941,9 +1569,7 @@ test("expired planning data and histories refresh on focus without replacing the
   await expect(page.locator(".workspace-horizon")).toHaveText("GW10–12");
   expect(dataRequests).toBe(initialDataRequests + 1);
   expect(historyRequests).toBeGreaterThan(historyCount);
-  const saved = await page.evaluate(() =>
-    JSON.parse(localStorage.getItem("fpl-planner-v1")!),
-  );
+  const saved = await savedSettings(page);
   expect(saved.bank).toBe(5);
   expect(
     saved.squad.find((pick: { id: number }) => pick.id === 8).sellingPrice,
@@ -1969,9 +1595,7 @@ test("expired data refresh waits for edited settings and failures can be retried
       ? route.fulfill({ status: 503, json: { error: "Refresh unavailable" } })
       : route.fulfill({ json: fixtureData() });
   });
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByLabel("Bank balance (£m)").fill("1.2");
   const initialDataRequests = dataRequests;
@@ -1987,9 +1611,7 @@ test("expired data refresh waits for edited settings and failures can be retried
   await expect(page.getByLabel("Bank balance (£m)")).toHaveValue("1.2");
   failRefresh = false;
   await page.getByRole("button", { name: "Save & view shortlist" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Your transfer shortlist", exact: true }),
-  ).toBeVisible();
+  await expect(shortlistHeading(page)).toBeVisible();
   await expect(page.locator(".workspace-figures")).toContainText("£1.2m");
   expect(dataRequests).toBe(initialDataRequests + 2);
 });
@@ -2007,15 +1629,9 @@ test("failed focus refresh does not save subsequent team edits on focus", async 
       ? route.fulfill({ status: 503, json: { error: "Refresh unavailable" } })
       : route.fulfill({ json: fixtureData() });
   });
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Your transfer shortlist", exact: true }),
-  ).toBeVisible();
-  const saved = await page.evaluate(() =>
-    localStorage.getItem("fpl-planner-v1"),
-  );
+  await importTeam(page);
+  await expect(shortlistHeading(page)).toBeVisible();
+  const saved = await savedSettingsText(page);
   failRefresh = true;
   await page.clock.setFixedTime(new Date(start.getTime() + 6 * 60_000));
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
@@ -2028,9 +1644,7 @@ test("failed focus refresh does not save subsequent team edits on focus", async 
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await expect(page.getByLabel("Bank balance (£m)")).toHaveValue("1.2");
   expect(dataRequests).toBe(requestsBeforeFocus);
-  expect(
-    await page.evaluate(() => localStorage.getItem("fpl-planner-v1")),
-  ).toBe(saved);
+  expect(await savedSettingsText(page)).toBe(saved);
   await page.getByRole("button", { name: "Save & view shortlist" }).click();
   await expect(page.locator(".workspace-figures")).toContainText("£1.2m");
 });
@@ -2038,22 +1652,15 @@ test("failed focus refresh does not save subsequent team edits on focus", async 
 test("an invalid initial imported squad opens correction instead of losing the import", async ({
   page,
 }) => {
-  await page.route("**/api/import?*", (route) =>
-    route.fulfill({
-      json: {
-        teamName: "Needs correction",
-        active_chip: null,
-        entry_history: { event: 8, bank: 5 },
-        picks: Array.from({ length: 15 }, (_, i) => ({
-          element: i === 7 ? 999 : i + 1,
-        })),
-        fetchedAt: "2026-10-31T18:00:00Z",
-      },
+  await routeImport(
+    page,
+    importResponse({
+      teamName: "Needs correction",
+      entry_history: { event: 8, bank: 5 },
+      picks: squadPicks({ 7: 999 }),
     }),
   );
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await expect(
     page.getByRole("heading", { name: "Your team", exact: true }),
   ).toBeVisible();
@@ -2061,9 +1668,7 @@ test("an invalid initial imported squad opens correction instead of losing the i
     "Needs correction",
   );
   await expect(page.getByLabel("Bank balance (£m)")).toHaveValue("0.5");
-  await expect(
-    page.getByRole("heading", { name: "Your transfer shortlist", exact: true }),
-  ).toHaveCount(0);
+  await expect(shortlistHeading(page)).toHaveCount(0);
 });
 
 test("previewing an expired option refreshes the shortlist before using the move", async ({
@@ -2075,18 +1680,10 @@ test("previewing an expired option refreshes the shortlist before using the move
   await page.route("**/api/data", (route) => {
     dataRequests++;
     const data = fixtureData();
-    data.bootstrap.elements.push({
-      ...data.bootstrap.elements[15],
-      id: 17,
-      web_name: "New Defender",
-      element_type: 2,
-      expected_goals: 10,
-    });
+    withPlayer(data, NEW_STAR_INDEX, newDefender);
     return route.fulfill({ json: data });
   });
-  await page.goto("/");
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await expect(page.locator(".workspace-horizon")).toBeVisible();
   const initialRequests = dataRequests;
   for (const [index, category] of ["Singles", "Two transfers"].entries()) {
