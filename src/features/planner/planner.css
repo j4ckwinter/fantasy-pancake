@@ -110,7 +110,7 @@
 }
 .card {
   padding: var(--space-26);
-  border: 1px solid var(--color-border-card);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-10);
   background: var(--color-white);
 }
@@ -181,7 +181,7 @@
   gap: var(--space-12);
   margin: var(--space-18) 0;
   padding: var(--space-16) 0;
-  border-block: 1px solid var(--color-border-metrics);
+  border-block: 1px solid var(--color-border);
 }
 .metric strong {
   display: block;
@@ -196,7 +196,7 @@
   font-size: var(--text-10);
   line-height: 1.5;
   margin-top: var(--space-5);
-  color: var(--color-text-metric-label);
+  color: var(--color-text-secondary);
 }
 .option-number {
   font-size: var(--text-31);
@@ -218,7 +218,7 @@ footer {
   padding-top: var(--space-20);
   border-top: 1px solid var(--color-border-rule);
   font-size: var(--text-10);
-  color: var(--color-text-footer);
+  color: var(--color-text-secondary);
 }
 footer a {
   text-underline-offset: 4px;
@@ -392,7 +392,7 @@ footer a {
   font-size: var(--text-9);
   letter-spacing: 1.4px;
   font-weight: 700;
-  color: var(--color-text-deadline-label);
+  color: var(--color-text-secondary);
 }
 .deadline time {
   font-size: var(--text-12);
@@ -447,11 +447,11 @@ footer a {
 }
 .workspace-figures > div {
   padding-left: var(--space-24);
-  border-left: 1px solid var(--color-border-figure);
+  border-left: 1px solid var(--color-border-strong);
 }
 .workspace-figures dt {
   font-size: var(--text-10);
-  color: var(--color-text-figure-label);
+  color: var(--color-text-secondary);
   margin-bottom: var(--space-5);
 }
 .workspace-figures dd {
@@ -467,15 +467,15 @@ footer a {
   gap: var(--space-4);
   padding: var(--space-5);
   margin-bottom: var(--space-8);
-  border: 1px solid var(--color-border-switcher);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-8);
-  background: var(--color-surface-switcher);
+  background: var(--color-surface-tint);
 }
 .lineup-switcher button {
   flex: 1;
   border: 0;
   background: transparent;
-  color: var(--color-text-switcher);
+  color: var(--color-text-label);
   font: 700 var(--text-11) var(--font-pancake);
   padding: var(--space-10) var(--space-4);
   border-radius: var(--radius-5);
@@ -487,7 +487,7 @@ footer a {
   box-shadow: var(--shadow-switcher-pressed);
 }
 .lineup-switcher button:hover:not([aria-pressed="true"]) {
-  background: var(--color-surface-switcher-hover);
+  background: var(--color-surface-subtle);
 }
 @media (max-width: 1050px) {
   .workspace-figures {
@@ -541,7 +541,7 @@ footer a {
   }
   .workspace-figures > div {
     padding: 0 var(--space-20);
-    border-left: 1px solid var(--color-border-figure);
+    border-left: 1px solid var(--color-border-strong);
   }
   .workspace-figures > div:first-child {
     padding-left: 0;

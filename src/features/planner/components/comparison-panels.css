@@ -84,7 +84,7 @@
   width: 40%;
 }
 .player-comparison__table thead {
-  background: var(--color-surface-table-head);
+  background: var(--color-surface-subtle);
 }
 .player-comparison__table thead strong {
   display: block;

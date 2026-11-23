@@ -151,7 +151,7 @@
 }
 
 .alternative-price .alternative-price__checked {
-  color: var(--color-text-checked);
+  color: var(--color-text-positive);
   font-weight: 650;
 }
 @media (max-width: 700px) {

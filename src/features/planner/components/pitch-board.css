@@ -4,7 +4,7 @@
   position: relative;
   padding: var(--space-24) var(--space-18) var(--space-16);
   border: 1px solid var(--color-night-border);
-  border-top: 5px solid var(--color-pitch-accent);
+  border-top: 5px solid var(--color-accent);
   border-radius: var(--radius-10);
   background: var(--color-night);
   color: var(--color-on-night);
@@ -29,7 +29,7 @@
   width: 5px;
   height: 5px;
   flex: none;
-  background: var(--color-pitch-accent);
+  background: var(--color-accent);
 }
 .pitch-board__header h2 {
   color: var(--color-on-night);
@@ -45,7 +45,7 @@
   gap: var(--space-3);
   white-space: nowrap;
   color: var(--color-night);
-  background: var(--color-pitch-accent);
+  background: var(--color-accent);
   border-radius: var(--radius-3);
   padding: var(--space-8) var(--space-10);
   font-size: var(--text-16);
@@ -120,24 +120,24 @@
   display: block;
   width: 35px;
   height: 33px;
-  color: var(--color-pitch-accent);
+  color: var(--color-accent);
   filter: var(--shadow-shirt);
 }
 .pitch-board__shirt--keeper {
   color: var(--color-keeper-kit);
 }
 .pitch-board__shirt-outline {
-  stroke: var(--color-shirt-ink);
+  stroke: var(--color-night);
 }
 .pitch-board__shirt-trim {
-  fill: var(--color-shirt-ink);
+  fill: var(--color-night);
 }
 .pitch-board__name {
   margin-top: var(--space-7);
   max-width: 100%;
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-2);
-  background: var(--color-night-name);
+  background: var(--color-night);
   color: var(--color-on-night);
   font-size: var(--text-10);
   font-weight: 700;
@@ -145,7 +145,7 @@
 }
 .pitch-board__club {
   margin-top: var(--space-4);
-  color: var(--color-on-pitch-club);
+  color: var(--color-on-night-muted);
   font-size: var(--text-8);
   letter-spacing: 1px;
 }
@@ -261,7 +261,7 @@
   background: var(--color-fixture-blank);
   border-color: var(--color-fixture-blank-border);
   border-bottom-style: dashed;
-  color: var(--color-fixture-blank-text);
+  color: var(--color-text-quiet);
 }
 @media (max-width: 420px) {
   .pitch-board {

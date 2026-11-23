@@ -147,7 +147,7 @@
   display: none;
 }
 .planner-tool > summary:hover {
-  background: var(--color-surface-hover);
+  background: var(--color-surface-tint);
 }
 .planner-tool > summary:focus-visible {
   outline: 2px solid var(--color-ink);
@@ -160,7 +160,7 @@
   height: 34px;
   border: 1px solid var(--color-border-icon);
   border-radius: var(--radius-10);
-  background: var(--color-surface-icon);
+  background: var(--color-surface-tint);
   font-size: var(--text-22);
   flex: none;
 }
@@ -231,7 +231,7 @@
   display: none;
 }
 .lineup-preview__details > summary:hover {
-  background: var(--color-surface-hover);
+  background: var(--color-surface-tint);
 }
 .lineup-preview__details > summary:focus-visible {
   outline: 2px solid var(--color-ink);
@@ -288,7 +288,7 @@
 .plan-categories {
   display: flex;
   gap: var(--space-24);
-  border-bottom: 1px solid var(--color-border-tabs);
+  border-bottom: 1px solid var(--color-border-strong);
 }
 .plan-categories button {
   position: relative;
@@ -322,9 +322,9 @@
 .roll-option {
   margin-top: var(--space-12);
   padding: var(--space-10) var(--space-14);
-  border: 1px dashed var(--color-border-dashed);
+  border: 1px dashed var(--color-border-control);
   border-radius: var(--radius-10);
-  background: var(--color-surface-roll);
+  background: var(--color-surface-tint);
 }
 .roll-option__row {
   display: flex;
@@ -415,7 +415,7 @@
 
 .results-workspace .preview-toggle {
   background: var(--color-ink);
-  color: var(--color-on-night-heading);
+  color: var(--color-on-night);
   border: 1px solid var(--color-ink);
   border-radius: var(--radius-9);
   min-height: 40px;
@@ -433,7 +433,7 @@
   border-color: transparent;
 }
 .results-workspace .preview-toggle[aria-pressed="true"]:hover {
-  background: var(--color-accent-hover);
+  background: var(--color-accent-strong);
 }
 .results-workspace .preview-toggle:focus-visible {
   outline: 2px solid var(--color-ink);

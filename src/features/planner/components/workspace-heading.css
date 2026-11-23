@@ -5,16 +5,16 @@
   margin: var(--space-8) 0 0;
   scroll-margin-top: var(--space-16);
   padding: var(--space-14) var(--space-24);
-  border: 1px solid var(--color-night-border-heading);
+  border: 1px solid var(--color-night-border);
   border-radius: var(--radius-14);
-  color: var(--color-on-night-heading);
+  color: var(--color-on-night);
   background:
     radial-gradient(
       ellipse at top right,
-      var(--color-night-heading-glow) 0,
+      var(--color-night-active) 0,
       transparent 65%
     ),
-    var(--color-night-heading);
+    var(--color-night-raised);
 }
 .workspace-heading--results .eyebrow {
   color: var(--color-accent);
@@ -63,7 +63,7 @@
 }
 .workspace-heading--results .workspace-figures dd {
   font-size: var(--text-28);
-  color: var(--color-on-night-heading);
+  color: var(--color-on-night);
 }
 .workspace-horizon {
   white-space: nowrap;
@@ -83,7 +83,7 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-8);
-    border-top: 1px solid var(--color-night-border-figures);
+    border-top: 1px solid var(--color-night-border-strong);
     padding-top: var(--space-12);
   }
   .workspace-heading--results .workspace-figures dd {

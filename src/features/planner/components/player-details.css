@@ -9,7 +9,7 @@
   padding: 0;
   border: 0;
   border-left: 1px solid var(--color-sheet-edge);
-  background: var(--color-surface-sheet);
+  background: var(--color-surface-subtle);
   color: var(--color-ink);
   box-shadow: var(--shadow-sheet);
   overflow-y: auto;
@@ -28,7 +28,7 @@
   gap: var(--space-16);
   padding: var(--space-18) var(--space-28);
   background: var(--color-ink);
-  color: var(--color-surface-sheet);
+  color: var(--color-surface-subtle);
   border-bottom: 3px solid var(--color-accent);
 }
 .player-details__header .eyebrow {
@@ -123,7 +123,7 @@
 .player-details th {
   padding: var(--space-10) var(--space-6);
   text-align: right;
-  border-bottom: 1px solid var(--color-border-table);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 .player-details th:first-child {
   text-align: left;
