@@ -39,12 +39,23 @@ const SHORTLIST_OUTGOING_PER_INCOMING = 3;
 const AT_CAP_ROLL_NOTE =
   " You are at the free-transfer cap, so rolling cannot add another saved transfer.";
 
+function atFreeTransferCap(data: Data, settings: Settings): boolean {
+  return (
+    settings.freeTransfers >= freeTransferCap(data.bootstrap.game_settings)
+  );
+}
+
+export function netGainThreshold(data: Data, settings: Settings): number {
+  return atFreeTransferCap(data, settings)
+    ? AT_CAP_NET_GAIN_THRESHOLD
+    : NET_GAIN_THRESHOLD;
+}
+
 export function analyze(data: Data, settings: Settings): Analysis {
   const context = transferContext(data, settings);
   const { weeks, squad, scores, baseline } = context;
-  const atCap =
-    settings.freeTransfers >= freeTransferCap(data.bootstrap.game_settings);
-  const threshold = atCap ? AT_CAP_NET_GAIN_THRESHOLD : NET_GAIN_THRESHOLD;
+  const atCap = atFreeTransferCap(data, settings);
+  const threshold = netGainThreshold(data, settings);
   if (!weeks.length)
     return {
       weeks,

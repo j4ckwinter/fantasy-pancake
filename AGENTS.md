@@ -39,6 +39,7 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Weekly captaincy for the current or a previewed squad             | `src/lib/model/captaincy-preview.ts`                             |
 | Position ids; per-position scoring weights and attacking priors   | `src/lib/model/position.ts`; `scoring.ts`, `forecast-history.ts` |
 | Match length, 60-minute appearances and recency half-life         | `src/lib/model/match-minutes.ts`, `recency.ts`                   |
+| Fitted forecast parameters and their uncalibrated reference       | `src/lib/model/calibrated-parameters.ts`                         |
 | Server-side FPL access and caching                                | `src/lib/fpl.ts`                                                 |
 | API route error responses and FPL id parsing                      | `src/app/api/error-response.ts`, `fpl-id.ts`                     |
 | Validated data contracts                                          | `src/lib/schemas.ts`                                             |

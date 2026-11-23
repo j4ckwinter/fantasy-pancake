@@ -1,17 +1,20 @@
 import type { Data, Fixture, Player } from "../schemas";
+import {
+  CALIBRATED_PARAMETERS,
+  type ForecastParameters,
+} from "./calibrated-parameters";
 
 export type OpponentFactors = { attack: number; conceded: number };
 
 const MIN_STRENGTH_FACTOR = 0.65;
 const MAX_STRENGTH_FACTOR = 1.45;
 const NEUTRAL_DIFFICULTY = 3;
-const ATTACK_CHANGE_PER_DIFFICULTY = 0.12;
-const CONCEDED_CHANGE_PER_DIFFICULTY = 0.15;
 
 export function opponentFactors(
   data: Data,
   player: Player,
   fixture: Fixture,
+  parameters: ForecastParameters = CALIBRATED_PARAMETERS,
 ): OpponentFactors {
   const home = fixture.team_h === player.team;
   const opponent = data.bootstrap.teams.find(
@@ -48,12 +51,16 @@ export function opponentFactors(
     attack: ratio(
       defenceKey,
       true,
-      1 + (NEUTRAL_DIFFICULTY - difficulty) * ATTACK_CHANGE_PER_DIFFICULTY,
+      1 +
+        (NEUTRAL_DIFFICULTY - difficulty) *
+          parameters.attackChangePerDifficulty,
     ),
     conceded: ratio(
       attackKey,
       false,
-      1 + (difficulty - NEUTRAL_DIFFICULTY) * CONCEDED_CHANGE_PER_DIFFICULTY,
+      1 +
+        (difficulty - NEUTRAL_DIFFICULTY) *
+          parameters.concededChangePerDifficulty,
     ),
   };
 }

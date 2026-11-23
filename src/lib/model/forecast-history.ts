@@ -4,6 +4,10 @@ import { forecastMinutes, type MinutesForecast } from "./minutes-forecast";
 import { fullMatches } from "./match-minutes";
 import { positionOf, type Position } from "./position";
 import { recencyWeight } from "./recency";
+import {
+  CALIBRATED_PARAMETERS,
+  type ForecastParameters,
+} from "./calibrated-parameters";
 
 export type PlayerForecast = MinutesForecast & {
   historyMatches: number;
@@ -29,7 +33,6 @@ const ATTACKING_PRIORS: Record<Position, { goals: number; assists: number }> = {
 const GOALS_CONCEDED_PRIOR = 1.4;
 const MAX_HISTORY_MATCHES = 8;
 const SEASON_PRIOR_MATCHES = 5;
-const RECENT_RATE_SEASON_WEIGHT = 2;
 const RARE_EVENT_PRIOR_MATCHES = 20;
 
 export type EligibleHistory = History & { readonly eligibleHistory: true };
@@ -65,13 +68,17 @@ export function usableHistory(data: Data, player: Player): EligibleHistory {
   return rows as EligibleHistory;
 }
 
-export function playerForecast(data: Data, player: Player): PlayerForecast {
+export function playerForecast(
+  data: Data,
+  player: Player,
+  parameters: ForecastParameters = CALIBRATED_PARAMETERS,
+): PlayerForecast {
   const rows = usableHistory(data, player);
   const weighted = rows.map((row, index) => ({
     row,
     weight: recencyWeight(index),
   }));
-  const priorWeight = RECENT_RATE_SEASON_WEIGHT;
+  const priorWeight = parameters.recentRateSeasonWeight;
   const exposure = fullMatches(player.minutes);
   const weightedExposure = weighted.reduce(
     (sum, sample) => sum + fullMatches(sample.weight * sample.row.minutes),
@@ -121,7 +128,7 @@ export function playerForecast(data: Data, player: Player): PlayerForecast {
   };
   const priors = ATTACKING_PRIORS[positionOf(player)];
   return {
-    ...forecastMinutes(data, player, rows),
+    ...forecastMinutes(data, player, rows, parameters),
     historyMatches: rows.length,
     xg90: rate("expected_goals", player.expected_goals, priors.goals),
     xa90: rate("expected_assists", player.expected_assists, priors.assists),
@@ -136,7 +143,7 @@ export function playerForecast(data: Data, player: Player): PlayerForecast {
       0,
     ),
     saves90: rate("saves", player.saves, 0),
-    bonus90: rate("bonus", player.bonus ?? 0, 0),
+    bonus90: rate("bonus", player.bonus ?? 0, parameters.bonusPrior90),
     yellow90: rate("yellow_cards", player.yellow_cards ?? 0, 0),
     red90: rareEventRate("red_cards", player.red_cards),
     ownGoals90: rareEventRate("own_goals", player.own_goals),

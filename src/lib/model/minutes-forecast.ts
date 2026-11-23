@@ -3,6 +3,7 @@ import { finishedTeamFixtures, upcomingWeeks } from "./schedule";
 import { FULL_MATCH_MINUTES, LONG_APPEARANCE_MINUTES } from "./match-minutes";
 import { recencyWeight } from "./recency";
 import type { EligibleHistory } from "./forecast-history";
+import type { ForecastParameters } from "./calibrated-parameters";
 
 export type MinuteOutcome = { minutes: number; probability: number };
 export type MinutesForecast = {
@@ -21,7 +22,6 @@ const MAX_SUBSTITUTE_MINUTES = LONG_APPEARANCE_MINUTES - 1;
 const TYPICAL_SUBSTITUTE_MINUTES = 20;
 const RECENT_ROLE_MATCHES = 4;
 const OLDER_USAGE_WEIGHT_IN_RECENT_ROLE = 0.25;
-const SEASON_MINUTES_PRIOR_MATCHES = 2;
 const RECENT_ROLE_SEASON_MINUTES_PRIOR_MATCHES = 0.5;
 
 function completedMatches(data: Data, player: Player): number {
@@ -119,6 +119,7 @@ export function forecastMinutes(
   data: Data,
   player: Player,
   rows: EligibleHistory,
+  parameters: ForecastParameters,
 ): MinutesForecast {
   const { outcomes: fallback, startProbability } = seasonMinuteOutcomes(
     data,
@@ -137,7 +138,7 @@ export function forecastMinutes(
   const weight = weighted.reduce((sum, sample) => sum + sample.weight, 0);
   const priorWeight = establishedRecentRole
     ? RECENT_ROLE_SEASON_MINUTES_PRIOR_MATCHES
-    : SEASON_MINUTES_PRIOR_MATCHES;
+    : parameters.seasonMinutesPriorMatches;
   const outcomes = rows.length
     ? [
         ...fallback.map((outcome) => ({
