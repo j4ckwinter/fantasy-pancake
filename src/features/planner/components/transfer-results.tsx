@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { ArrowLeftRightIcon, ChevronDownIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Banner } from "@/components/banner";
 import { EmptyState } from "@/components/empty-state";
@@ -165,7 +166,7 @@ export function TransferResults({
               ).map(([value, label]) => (
                 <Button
                   key={value}
-                  variant="outline"
+                  variant="ghost"
                   aria-pressed={category === value}
                   onClick={() => {
                     if (category === value) return;
@@ -203,7 +204,7 @@ export function TransferResults({
                     onPlayerSelect={onPlayerSelect}
                   />
                 ) : (
-                  <p className="muted">
+                  <p className="options-empty">
                     No single transfer clears the {result.threshold.toFixed(1)}{" "}
                     score-unit threshold. You can still compare your own move
                     below.
@@ -225,7 +226,8 @@ export function TransferResults({
           </section>
           <section className="planner-tools" aria-label="Fine-tune your plan">
             <div className="planner-tools__heading">
-              Fine-tune your plan <span>Optional tools</span>
+              <span className="eyebrow">Fine-tune your plan</span>
+              <span>Optional tools</span>
             </div>
             <details
               ref={customPanel}
@@ -235,15 +237,16 @@ export function TransferResults({
             >
               <summary>
                 <span className="planner-tool__icon" aria-hidden="true">
-                  ⇄
+                  <ArrowLeftRightIcon className="size-4" />
                 </span>
                 <span className="planner-tool__label">
                   Compare your own transfer
                   <small>Have someone in mind? Test the move.</small>
                 </span>
-                <span className="planner-tool__chevron" aria-hidden="true">
-                  +
-                </span>
+                <ChevronDownIcon
+                  aria-hidden="true"
+                  className="planner-tool__chevron size-4"
+                />
               </summary>
               <div className="custom-panel-content">
                 <CustomTransferForm

@@ -1,3 +1,4 @@
+import { CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { playerForecast, type Move } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
@@ -47,7 +48,7 @@ export function GroupedTransfers({
         return (
           <article className="card transfer-group" key={inId}>
             <div className="transfer-group-heading">
-              <span className="option-number">
+              <span className="transfer-rank">
                 {String(index + 1).padStart(2, "0")}
               </span>
               <div>
@@ -61,7 +62,7 @@ export function GroupedTransfers({
                     {incoming.web_name}
                   </PlayerLink>
                 </h3>
-                <p className="muted">
+                <p className="transfer-group-subtitle">
                   {findClub(data.bootstrap.teams, incoming.team)?.name} ·{" "}
                   {money(incoming.now_cost)}
                 </p>
@@ -92,7 +93,7 @@ export function GroupedTransfers({
                       >
                         {outgoing.web_name}
                       </PlayerLink>
-                      <span className="muted">
+                      <span className="alternative-minutes">
                         {Math.round(playerForecast(data, outgoing).minutes)}{" "}
                         expected mins
                       </span>
@@ -125,6 +126,9 @@ export function GroupedTransfers({
                         selected ? onClearSelection() : onSelect(move)
                       }
                     >
+                      {selected && (
+                        <CheckIcon aria-hidden="true" className="size-4" />
+                      )}
                       {selected ? "Selected" : "Preview"}
                     </Button>
                   </div>

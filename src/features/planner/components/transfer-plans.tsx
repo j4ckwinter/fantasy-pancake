@@ -1,3 +1,4 @@
+import { ArrowRightIcon, CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Data } from "@/lib/schemas";
 import type { TransferPlan } from "@/lib/model";
@@ -31,7 +32,7 @@ export function TransferPlans({
     findPlayer(data.bootstrap.elements, id)?.web_name ?? String(id);
   if (!plans.length)
     return (
-      <p className="muted">
+      <p className="options-empty">
         No plan in this category clears the transfer threshold with your current
         settings and player locks.
       </p>
@@ -57,12 +58,12 @@ export function TransferPlans({
             className={`card transfer-plan${selected ? " is-selected" : ""}`}
           >
             <div className="transfer-group-heading">
-              <span className="option-number">
+              <span className="transfer-rank">
                 {String(index + 1).padStart(2, "0")}
               </span>
               <div>
                 <h3>{planLabels[plan.kind]}</h3>
-                <p className="muted">
+                <p className="transfer-group-subtitle">
                   {plan.kind === "pair-now"
                     ? `GW${plan.actions[0]?.week}`
                     : `Hold in GW${weeks[0]} · move in GW${plan.actions[0]?.week}`}
@@ -85,9 +86,10 @@ export function TransferPlans({
                       {name(action.outId)}
                     </PlayerLink>
                   </div>
-                  <span className="plan-arrow" aria-hidden="true">
-                    →
-                  </span>
+                  <ArrowRightIcon
+                    aria-hidden="true"
+                    className="plan-arrow size-4"
+                  />
                   <div>
                     <span className="eyebrow">Buy</span>
                     <PlayerLink
@@ -126,6 +128,9 @@ export function TransferPlans({
                 aria-pressed={selected}
                 onClick={() => (selected ? onClearSelection() : onSelect(plan))}
               >
+                {selected && (
+                  <CheckIcon aria-hidden="true" className="size-4" />
+                )}
                 {selected ? "Selected" : "Preview plan"}
               </Button>
             </div>
