@@ -2,25 +2,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 16px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--line);
-  font-size: 12px;
+  gap: var(--space-8) var(--space-16);
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-12);
 }
 .saved-plan-notice > div {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
+  gap: var(--space-4) var(--space-12);
 }
 .saved-plan-notice span {
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .saved-plan-notice button {
   flex-shrink: 0;
   min-width: 0;
   min-height: 44px;
-  padding: 8px 12px;
-  font-size: 12px;
+  padding: var(--space-8) var(--space-12);
+  font-size: var(--text-12);
 }
 @media (max-width: 480px) {
   .saved-plan-notice {

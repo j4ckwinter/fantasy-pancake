@@ -3,6 +3,7 @@ const externalServer = process.env.PLAYWRIGHT_BASE_URL;
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
+  forbidOnly: !!process.env.CI,
   use: {
     baseURL: externalServer ?? "http://127.0.0.1:3100",
     trace: "retain-on-failure",

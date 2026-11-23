@@ -1,4 +1,8 @@
 import { z } from "zod";
+
+export const SQUAD_SIZE = 15;
+export const STARTING_XI_SIZE = 11;
+
 const nonnegative = z.number().finite().nonnegative();
 const numeric = z
   .union([z.string().regex(/^\d+(\.\d+)?$/), nonnegative])
@@ -111,8 +115,9 @@ export const picksSchema = z.object({
   teamName: z.string().trim().optional(),
   active_chip: z.string().nullable(),
   entry_history: z.object({ event: z.number().int(), bank: nonnegative.int() }),
-  picks: z.array(z.object({ element: z.number().int() })).length(15),
+  picks: z.array(z.object({ element: z.number().int() })).length(SQUAD_SIZE),
 });
+const availabilityScenarioSchema = z.enum(["persistent", "recover-next-week"]);
 export const settingsSchema = z.object({
   version: z.literal(1),
   entryId: z.number().int().positive(),
@@ -126,7 +131,7 @@ export const settingsSchema = z.object({
       "Locked players must be unique",
     )
     .optional(),
-  availabilityScenario: z.enum(["persistent", "recover-next-week"]).optional(),
+  availabilityScenario: availabilityScenarioSchema.optional(),
   bank: nonnegative.int().max(1000),
   freeTransfers: nonnegative.int().max(5),
   squad: z
@@ -136,7 +141,7 @@ export const settingsSchema = z.object({
         sellingPrice: nonnegative.int().max(200),
       }),
     )
-    .length(15),
+    .length(SQUAD_SIZE),
 });
 export const dataSchema = z.object({
   bootstrap: bootstrapSchema,
@@ -144,10 +149,9 @@ export const dataSchema = z.object({
   fetchedAt: z.string(),
   histories: z.record(z.string(), historySchema.shape.history).optional(),
 });
-export type AvailabilityScenario = "persistent" | "recover-next-week";
+export type AvailabilityScenario = z.infer<typeof availabilityScenarioSchema>;
 export type Player = z.infer<typeof playerSchema>;
 export type Fixture = z.infer<typeof fixtureSchema>;
-export type Bootstrap = z.infer<typeof bootstrapSchema>;
 export type Settings = z.infer<typeof settingsSchema>;
 export type Data = z.infer<typeof dataSchema>;
 export type History = z.infer<typeof historySchema>["history"];

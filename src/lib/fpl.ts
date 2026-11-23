@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { errorMessage } from "./error-message";
 import {
   bootstrapSchema,
   fixtureSchema,
@@ -9,14 +8,12 @@ import {
 
 const ROOT = "https://fantasy.premierleague.com/api/";
 const TTL = 300_000;
-const cache = new Map<
-  string,
-  { expires: number; value: unknown; fetchedAt: string }
->();
-const pending = new Map<
-  string,
-  Promise<{ value: unknown; fetchedAt: string }>
->();
+const REQUEST_TIMEOUT_MS = 12_000;
+const MAX_CACHED_RESPONSES = 200;
+const TEAM_NOT_FOUND =
+  "No published FPL data was found for that team or gameweek.";
+const PLAYER_HISTORY_NOT_FOUND = "No FPL history was found for that player.";
+
 export class FplError extends Error {
   constructor(
     message: string,
@@ -25,98 +22,128 @@ export class FplError extends Error {
     super(message);
   }
 }
-async function request<T>(
-  path: string,
-  schema: z.ZodType<T>,
-): Promise<{ value: T; fetchedAt: string }> {
-  const cached = cache.get(path);
-  if (cached && cached.expires > Date.now())
-    return { value: schema.parse(cached.value), fetchedAt: cached.fetchedAt };
-  let promise = pending.get(path);
-  if (!promise) {
-    promise = (async () => {
-      const response = await fetch(ROOT + path, {
-        cache: "no-store",
-        signal: AbortSignal.timeout(12000),
-        headers: { Accept: "application/json" },
-      });
-      if (!response.ok)
-        throw new FplError(
-          response.status === 404
-            ? "No published FPL data was found for that team or gameweek."
-            : "FPL is temporarily unavailable. Please try again shortly.",
-          response.status === 404 ? 404 : 502,
-        );
-      const value = schema.parse(await response.json());
-      const fetchedAt = new Date().toISOString();
-      if (cache.size >= 200) cache.delete(cache.keys().next().value!);
-      cache.set(path, { value, fetchedAt, expires: Date.now() + TTL });
-      return { value, fetchedAt };
-    })();
-    pending.set(path, promise);
-  }
-  try {
-    const result = await promise;
-    return { value: schema.parse(result.value), fetchedAt: result.fetchedAt };
-  } finally {
-    pending.delete(path);
-  }
-}
-export async function getData() {
-  const [bootstrap, fixtures] = await Promise.all([
-    request("bootstrap-static/", bootstrapSchema),
-    request("fixtures/", z.array(fixtureSchema)),
-  ]);
-  return {
-    bootstrap: bootstrap.value,
-    fixtures: fixtures.value,
-    fetchedAt: [bootstrap.fetchedAt, fixtures.fetchedAt].sort()[0],
-  };
-}
-export async function importTeam(id: number) {
-  const entry = await request(
-    `entry/${id}/`,
-    z.object({
-      name: z.string().trim().optional(),
-      current_event: z.number().int().nullable(),
-      started_event: z.number().int(),
-    }),
-  );
-  const latest = entry.value.current_event;
-  if (!latest)
-    throw new FplError("This team has no published gameweek squad yet.", 404);
-  for (
-    let gameweek = latest;
-    gameweek >= entry.value.started_event;
-    gameweek--
-  ) {
-    try {
-      const picks = await request(
-        `entry/${id}/event/${gameweek}/picks/`,
-        picksSchema,
+
+type Fetched<T> = { value: T; fetchedAt: string };
+type CacheEntry = Fetched<unknown> & { expires: number };
+
+export type FplClientOptions = {
+  fetch: typeof fetch;
+  now: () => number;
+};
+
+export function createFplClient({ fetch, now }: FplClientOptions) {
+  const cache = new Map<string, CacheEntry>();
+  const pending = new Map<string, Promise<Fetched<unknown>>>();
+
+  async function load<T>(
+    path: string,
+    schema: z.ZodType<T>,
+    notFoundMessage: string,
+  ): Promise<Fetched<T>> {
+    const response = await fetch(ROOT + path, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok)
+      throw new FplError(
+        response.status === 404
+          ? notFoundMessage
+          : "FPL is temporarily unavailable. Please try again shortly.",
+        response.status === 404 ? 404 : 502,
       );
-      return {
-        ...picks.value,
-        teamName: entry.value.name || undefined,
-        fetchedAt: picks.fetchedAt,
-      };
-    } catch (error) {
-      if (!(error instanceof FplError) || error.status !== 404) throw error;
+    const value = schema.parse(await response.json());
+    const fetchedAt = new Date(now()).toISOString();
+    cache.delete(path);
+    if (cache.size >= MAX_CACHED_RESPONSES)
+      cache.delete(cache.keys().next().value!);
+    cache.set(path, { value, fetchedAt, expires: now() + TTL });
+    return { value, fetchedAt };
+  }
+
+  async function request<T>(
+    path: string,
+    schema: z.ZodType<T>,
+    notFoundMessage: string,
+  ): Promise<Fetched<T>> {
+    const cached = cache.get(path);
+    if (cached && cached.expires > now())
+      return { value: cached.value as T, fetchedAt: cached.fetchedAt };
+    let promise = pending.get(path);
+    if (!promise) {
+      promise = load(path, schema, notFoundMessage);
+      pending.set(path, promise);
+    }
+    try {
+      return (await promise) as Fetched<T>;
+    } finally {
+      pending.delete(path);
     }
   }
-  throw new FplError("This team has no published gameweek squad yet.", 404);
+
+  async function getData() {
+    const [bootstrap, fixtures] = await Promise.all([
+      request("bootstrap-static/", bootstrapSchema, TEAM_NOT_FOUND),
+      request("fixtures/", z.array(fixtureSchema), TEAM_NOT_FOUND),
+    ]);
+    return {
+      bootstrap: bootstrap.value,
+      fixtures: fixtures.value,
+      fetchedAt: [bootstrap.fetchedAt, fixtures.fetchedAt].sort()[0],
+    };
+  }
+
+  async function importTeam(id: number) {
+    const entry = await request(
+      `entry/${id}/`,
+      z.object({
+        name: z.string().trim().optional(),
+        current_event: z.number().int().nullable(),
+        started_event: z.number().int(),
+      }),
+      TEAM_NOT_FOUND,
+    );
+    const latest = entry.value.current_event;
+    if (!latest)
+      throw new FplError("This team has no published gameweek squad yet.", 404);
+    for (
+      let gameweek = latest;
+      gameweek >= entry.value.started_event;
+      gameweek--
+    ) {
+      try {
+        const picks = await request(
+          `entry/${id}/event/${gameweek}/picks/`,
+          picksSchema,
+          TEAM_NOT_FOUND,
+        );
+        return {
+          ...picks.value,
+          teamName: entry.value.name || undefined,
+          fetchedAt: picks.fetchedAt,
+        };
+      } catch (error) {
+        if (!(error instanceof FplError) || error.status !== 404) throw error;
+      }
+    }
+    throw new FplError("This team has no published gameweek squad yet.", 404);
+  }
+
+  async function getHistory(id: number) {
+    const result = await request(
+      `element-summary/${id}/`,
+      historySchema,
+      PLAYER_HISTORY_NOT_FOUND,
+    );
+    return { ...result.value, fetchedAt: result.fetchedAt };
+  }
+
+  return { getData, importTeam, getHistory };
 }
-export async function getHistory(id: number) {
-  const result = await request(`element-summary/${id}/`, historySchema);
-  return { ...result.value, fetchedAt: result.fetchedAt };
-}
-export function errorResponse(error: unknown) {
-  if (error instanceof FplError)
-    return Response.json({ error: error.message }, { status: error.status });
-  console.error("FPL request failed", errorMessage(error, "Unknown error"));
-  return Response.json(
-    { error: "Could not load valid FPL data. Please try again shortly." },
-    { status: 502 },
-  );
-}
-export const idSchema = z.coerce.number().int().min(1).max(100_000_000);
+
+const defaultClient = createFplClient({
+  fetch: (input, init) => fetch(input, init),
+  now: () => Date.now(),
+});
+
+export const { getData, importTeam, getHistory } = defaultClient;

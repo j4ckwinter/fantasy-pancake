@@ -1,4 +1,4 @@
-export type Lineup = { score: number; ids: number[]; captain: number | null };
+export type Lineup = { score: number; ids: number[]; captain: number };
 export type Move = {
   outId: number;
   inId: number;
@@ -28,7 +28,7 @@ export type Analysis = {
   weeks: number[];
   baseline: Lineup[];
   moves: Move[];
-  plans?: TransferPlan[];
+  plans: TransferPlan[];
   threshold: number;
   rollReason: string;
 };

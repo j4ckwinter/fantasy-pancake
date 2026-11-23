@@ -4,8 +4,11 @@ import {
   Select,
   TextField,
 } from "@jack.winter/pancake-ui";
+import { freeTransferCap, TRANSFER_HIT_POINTS } from "@/lib/model";
 import type { Data, Settings } from "@/lib/schemas";
 import { SquadEditor } from "./squad-editor";
+import { noticeText, type Notice } from "../messages";
+import { fromMillions, teamLabel, toMillions } from "../format";
 import "./team-review.css";
 export function TeamReview({
   data,
@@ -26,7 +29,7 @@ export function TeamReview({
   data: Data;
   settings: Settings;
   busy: boolean;
-  notice: string;
+  notice: Notice | null;
   editingTeam: boolean;
   errors: string[];
   onImportAnother: () => void;
@@ -38,8 +41,7 @@ export function TeamReview({
   onUpdate: (settings: Settings) => void;
   onUpdateSquad: (settings: Settings) => void;
 }) {
-  const maxTransfers =
-    1 + data.bootstrap.game_settings.max_extra_free_transfers;
+  const maxTransfers = freeTransferCap(data.bootstrap.game_settings);
   return (
     <section
       className={`team-settings${editingTeam ? " team-settings--expanded" : ""}`}
@@ -47,7 +49,7 @@ export function TeamReview({
       <header className="team-settings-header">
         <div>
           <span className="eyebrow">
-            {settings.teamName || `Team #${settings.entryId}`} · GW
+            {teamLabel(settings)} · GW
             {settings.sourceGameweek} picks
           </span>
           <h1>Your team</h1>
@@ -69,7 +71,7 @@ export function TeamReview({
           else onCompare();
         }}
       >
-        {notice && <p className="team-settings-note">{notice}</p>}
+        {notice && <p className="team-settings-note">{noticeText[notice]}</p>}
         <div className="settings-grid">
           <TextField
             label="Bank balance (£m)"
@@ -78,11 +80,13 @@ export function TeamReview({
             max="100"
             step="0.1"
             required
-            value={Number.isFinite(settings.bank) ? settings.bank / 10 : ""}
+            value={
+              Number.isFinite(settings.bank) ? toMillions(settings.bank) : ""
+            }
             onChange={(e) =>
               onUpdate({
                 ...settings,
-                bank: Math.round(e.target.valueAsNumber * 10),
+                bank: fromMillions(e.target.valueAsNumber),
               })
             }
           />
@@ -105,7 +109,7 @@ export function TeamReview({
         </div>
         {settings.freeTransfers === 0 && (
           <p className="team-settings-note">
-            Your next transfer costs 4 points.
+            Your next transfer costs {TRANSFER_HIT_POINTS} points.
           </p>
         )}
         <details className="forecast-settings">
@@ -165,7 +169,6 @@ export function TeamReview({
           <SquadEditor
             data={data}
             settings={settings}
-            editing={editingTeam}
             onChange={onUpdateSquad}
           />
         )}

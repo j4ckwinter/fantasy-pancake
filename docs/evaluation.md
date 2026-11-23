@@ -2,7 +2,7 @@
 
 The planner UI no longer offers snapshot downloads. The evaluation library can create a versioned snapshot programmatically before the first target deadline. It contains the exact player/fixture data, available histories, settings, confirmed-selling-price IDs, capture timestamp and frozen policies. It does not automatically run on a schedule or upload data. Save the exported JSON somewhere durable before the deadline.
 
-`createSnapshot(data, settings, analysis, confirmedSellingPriceIds, capturedAt)` in `src/lib/evaluation.ts` freezes each week's starting XI and captain for:
+`createSnapshot(data, settings, analysis, confirmedSellingPriceIds, capturedAt)`, exported from `src/lib/evaluation.ts`, freezes each week's starting XI and captain for:
 
 - Keeping the squad with the model's selection.
 - Each shortlisted single transfer.

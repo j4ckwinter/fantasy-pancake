@@ -1,21 +1,22 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@jack.winter/pancake-ui";
 import { marketPricePick } from "../settings";
 import { money } from "../format";
 import { PlayerPicker } from "./player-picker";
+import { findClub, findPlayer } from "../players";
 import type { Data, Settings } from "@/lib/schemas";
+import "./squad-editor.css";
 
 export function SquadEditor({
   data,
   settings,
   onChange,
-  editing = false,
 }: {
   data: Data;
   settings: Settings;
   onChange: (settings: Settings) => void;
-  editing?: boolean;
 }) {
+  const [focusRow, setFocusRow] = useState<number | null>(null);
   const groups = [
     ...data.bootstrap.element_types.map((position) => ({
       id: position.id,
@@ -37,9 +38,7 @@ export function SquadEditor({
           .map((pick, index) => ({
             pick,
             index,
-            current: data.bootstrap.elements.find(
-              (player) => player.id === pick.id,
-            ),
+            current: findPlayer(data.bootstrap.elements, pick.id),
           }))
           .filter(({ current }) => (current?.element_type ?? 0) === group.id);
         if (!picks.length) return null;
@@ -56,7 +55,9 @@ export function SquadEditor({
                   data={data}
                   settings={settings}
                   index={index}
-                  editing={editing}
+                  focusTrigger={focusRow === index}
+                  onClosed={() => setFocusRow(index)}
+                  onFocused={() => setFocusRow(null)}
                   onChange={onChange}
                 />
               ))}
@@ -72,25 +73,25 @@ function SquadPlayerRow({
   data,
   settings,
   index,
-  editing,
+  focusTrigger,
+  onClosed,
+  onFocused,
   onChange,
 }: {
   data: Data;
   settings: Settings;
   index: number;
-  editing: boolean;
+  focusTrigger: boolean;
+  onClosed: () => void;
+  onFocused: () => void;
   onChange: (settings: Settings) => void;
 }) {
   const [replacing, setReplacing] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
-  const current = data.bootstrap.elements.find(
-    (player) => player.id === settings.squad[index].id,
-  );
+  const current = findPlayer(data.bootstrap.elements, settings.squad[index].id);
   const name =
     current?.web_name ?? `Unavailable player #${settings.squad[index].id}`;
-  const club = data.bootstrap.teams.find(
-    (team) => team.id === current?.team,
-  )?.short_name;
+  const club = findClub(data.bootstrap.teams, current?.team)?.short_name;
   const candidates = data.bootstrap.elements
     .filter(
       (player) =>
@@ -99,14 +100,19 @@ function SquadPlayerRow({
         !settings.squad.some((pick) => pick.id === player.id),
     )
     .sort((a, b) => a.web_name.localeCompare(b.web_name));
+  useEffect(() => {
+    if (!focusTrigger) return;
+    trigger.current?.focus();
+    onFocused();
+  }, [focusTrigger, onFocused]);
   function close() {
     setReplacing(false);
-    requestAnimationFrame(() => trigger.current?.focus());
+    onClosed();
   }
   return (
     <div
       className="squad-player-row"
-      onKeyDownCapture={(event) => {
+      onKeyDown={(event) => {
         if (replacing && event.key === "Escape") {
           event.preventDefault();
           event.stopPropagation();
@@ -123,18 +129,16 @@ function SquadPlayerRow({
             </span>
           )}
         </div>
-        {editing && (
-          <Button
-            ref={trigger}
-            type="button"
-            variant="secondary"
-            aria-label={`Replace ${name}`}
-            aria-expanded={replacing}
-            onClick={() => (replacing ? close() : setReplacing(true))}
-          >
-            Replace
-          </Button>
-        )}
+        <Button
+          ref={trigger}
+          type="button"
+          variant="secondary"
+          aria-label={`Replace ${name}`}
+          aria-expanded={replacing}
+          onClick={() => (replacing ? close() : setReplacing(true))}
+        >
+          Replace
+        </Button>
       </div>
       {replacing && (
         <div className="squad-player-row__search">

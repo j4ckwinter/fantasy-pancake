@@ -1,0 +1,33 @@
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-12);
+  margin: var(--space-18) 0;
+  padding: var(--space-16) 0;
+  border-block: 1px solid var(--color-border);
+}
+.metric strong {
+  display: block;
+  font-size: var(--text-31);
+  line-height: 1.25;
+  font-weight: 750;
+  letter-spacing: -1.4px;
+  font-variant-numeric: tabular-nums;
+}
+.metric span {
+  display: block;
+  font-size: var(--text-10);
+  line-height: 1.5;
+  margin-top: var(--space-5);
+  color: var(--color-text-secondary);
+}
+@media (max-width: 780px) {
+  .metric strong {
+    font-size: var(--text-30);
+  }
+}
+@media (max-width: 380px) {
+  .metric strong {
+    font-size: var(--text-26);
+  }
+}

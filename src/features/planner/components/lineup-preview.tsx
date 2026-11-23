@@ -1,16 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import type { Analysis, Lineup } from "@/lib/model";
-import type { Data, Settings } from "@/lib/schemas";
+import { mobileLayoutQuery } from "@/app/breakpoints";
+import type { Lineup } from "@/lib/model";
+import type { Data } from "@/lib/schemas";
 import { PreviewMetrics } from "./preview-metrics";
 import { PitchBoard } from "./pitch-board";
+import { PlayerLink } from "./player-link";
+import { findPlayer } from "../players";
+import "./lineup-preview.css";
 
 export function LineupPreview({
   transferDetails,
   data,
-  settings,
-  result,
+  squadIds,
+  weeks,
+  baseline: baselines,
   preview,
   selectedLabel,
   onBackToOptions,
@@ -25,8 +30,9 @@ export function LineupPreview({
 }: {
   transferDetails: ReactNode;
   data: Data;
-  settings: Settings;
-  result: Analysis;
+  squadIds: number[];
+  weeks: number[];
+  baseline: Lineup[];
   preview: Lineup[] | null;
   selectedLabel: string;
   onBackToOptions: () => void;
@@ -37,13 +43,13 @@ export function LineupPreview({
   lineupIndex: number;
   onLineupChange: (index: number) => void;
   onPlayerSelect: (id: number) => void;
-  previewSquadIdsByWeek?: number[][];
+  previewSquadIdsByWeek: number[][];
 }) {
   const [mode, setMode] = useState<"before" | "after">("after");
   const previewPanel = useRef<HTMLElement>(null);
   const hasPreview = !!preview;
   useEffect(() => {
-    if (hasPreview && window.matchMedia("(max-width: 780px)").matches) {
+    if (hasPreview && window.matchMedia(mobileLayoutQuery).matches) {
       previewPanel.current?.focus({ preventScroll: true });
       previewPanel.current?.scrollIntoView({
         block: "start",
@@ -51,22 +57,19 @@ export function LineupPreview({
       });
     }
   }, [hasPreview]);
-  const baseline = result.baseline[lineupIndex];
+  const baseline = baselines[lineupIndex];
   const changed = preview?.[lineupIndex];
   const after = mode === "after" && !!changed;
   const lineup = after ? changed : baseline;
   if (!lineup || !baseline) return null;
-  const name = (id: number | null) =>
-    data.bootstrap.elements.find((player) => player.id === id)?.web_name ??
-    "None";
+  const name = (id: number) =>
+    findPlayer(data.bootstrap.elements, id)?.web_name ?? "None";
   const entered = changed?.ids.filter((id) => !baseline.ids.includes(id)) ?? [];
   const exited = baseline.ids.filter(
     (id) => changed && !changed.ids.includes(id),
   );
-  const squadIds = after
-    ? previewSquadIdsByWeek?.[lineupIndex]
-    : settings.squad.map((pick) => pick.id);
-  const bench = squadIds?.filter((id) => !lineup.ids.includes(id));
+  const shownSquad = after ? previewSquadIdsByWeek[lineupIndex] : squadIds;
+  const bench = shownSquad?.filter((id) => !lineup.ids.includes(id));
   return (
     <aside
       ref={previewPanel}
@@ -99,7 +102,7 @@ export function LineupPreview({
         role="group"
         aria-label="Lineup gameweek"
       >
-        {result.weeks.map((week, index) => (
+        {weeks.map((week, index) => (
           <button
             type="button"
             key={week}
@@ -136,7 +139,7 @@ export function LineupPreview({
       <PitchBoard
         data={data}
         lineup={lineup}
-        week={result.weeks[lineupIndex]}
+        week={weeks[lineupIndex]}
         variant={after ? "after" : "before"}
         highlightIds={after ? entered : []}
         onPlayerSelect={onPlayerSelect}
@@ -151,7 +154,7 @@ export function LineupPreview({
         <div className="lineup-preview__summary">
           <PreviewMetrics
             {...option}
-            weeks={result.weeks}
+            weeks={weeks}
             pricesChecked={pricesChecked}
           />
         </div>
@@ -191,16 +194,9 @@ export function LineupPreview({
               <strong>Bench · unordered</strong>
               <div>
                 {bench.map((id) => (
-                  <button
-                    type="button"
-                    key={id}
-                    onClick={(event) => {
-                      event.currentTarget.focus({ preventScroll: true });
-                      onPlayerSelect(id);
-                    }}
-                  >
+                  <PlayerLink key={id} playerId={id} onSelect={onPlayerSelect}>
                     {name(id)}
-                  </button>
+                  </PlayerLink>
                 ))}
               </div>
             </div>

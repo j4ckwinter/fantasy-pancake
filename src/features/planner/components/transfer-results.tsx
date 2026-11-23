@@ -1,9 +1,22 @@
 import { useRef } from "react";
 import { BannerToast, Button, EmptyState } from "@jack.winter/pancake-ui";
 import type { Data, Settings } from "@/lib/schemas";
-import type { Analysis, Lineup, Move, TransferPlan } from "@/lib/model";
-import type { PlanCategory, Selection } from "../selection";
-import { settingsNotSaved } from "../messages";
+import {
+  freeTransferCap,
+  nextWeekFreeTransfers,
+  type Analysis,
+  type Lineup,
+  type Move,
+  type TransferPlan,
+} from "@/lib/model";
+import {
+  planCategoryLabels,
+  pricesChecked,
+  selectedOption,
+  type PlanCategory,
+  type Selection,
+} from "../selection";
+import { noticeText, type Notice } from "../messages";
 import { TransferPlans } from "./transfer-plans";
 import { GroupedTransfers } from "./grouped-transfers";
 import { PlayerLocks } from "./player-locks";
@@ -13,7 +26,7 @@ import { LineupPreview } from "./lineup-preview";
 import { PlayerDetails } from "./player-details";
 import { RollOption } from "./roll-option";
 import { MobilePlannerNav } from "./mobile-planner-nav";
-import "./results-workspace.css";
+import "./transfer-results.css";
 
 export function TransferResults({
   data,
@@ -23,7 +36,7 @@ export function TransferResults({
   settings,
   result,
   notice,
-  priceNotice,
+  priceConfirmed,
   confirmedPrices,
   lineupIndex,
   onLineupChange,
@@ -38,6 +51,7 @@ export function TransferResults({
   onToggleLock,
   onCompare,
   customBusy,
+  idle,
   customError,
   playerId,
   onPlayerSelect,
@@ -46,11 +60,11 @@ export function TransferResults({
   data: Data;
   category: PlanCategory;
   onCategoryChange: (category: PlanCategory) => void;
-  playerData?: Data;
+  playerData: Data;
   settings: Settings;
   result: Analysis;
-  notice: string;
-  priceNotice: string;
+  notice: Notice | null;
+  priceConfirmed: boolean;
   confirmedPrices: number[];
   lineupIndex: number;
   onLineupChange: (index: number) => void;
@@ -65,6 +79,7 @@ export function TransferResults({
   onToggleLock: (id: number) => void;
   onCompare: (outId: number, inId: number) => void;
   customBusy: boolean;
+  idle: boolean;
   customError: string;
   playerId: number | null;
   onPlayerSelect: (id: number) => void;
@@ -90,10 +105,9 @@ export function TransferResults({
     }
   }
   const customPanel = useRef<HTMLDetailsElement>(null);
-  const plans = result.plans ?? [];
+  const plans = result.plans;
+  const squadIds = settings.squad.map((pick) => pick.id);
   const categoryPlans = plans.filter((plan) => plan.kind === category);
-  const maxTransfers =
-    1 + data.bootstrap.game_settings.max_extra_free_transfers;
   const incomingCount = new Set(result.moves.map((move) => move.inId)).size;
   return (
     <section
@@ -114,9 +128,9 @@ export function TransferResults({
         }
       }}
     >
-      {notice === settingsNotSaved && (
+      {notice === "settings-not-saved" && (
         <BannerToast title="Settings not saved" tone="warning">
-          {notice}
+          {noticeText[notice]}
         </BannerToast>
       )}
       <MobilePlannerNav
@@ -145,36 +159,29 @@ export function TransferResults({
               aria-label="Plan category"
             >
               {(
-                [
-                  { value: "singles", label: "Singles" },
-                  { value: "pair-now", label: "Two transfers" },
-                  { value: "roll-then-transfer", label: "Roll then move" },
-                ] as const
-              ).map((item) => (
+                Object.entries(planCategoryLabels) as [PlanCategory, string][]
+              ).map(([value, label]) => (
                 <Button
-                  key={item.value}
+                  key={value}
                   variant="secondary"
-                  aria-pressed={category === item.value}
+                  aria-pressed={category === value}
                   onClick={() => {
-                    if (category !== item.value) {
-                      onClearSelection();
-                      previewOrigin.current = null;
-                      onCategoryChange(item.value);
-                    }
+                    if (category === value) return;
+                    previewOrigin.current = null;
+                    onCategoryChange(value);
                   }}
                 >
-                  {item.label}
+                  {label}
                 </Button>
               ))}
             </div>
             {!(result.moves.length || plans.length) &&
               result.weeks.length > 0 && (
                 <RollOption
-                  nextFreeTransfers={Math.min(
-                    maxTransfers,
-                    settings.freeTransfers + 1,
+                  nextFreeTransfers={nextWeekFreeTransfers(
+                    settings.freeTransfers,
+                    freeTransferCap(data.bootstrap.game_settings),
                   )}
-                  recommended
                   reason={result.rollReason}
                   onPreview={onClearSelection}
                 />
@@ -184,7 +191,7 @@ export function TransferResults({
                 {result.moves.length ? (
                   <GroupedTransfers
                     data={data}
-                    settings={settings}
+                    squadIds={squadIds}
                     moves={result.moves}
                     weeks={result.weeks}
                     selectedKey={selection?.key ?? null}
@@ -254,7 +261,11 @@ export function TransferResults({
                     }
                   }}
                   onCompare={onCompare}
-                  selection={selection}
+                  customMove={
+                    selection?.kind === "move" && selection.custom
+                      ? selection.move
+                      : null
+                  }
                   previewError={previewError}
                   threshold={result.threshold}
                 />
@@ -263,6 +274,7 @@ export function TransferResults({
             <PlayerLocks
               data={data}
               settings={settings}
+              disabled={!idle}
               onToggle={onToggleLock}
             />
           </section>
@@ -286,7 +298,7 @@ export function TransferResults({
                   preview={preview}
                   threshold={result.threshold}
                   previewError={previewError}
-                  priceNotice={priceNotice}
+                  priceConfirmed={priceConfirmed}
                   confirmedPrices={confirmedPrices}
                   onConfirmPrice={onConfirmPrice}
                 />
@@ -298,17 +310,15 @@ export function TransferResults({
                 : "baseline"
             }
             data={data}
-            settings={settings}
-            result={result}
+            squadIds={squadIds}
+            weeks={result.weeks}
+            baseline={result.baseline}
             preview={preview}
             selectedLabel={selection?.label ?? "Your current squad"}
             onBackToOptions={returnToOptions}
-            option={selection?.move ?? selection?.plan ?? null}
+            option={selection ? selectedOption(selection) : null}
             pricesChecked={
-              !!selection &&
-              selection.actions.every((action) =>
-                confirmedPrices.includes(action.outId),
-              )
+              !!selection && pricesChecked(selection.actions, confirmedPrices)
             }
             canClear={!!selection || customBusy}
             onClearSelection={onClearSelection}
@@ -326,7 +336,7 @@ export function TransferResults({
         />
       )}
       <PlayerDetails
-        data={playerData ?? data}
+        data={playerData}
         playerId={playerId}
         onClose={onClosePlayer}
       />

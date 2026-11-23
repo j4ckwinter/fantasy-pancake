@@ -1,4 +1,5 @@
 import { money, signed, scoreGainLabel } from "../format";
+import "./preview-metrics.css";
 
 export function PreviewMetrics({
   gain,

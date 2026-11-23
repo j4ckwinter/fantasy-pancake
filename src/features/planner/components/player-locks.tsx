@@ -1,14 +1,17 @@
 import { Button } from "@jack.winter/pancake-ui";
 import type { Data, Settings } from "@/lib/schemas";
-import "./exploration.css";
+import { findPlayer } from "../players";
+import "./player-locks.css";
 
 export function PlayerLocks({
   data,
   settings,
+  disabled,
   onToggle,
 }: {
   data: Data;
   settings: Settings;
+  disabled: boolean;
   onToggle: (id: number) => void;
 }) {
   const lockedIds = settings.lockedPlayerIds ?? [];
@@ -33,7 +36,7 @@ export function PlayerLocks({
         </p>
         <div className="player-locks">
           {settings.squad.map(({ id }) => {
-            const player = data.bootstrap.elements.find((p) => p.id === id);
+            const player = findPlayer(data.bootstrap.elements, id);
             if (!player) return null;
             const locked = lockedIds.includes(id);
             return (
@@ -42,6 +45,7 @@ export function PlayerLocks({
                 type="button"
                 variant="secondary"
                 aria-pressed={locked}
+                disabled={disabled}
                 aria-label={`${locked ? "Unlock" : "Keep"} ${player.web_name}`}
                 onClick={() => onToggle(id)}
               >

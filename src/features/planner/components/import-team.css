@@ -1,0 +1,238 @@
+.hero {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: var(--space-48);
+  padding: var(--space-44);
+  border-radius: var(--radius-14);
+  background: var(--color-ink);
+  color: var(--color-white);
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 65%,
+    var(--color-accent-glint) 65%,
+    var(--color-accent-glint) 80%,
+    transparent 80%
+  );
+}
+.hero-copy {
+  position: relative;
+  min-width: 0;
+}
+.hero .eyebrow {
+  color: var(--color-accent);
+  font-size: var(--text-10);
+}
+.eyebrow-line {
+  display: inline-block;
+  vertical-align: middle;
+  width: 22px;
+  height: 2px;
+  background: currentColor;
+  margin-right: var(--space-9);
+}
+.hero-copy h1 {
+  font-size: var(--text-hero-title);
+  letter-spacing: -4px;
+  font-weight: 800;
+  line-height: 0.97;
+  margin: var(--space-24) 0 var(--space-18);
+}
+.hero-copy h1 em {
+  font: inherit;
+  color: var(--color-accent);
+  font-style: italic;
+}
+.hero-description {
+  color: var(--color-on-hero-muted);
+  font-size: var(--text-15);
+  max-width: 480px;
+  line-height: 1.75;
+}
+.import-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-white);
+  border-radius: var(--radius-10);
+  padding: var(--space-22);
+  margin-top: var(--space-24);
+  color: var(--color-ink);
+  max-width: 570px;
+  box-shadow: var(--shadow-import-card);
+}
+.import-card h2 {
+  font-size: var(--text-19);
+  margin: 0 0 var(--space-7);
+  letter-spacing: -0.5px;
+}
+.import-card > .muted {
+  font-size: var(--text-12);
+  margin-bottom: 0;
+}
+.import-form {
+  display: flex;
+  gap: var(--space-10);
+  align-items: flex-end;
+  margin: var(--space-17) 0 var(--space-14);
+}
+.import-form > div {
+  flex: 1;
+  min-width: 0;
+}
+.import-form > button {
+  flex: none;
+  margin-bottom: 0;
+  font-weight: 700;
+}
+.import-form .pancake-field-description {
+  font-size: var(--text-9);
+  overflow-wrap: anywhere;
+  margin-top: var(--space-4);
+}
+.import-card > .muted:last-child {
+  font-size: var(--text-10);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-12);
+}
+.hero > .pitch-board {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  transform: rotate(1.5deg);
+  box-shadow: var(--shadow-hero-pitch);
+}
+@media (max-width: 1150px) {
+  .hero {
+    gap: var(--space-30);
+    padding: var(--space-32);
+  }
+  .hero-copy h1 {
+    font-size: var(--text-59);
+    letter-spacing: -3px;
+  }
+  .import-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .import-form > button {
+    margin: 0;
+  }
+}
+@media (max-width: 780px) {
+  .hero-copy h1 {
+    font-size: var(--text-58);
+    letter-spacing: -3px;
+    margin: var(--space-20) 0;
+  }
+  .import-card {
+    padding: var(--space-18);
+    margin-top: var(--space-22);
+  }
+  .import-card h2 {
+    font-size: var(--text-18);
+  }
+}
+@media (max-width: 380px) {
+  .hero {
+    padding: var(--space-24) var(--space-17);
+  }
+  .hero-copy h1 {
+    font-size: var(--text-46);
+  }
+  .hero .eyebrow {
+    font-size: var(--text-8);
+    letter-spacing: 1px;
+  }
+  .import-card {
+    padding: var(--space-14);
+  }
+  .import-card h2 {
+    font-size: var(--text-16);
+  }
+}
+.import-form input {
+  min-height: 48px;
+}
+@media (max-width: 780px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding: var(--space-22) var(--space-18);
+    gap: var(--space-24);
+  }
+  .hero h1 {
+    font-size: var(--text-hero-title-compact);
+    line-height: 1.05;
+    margin-block: var(--space-18);
+  }
+  .hero-description {
+    font-size: var(--text-13);
+    line-height: 1.5;
+    margin-block: var(--space-12);
+  }
+  .hero .import-card {
+    margin-top: var(--space-16);
+    padding: var(--space-16);
+  }
+  .hero-copy > .eyebrow {
+    font-size: var(--text-9);
+    letter-spacing: 0.06em;
+  }
+}
+
+.import-id-example {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-11);
+  overflow-wrap: anywhere;
+}
+.import-id-example strong {
+  color: var(--color-ink);
+  background: var(--color-surface-selected);
+  border-radius: var(--radius-3);
+  padding: var(--space-2) var(--space-4);
+}
+@media (max-width: 780px) {
+  .hero > .pitch-board {
+    transform: none;
+    justify-self: center;
+    padding: var(--space-14) var(--space-12) var(--space-10);
+    max-width: 340px;
+    box-shadow: none;
+  }
+  .hero .pitch-board__header {
+    padding-bottom: var(--space-10);
+  }
+  .hero .pitch-board__header h2 {
+    font-size: var(--text-17);
+    margin-top: var(--space-4);
+  }
+  .hero .pitch-board__formation {
+    font-size: var(--text-13);
+    padding: var(--space-6) var(--space-8);
+  }
+  .hero .pitch-board__players {
+    min-height: 160px;
+    padding-block: var(--space-10);
+    gap: var(--space-8);
+  }
+  .hero .pitch-board__shirt {
+    width: 24px;
+    height: 22px;
+  }
+  .hero .pitch-board__field {
+    margin-bottom: var(--space-8);
+  }
+  .hero .pitch-board__footer {
+    padding-top: var(--space-8);
+  }
+  .hero .pitch-board__caption {
+    font-size: var(--text-9);
+  }
+}

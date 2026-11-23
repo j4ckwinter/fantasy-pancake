@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button, Select } from "@jack.winter/pancake-ui";
+import type { Move } from "@/lib/model";
 import type { Data, Settings } from "@/lib/schemas";
-import type { Selection } from "../selection";
 import { money } from "../format";
 import { PlayerPicker } from "./player-picker";
-import "./exploration.css";
+import { findClub } from "../players";
+import "./custom-transfer-form.css";
 
 export function CustomTransferForm({
   data,
@@ -13,12 +14,12 @@ export function CustomTransferForm({
   error,
   onCompare,
   onViewDetails,
-  selection,
+  customMove,
   previewError,
   threshold,
 }: {
   onViewDetails: () => void;
-  selection: Selection | null;
+  customMove: Move | null;
   previewError: string;
   threshold: number;
   data: Data;
@@ -52,10 +53,8 @@ export function CustomTransferForm({
   const draftKey = `${outgoing?.id}-${incoming?.id}`;
   const currentError = submittedKey === draftKey ? error : "";
   const compared =
-    selection?.custom &&
-    selection.move?.outId === outgoing?.id &&
-    selection.move?.inId === incoming?.id
-      ? selection.move
+    customMove?.outId === outgoing?.id && customMove?.inId === incoming?.id
+      ? customMove
       : null;
   return (
     <form
@@ -94,12 +93,7 @@ export function CustomTransferForm({
                     disabled={locks.has(player.id)}
                   >
                     {player.web_name} ·{" "}
-                    {
-                      data.bootstrap.teams.find(
-                        (team) => team.id === player.team,
-                      )?.short_name
-                    }{" "}
-                    ·{" "}
+                    {findClub(data.bootstrap.teams, player.team)?.short_name} ·{" "}
                     {money(
                       settings.squad.find((pick) => pick.id === player.id)!
                         .sellingPrice,

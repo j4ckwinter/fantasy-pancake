@@ -1,0 +1,56 @@
+.comparison-table-wrap {
+  overflow-x: auto;
+}
+.weekly-breakdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-0-85rem);
+  font-variant-numeric: tabular-nums;
+}
+.weekly-breakdown caption {
+  text-align: left;
+  padding: var(--space-0-8rem) 0;
+  color: var(--color-text-muted);
+}
+.weekly-breakdown th,
+.weekly-breakdown td {
+  padding: var(--space-0-75rem) var(--space-0-5rem);
+  text-align: right;
+  border-bottom: 1px solid var(--color-border);
+}
+.weekly-breakdown th:first-child {
+  text-align: left;
+  white-space: nowrap;
+}
+.weekly-breakdown thead {
+  background: var(--color-surface-tint);
+}
+.comparison-gain {
+  font-weight: 750;
+  color: var(--color-text-positive);
+}
+.weekly-breakdown__totals {
+  margin: var(--space-1rem) 0;
+}
+.weekly-breakdown__totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-1rem);
+  padding: var(--space-0-6rem) 0;
+  font-size: var(--text-0-85rem);
+}
+.weekly-breakdown__totals > div:last-child {
+  border-top: 1px solid var(--color-ink);
+  font-weight: 750;
+}
+.weekly-breakdown__totals dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 480px) {
+  .weekly-breakdown th,
+  .weekly-breakdown td {
+    padding-inline: var(--space-0-3rem);
+    font-size: var(--text-0-75rem);
+  }
+}

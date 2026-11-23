@@ -1,8 +1,9 @@
 import type { Data, History, Player } from "../schemas";
 import { upcomingWeeks } from "./schedule";
 import { forecastMinutes, type MinutesForecast } from "./minutes-forecast";
-
-export type { MinuteOutcome } from "./minutes-forecast";
+import { fullMatches } from "./match-minutes";
+import { positionOf, type Position } from "./position";
+import { recencyWeight } from "./recency";
 
 export type PlayerForecast = MinutesForecast & {
   historyMatches: number;
@@ -18,10 +19,22 @@ export type PlayerForecast = MinutesForecast & {
   missedPenalties90: number;
   savedPenalties90: number;
 };
-const goalPriors = [0, 0.01, 0.06, 0.2, 0.35];
-const assistPriors = [0, 0.01, 0.08, 0.15, 0.1];
 
-export function usableHistory(data: Data, player: Player): History {
+const ATTACKING_PRIORS: Record<Position, { goals: number; assists: number }> = {
+  1: { goals: 0.01, assists: 0.01 },
+  2: { goals: 0.06, assists: 0.08 },
+  3: { goals: 0.2, assists: 0.15 },
+  4: { goals: 0.35, assists: 0.1 },
+};
+const GOALS_CONCEDED_PRIOR = 1.4;
+const MAX_HISTORY_MATCHES = 8;
+const SEASON_PRIOR_MATCHES = 5;
+const RECENT_RATE_SEASON_WEIGHT = 2;
+const RARE_EVENT_PRIOR_MATCHES = 20;
+
+export type EligibleHistory = History & { readonly eligibleHistory: true };
+
+export function usableHistory(data: Data, player: Player): EligibleHistory {
   const cutoff = Date.parse(data.fetchedAt);
   const nextWeek = upcomingWeeks(data)[0] ?? Infinity;
   const completed = new Set(
@@ -30,7 +43,7 @@ export function usableHistory(data: Data, player: Player): History {
       .map((fixture) => fixture.id),
   );
   const seen = new Set<number>();
-  return [...(data.histories?.[String(player.id)] ?? [])]
+  const rows = [...(data.histories?.[String(player.id)] ?? [])]
     .filter(
       (row) =>
         Number.isFinite(cutoff) &&
@@ -48,23 +61,26 @@ export function usableHistory(data: Data, player: Player): History {
       seen.add(row.fixture);
       return true;
     })
-    .slice(0, 8);
+    .slice(0, MAX_HISTORY_MATCHES);
+  return rows as EligibleHistory;
 }
 
 export function playerForecast(data: Data, player: Player): PlayerForecast {
   const rows = usableHistory(data, player);
   const weighted = rows.map((row, index) => ({
     row,
-    weight: 2 ** (-index / 3),
+    weight: recencyWeight(index),
   }));
-  const priorWeight = 2;
-  const exposure = player.minutes / 90;
+  const priorWeight = RECENT_RATE_SEASON_WEIGHT;
+  const exposure = fullMatches(player.minutes);
   const weightedExposure = weighted.reduce(
-    (sum, sample) => sum + (sample.weight * sample.row.minutes) / 90,
+    (sum, sample) => sum + fullMatches(sample.weight * sample.row.minutes),
     0,
   );
   const rate = (field: keyof History[number], total: number, prior: number) => {
-    const seasonRate = (total + 5 * prior) / (exposure + 5);
+    const seasonRate =
+      (total + SEASON_PRIOR_MATCHES * prior) /
+      (exposure + SEASON_PRIOR_MATCHES);
     if (!rows.length) return seasonRate;
     const samples = weighted.filter(
       ({ row }) => typeof row[field] === "number",
@@ -74,7 +90,8 @@ export function playerForecast(data: Data, player: Player): PlayerForecast {
       samples.length === weighted.length
         ? weightedExposure
         : samples.reduce(
-            (sum, sample) => sum + (sample.weight * sample.row.minutes) / 90,
+            (sum, sample) =>
+              sum + fullMatches(sample.weight * sample.row.minutes),
             0,
           );
     return (
@@ -90,33 +107,29 @@ export function playerForecast(data: Data, player: Player): PlayerForecast {
     field: "red_cards" | "own_goals" | "penalties_missed" | "penalties_saved",
     seasonTotal: number | undefined,
   ) => {
-    const priorExposure = 20;
     if (seasonTotal !== undefined)
-      return seasonTotal / (exposure + priorExposure);
+      return seasonTotal / (exposure + RARE_EVENT_PRIOR_MATCHES);
     const observed = rows.filter((row) => row[field] !== undefined);
     const observedExposure = observed.reduce(
-      (sum, row) => sum + row.minutes / 90,
+      (sum, row) => sum + fullMatches(row.minutes),
       0,
     );
     return (
       observed.reduce((sum, row) => sum + (row[field] ?? 0), 0) /
-      (observedExposure + priorExposure)
+      (observedExposure + RARE_EVENT_PRIOR_MATCHES)
     );
   };
+  const priors = ATTACKING_PRIORS[positionOf(player)];
   return {
     ...forecastMinutes(data, player, rows),
     historyMatches: rows.length,
-    xg90: rate(
-      "expected_goals",
-      player.expected_goals,
-      goalPriors[player.element_type],
+    xg90: rate("expected_goals", player.expected_goals, priors.goals),
+    xa90: rate("expected_assists", player.expected_assists, priors.assists),
+    xgc90: rate(
+      "expected_goals_conceded",
+      player.expected_goals_conceded,
+      GOALS_CONCEDED_PRIOR,
     ),
-    xa90: rate(
-      "expected_assists",
-      player.expected_assists,
-      assistPriors[player.element_type],
-    ),
-    xgc90: rate("expected_goals_conceded", player.expected_goals_conceded, 1.4),
     defensive90: rate(
       "defensive_contribution",
       player.defensive_contribution,

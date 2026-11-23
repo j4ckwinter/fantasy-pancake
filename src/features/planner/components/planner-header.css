@@ -1,0 +1,115 @@
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-24);
+  padding: var(--space-25) 0 var(--space-23);
+}
+.brand-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-11);
+  text-decoration: none;
+  font-size: var(--text-18);
+  font-weight: 750;
+  letter-spacing: -0.7px;
+  line-height: 1.2;
+}
+.brand-name small {
+  display: block;
+  font-size: var(--text-10);
+  font-weight: 400;
+  letter-spacing: 0.25px;
+  color: var(--color-text-muted);
+  margin-top: var(--space-5);
+}
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  flex: none;
+}
+.header-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-24);
+}
+.deadline {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.deadline > span {
+  font-size: var(--text-9);
+  letter-spacing: 1.4px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+.deadline time {
+  font-size: var(--text-12);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.header-fpl {
+  display: flex;
+  gap: var(--space-14);
+  align-items: center;
+  text-decoration: none;
+  border: 1px solid var(--color-border-rule);
+  border-radius: var(--radius-7);
+  padding: var(--space-9) var(--space-13);
+  font-size: var(--text-12);
+  font-weight: 600;
+}
+.header-fpl:hover {
+  background: var(--color-white);
+  border-color: var(--color-border-hover);
+}
+.header-fpl:focus-visible,
+.brand-name:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 4px;
+}
+@media (max-width: 780px) {
+  .brand {
+    padding: var(--space-18) 0;
+    gap: var(--space-12);
+    flex-wrap: wrap;
+  }
+  .brand-name {
+    font-size: var(--text-16);
+  }
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+  }
+  .header-tools {
+    gap: var(--space-12);
+  }
+  .deadline {
+    display: none;
+  }
+  .header-fpl {
+    font-size: var(--text-11);
+    padding: var(--space-8) var(--space-10);
+    gap: var(--space-8);
+  }
+}
+@media (max-width: 380px) {
+  .brand-name {
+    font-size: var(--text-14);
+    gap: var(--space-8);
+  }
+  .brand-name small {
+    font-size: var(--text-9);
+  }
+  .brand-mark {
+    width: 31px;
+    height: 31px;
+  }
+  .header-fpl {
+    padding: var(--space-8);
+    font-size: var(--text-10);
+    gap: var(--space-5);
+  }
+}

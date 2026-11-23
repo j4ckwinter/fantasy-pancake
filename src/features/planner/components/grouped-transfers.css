@@ -1,0 +1,101 @@
+.transfer-groups {
+  display: grid;
+  gap: var(--space-1rem);
+}
+.transfer-group {
+  overflow: hidden;
+}
+.close-alternatives {
+  padding: var(--space-0-75rem) 0;
+  margin: 0;
+  font-size: var(--text-0-84rem);
+  color: var(--color-ink);
+}
+.transfer-alternatives {
+  display: grid;
+  margin-top: var(--space-0-75rem);
+}
+.transfer-alternative {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-1rem);
+  padding: var(--space-1rem) var(--space-0-65rem);
+  border-top: 1px solid var(--color-border);
+}
+.transfer-alternative.is-selected {
+  background: var(--color-surface-selected);
+  box-shadow: var(--shadow-selected-edge);
+}
+.alternative-player,
+.alternative-price {
+  display: grid;
+  gap: var(--space-0-25rem);
+  min-width: 0;
+}
+.alternative-player > .player-detail-link {
+  font-size: var(--text-1-05rem);
+}
+.alternative-player > span.muted,
+.alternative-price > span {
+  font-size: var(--text-0-75rem);
+  color: var(--color-text-muted);
+}
+.alternative-price > strong {
+  font-size: var(--text-1rem);
+}
+.alternative-price > :last-child {
+  justify-self: start;
+}
+@media (max-width: 700px) {
+  .transfer-alternative {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-0-65rem) var(--space-1rem);
+    padding: var(--space-0-9rem) var(--space-0-65rem);
+  }
+  .alternative-price {
+    gap: var(--space-0-2rem);
+  }
+}
+.alternative-price .alternative-price__checked {
+  color: var(--color-text-positive);
+  font-weight: 650;
+}
+@media (max-width: 700px) {
+  .results-workspace .transfer-alternative {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-8) var(--space-12);
+    padding: var(--space-12) var(--space-8);
+  }
+  .transfer-alternative .alternative-player {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .transfer-alternative .alternative-gain {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .transfer-alternative .alternative-price {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .transfer-alternative > button {
+    justify-self: end;
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 36px;
+    padding: var(--space-7) var(--space-12);
+    font-size: var(--text-12);
+  }
+  .alternative-player > span.muted,
+  .alternative-price > span {
+    font-size: var(--text-11);
+  }
+  .transfer-alternative .alternative-player > .eyebrow {
+    display: none;
+  }
+}
+.alternative-gain > .alternative-hit {
+  color: var(--color-text-cost);
+  font-weight: 700;
+}

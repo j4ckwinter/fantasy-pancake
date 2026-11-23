@@ -1,13 +1,13 @@
 import { Button, StatusChip } from "@jack.winter/pancake-ui";
+import { freeTransfersLabel } from "../format";
+import "./roll-option.css";
 
 export function RollOption({
   nextFreeTransfers,
-  recommended,
   reason,
   onPreview,
 }: {
   nextFreeTransfers: number;
-  recommended: boolean;
   reason: string;
   onPreview: () => void;
 }) {
@@ -19,9 +19,9 @@ export function RollOption({
         </span>
         <div className="roll-option__copy">
           <h3>Roll the transfer</h3>
-          <p>No hit · {nextFreeTransfers} free transfers next GW*</p>
+          <p>No hit · {freeTransfersLabel(nextFreeTransfers)} next GW*</p>
         </div>
-        {recommended && <StatusChip tone="success">Recommended</StatusChip>}
+        <StatusChip tone="success">Recommended</StatusChip>
         <Button variant="secondary" onClick={onPreview}>
           View unchanged squad <span aria-hidden="true">→</span>
         </Button>

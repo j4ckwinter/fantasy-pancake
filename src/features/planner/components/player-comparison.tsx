@@ -1,8 +1,9 @@
 import { playerForecast } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
 import { money } from "../format";
-import { FixtureStrip } from "./pitch-board";
-import "./comparison-panels.css";
+import { FixtureStrip } from "./fixture-strip";
+import { findPlayer } from "../players";
+import "./player-comparison.css";
 
 export function PlayerComparison({
   data,
@@ -15,10 +16,8 @@ export function PlayerComparison({
   inId: number;
   weeks: number[];
 }) {
-  const outgoing = data.bootstrap.elements.find(
-    (player) => player.id === outId,
-  );
-  const incoming = data.bootstrap.elements.find((player) => player.id === inId);
+  const outgoing = findPlayer(data.bootstrap.elements, outId);
+  const incoming = findPlayer(data.bootstrap.elements, inId);
   if (!outgoing || !incoming) return null;
   const players = [outgoing, incoming].map((player, index) => ({
     player,

@@ -4,35 +4,25 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import { createSnapshot, evaluateSnapshot } from "./evaluation";
-import type { Data, History, Player, Settings } from "./schemas";
+import type { Data, History, Settings } from "./schemas";
+import {
+  gameSettings,
+  positionRules,
+  squadPlayers,
+} from "./model/test-fixtures";
 import type { Analysis } from "./model";
 
 function context() {
-  const elements: Player[] = [1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4].map(
-    (position, index) => ({
-      id: index + 1,
-      web_name: `Player ${index + 1}`,
-      team: Math.floor(index / 3) + 1,
-      element_type: position,
-      now_cost: 50,
-      status: "a",
-      news: "",
-      can_select: true,
-      can_transact: true,
-      chance_of_playing_next_round: 100,
-      minutes: 90,
-      starts: 1,
-      expected_goals: 0.2,
-      expected_assists: 0.1,
-      expected_goals_conceded: 1,
-      defensive_contribution: 10,
-      saves: 0,
-      creativity: 0,
-      penalties_order: null,
-      corners_and_indirect_freekicks_order: null,
-      direct_freekicks_order: null,
-    }),
-  );
+  const elements = squadPlayers({
+    minutes: 90,
+    starts: 1,
+    expected_goals: 0.2,
+    expected_assists: 0.1,
+    expected_goals_conceded: 1,
+    defensive_contribution: 10,
+    saves: 0,
+    creativity: 0,
+  });
   const data: Data = {
     fetchedAt: "2026-10-01T10:00:00Z",
     bootstrap: {
@@ -50,19 +40,8 @@ function context() {
         is_next: id === 2,
         finished: id === 1,
       })),
-      element_types: [1, 2, 3, 4].map((id) => ({
-        id,
-        singular_name_short: String(id),
-        squad_select: [0, 2, 5, 5, 3][id],
-        squad_min_play: [0, 1, 3, 2, 1][id],
-        squad_max_play: [0, 1, 5, 5, 3][id],
-      })),
-      game_settings: {
-        squad_squadsize: 15,
-        squad_squadplay: 11,
-        squad_team_limit: 3,
-        max_extra_free_transfers: 4,
-      },
+      element_types: positionRules(),
+      game_settings: gameSettings(),
     },
     fixtures: [1, 2].flatMap((event) =>
       [1, 3, 5].map((team) => ({
@@ -90,6 +69,7 @@ function context() {
     weeks: [2, 3],
     baseline: [],
     moves: [],
+    plans: [],
     threshold: 2,
     rollReason: "Keep",
   };
@@ -356,4 +336,18 @@ it("scores a completed blank when every original fixture remains in the actual s
     histories: {},
   });
   expect(report.policies[0]).toMatchObject({ status: "complete", points: 0 });
+});
+
+it("refuses to capture when no gameweek is left in the horizon", () => {
+  const { data, settings, analysis } = context();
+  for (const event of data.bootstrap.events) event.is_next = false;
+  expect(() =>
+    createSnapshot(
+      data,
+      settings,
+      { ...analysis, weeks: [] },
+      [],
+      "2026-10-02T10:00:00Z",
+    ),
+  ).toThrow("No upcoming gameweek is available to capture.");
 });

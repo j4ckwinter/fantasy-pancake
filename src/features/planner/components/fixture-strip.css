@@ -1,0 +1,77 @@
+.fixture-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-6);
+  margin: var(--space-18) 0;
+}
+.fixture-strip__week {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.fixture-strip__label {
+  font-size: var(--text-10);
+  color: var(--color-fixture-label);
+  font-weight: 750;
+  letter-spacing: 0.7px;
+}
+.fixture-strip__match {
+  border-radius: var(--radius-5);
+  padding: var(--space-9) var(--space-6);
+  background: var(--color-fixture-medium);
+  border-bottom: 3px solid var(--color-fixture-medium-border);
+  color: var(--color-fixture-medium-text);
+}
+.fixture-strip__match strong {
+  display: block;
+  font-size: var(--text-12);
+  white-space: nowrap;
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+}
+.fixture-strip__match strong span {
+  font-size: var(--text-9);
+  font-weight: 500;
+}
+.fixture-strip__difficulty {
+  display: block;
+  font-size: var(--text-9);
+  margin-top: var(--space-4);
+}
+.fixture-strip__match--1,
+.fixture-strip__match--2 {
+  background: var(--color-fixture-easy);
+  border-color: var(--color-fixture-easy-border);
+  color: var(--color-fixture-easy-text);
+}
+.fixture-strip__match--4 {
+  background: var(--color-fixture-hard);
+  border-color: var(--color-fixture-hard-border);
+  color: var(--color-fixture-hard-text);
+}
+.fixture-strip__match--5 {
+  background: var(--color-fixture-very-hard);
+  border-color: var(--color-fixture-very-hard-border);
+  color: var(--color-fixture-very-hard-text);
+}
+.fixture-strip__match--blank {
+  background: var(--color-fixture-blank);
+  border-color: var(--color-fixture-blank-border);
+  border-bottom-style: dashed;
+  color: var(--color-text-quiet);
+}
+@media (max-width: 420px) {
+  .fixture-strip {
+    gap: var(--space-4);
+  }
+  .fixture-strip__match {
+    padding: var(--space-8) var(--space-4);
+  }
+  .fixture-strip__match strong {
+    font-size: var(--text-11);
+  }
+  .fixture-strip__difficulty {
+    font-size: var(--text-8);
+  }
+}

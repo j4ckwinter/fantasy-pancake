@@ -6,8 +6,8 @@ import {
   type Settings,
 } from "@/lib/schemas";
 
-const STORAGE_KEY = "fpl-planner-v1";
-type SettingsStorage = Pick<Storage, "getItem" | "setItem">;
+export const STORAGE_KEY = "fpl-planner-v1";
+export type SettingsStorage = Pick<Storage, "getItem" | "setItem">;
 type RestoredSettings =
   | { status: "empty" }
   | { status: "invalid" }
@@ -21,6 +21,19 @@ export function marketPricePick(
     id,
     sellingPrice:
       data.bootstrap.elements.find((player) => player.id === id)?.now_cost ?? 0,
+  };
+}
+
+export function refreshEstimatedPrices(
+  data: Data,
+  settings: Settings,
+  confirmed: number[],
+): Settings {
+  return {
+    ...settings,
+    squad: settings.squad.map((pick) =>
+      confirmed.includes(pick.id) ? pick : marketPricePick(data, pick.id),
+    ),
   };
 }
 
@@ -41,13 +54,21 @@ export function settingsFromImport(
   };
 }
 
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
 export function restoreSettings(
   storage: SettingsStorage,
   data: Data,
 ): RestoredSettings {
   const saved = storage.getItem(STORAGE_KEY);
   if (!saved) return { status: "empty" };
-  const parsed = settingsSchema.safeParse(JSON.parse(saved));
+  const parsed = settingsSchema.safeParse(parseJson(saved));
   if (
     !parsed.success ||
     parsed.data.season !== data.bootstrap.events[0]?.deadline_time.slice(0, 4)

@@ -1,0 +1,83 @@
+.roll-option summary {
+  cursor: pointer;
+  text-underline-offset: 3px;
+}
+.roll-option summary:hover {
+  text-decoration: underline;
+}
+.roll-option summary:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 4px;
+}
+.roll-option {
+  margin-top: var(--space-12);
+  padding: var(--space-10) var(--space-14);
+  border: 1px dashed var(--color-border-control);
+  border-radius: var(--radius-10);
+  background: var(--color-surface-tint);
+}
+.roll-option__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  flex-wrap: wrap;
+}
+.roll-option__icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: var(--color-surface-tint-strong);
+  border-radius: 50%;
+  color: var(--color-positive-deep);
+  font-size: var(--text-25);
+}
+.roll-option__copy {
+  flex: 1;
+}
+.roll-option h3 {
+  margin: 0;
+  font-size: var(--text-14);
+}
+.roll-option__copy p {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-11);
+  color: var(--color-text-muted);
+}
+.roll-option__row button {
+  background: transparent;
+  color: var(--color-ink);
+  border: none;
+  padding: var(--space-6) 0;
+  gap: var(--space-10);
+  min-height: 36px;
+  font-size: var(--text-12);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.roll-option__row button:hover {
+  background: transparent;
+  color: var(--color-link-hover);
+}
+.roll-option details {
+  margin: var(--space-8) 0 0 var(--space-46);
+  color: var(--color-text-muted);
+  font-size: var(--text-11);
+  line-height: 1.6;
+}
+.roll-option details p:last-child {
+  margin-bottom: 0;
+}
+@media (max-width: 780px) {
+  .roll-option__row button {
+    margin-left: var(--space-46);
+    flex-basis: calc(100% - 46px);
+    justify-content: flex-start;
+  }
+  .roll-option__row {
+    gap: var(--space-8) var(--space-12);
+  }
+  .roll-option details {
+    margin-top: var(--space-4);
+  }
+}

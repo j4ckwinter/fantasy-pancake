@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import "@jack.winter/pancake-ui/styles.css";
 import "@jack.winter/pancake-ui/fonts.css";
+import "./tokens.css";
 import "./globals.css";
-import "@/features/planner/planner.css";
+import "@/features/planner/shared.css";
 export const metadata: Metadata = {
   title: "Fantasy Pancake",
   applicationName: "Fantasy Pancake",

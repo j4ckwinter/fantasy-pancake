@@ -1,0 +1,12 @@
+.selling-price-check {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-8);
+}
+.selling-price-check > div {
+  flex: 1;
+  min-width: 0;
+}
+.selling-price-check > button {
+  flex-shrink: 0;
+}

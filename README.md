@@ -49,16 +49,18 @@ CI tests a production build across Chromium desktop/mobile, Firefox and WebKit m
 
 ## code structure
 
-| where                                                   | what belongs there                                 |
-| ------------------------------------------------------- | -------------------------------------------------- |
-| `src/app/`                                              | routes, layout and global styles                   |
-| `src/features/planner/planner.tsx`                      | screen composition                                 |
-| `src/features/planner/use-planner.ts`                   | session state and actions                          |
-| `src/features/planner/api.ts`, `settings.ts`            | HTTP validation, imports and saved settings        |
-| `src/features/planner/selection.ts`, `components/`      | preview state, rendering and local interactions    |
-| `src/lib/model.ts`, `model/`                            | pure scoring, squad rules and planning             |
-| `src/lib/fpl.ts`, `schemas.ts`                          | server-side FPL access, caching and data contracts |
-| `src/lib/evaluation.ts`, `scripts/evaluate-snapshot.ts` | frozen decisions and offline outcome evaluation    |
+| where                                                                  | what belongs there                                      |
+| ---------------------------------------------------------------------- | ------------------------------------------------------- |
+| `src/app/`                                                             | routes, layout and global styles                        |
+| `src/app/tokens.css`, `breakpoints.ts`                                 | design tokens and named breakpoints                     |
+| `src/features/planner/shared.css`, `components/*.css`                  | shared and per-component styles                         |
+| `src/features/planner/planner.tsx`                                     | screen composition                                      |
+| `src/features/planner/session.ts`, `use-planner.ts`                    | session transitions and the async flows that drive them |
+| `src/features/planner/api.ts`, `settings.ts`                           | HTTP validation, imports and saved settings             |
+| `src/features/planner/selection.ts`, `components/`                     | preview state, rendering and local interactions         |
+| `src/lib/model.ts`, `model/`                                           | pure scoring, squad rules and planning                  |
+| `src/lib/fpl.ts`, `schemas.ts`                                         | server-side FPL access, caching and data contracts      |
+| `src/lib/evaluation.ts`, `evaluation/`, `scripts/evaluate-snapshot.ts` | frozen decisions and offline outcome evaluation         |
 
 keep fetching and persistence out of presentation components, and browser code out of the model. preserve public model exports and version-1 saved settings. [AGENTS.md](AGENTS.md) has the iteration rules.
 

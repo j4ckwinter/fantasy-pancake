@@ -11,6 +11,7 @@ import { PlannerFooter } from "./components/planner-footer";
 import { TeamReview } from "./components/team-review";
 import { TransferResults } from "./components/transfer-results";
 import { SavedPlanNotice } from "./components/saved-plan-notice";
+import { noticeText } from "./messages";
 export default function Planner() {
   const planner = usePlanner();
   const { data, settings, result, busy, error, notice } = planner;
@@ -36,13 +37,15 @@ export default function Planner() {
           settings={settings}
           result={result}
           loading={!!busy && !planner.reviewOpen}
+          balancesFromImport={notice === "import-caveat"}
+          canEdit={planner.idle}
+          refreshing={planner.refreshing}
           onEditTeam={planner.editTeam}
         />
       ) : !settings && !busy ? (
         <ImportTeam
           ready={!!data}
           teamId={planner.teamId}
-          busy={!!busy}
           onTeamIdChange={planner.setTeamId}
           onImport={planner.importSquad}
         />
@@ -72,7 +75,7 @@ export default function Planner() {
       {data && !settings && notice && (
         <div className="notice">
           <BannerToast title="Saved settings" tone="warning">
-            {notice}
+            {noticeText[notice]}
           </BannerToast>
         </div>
       )}
@@ -110,19 +113,19 @@ export default function Planner() {
       {settings && result && planner.savedPlan && (
         <SavedPlanNotice
           gameweek={settings.sourceGameweek}
-          busy={!!busy}
+          busy={!planner.idle}
           onRefresh={planner.refreshSavedTeam}
         />
       )}
       {data && settings && result && (
         <TransferResults
           category={planner.planCategory}
-          onCategoryChange={planner.setPlanCategory}
+          onCategoryChange={planner.changeCategory}
           data={data}
           settings={settings}
           result={result}
           notice={notice}
-          priceNotice={planner.priceNotice}
+          priceConfirmed={planner.priceConfirmed}
           confirmedPrices={planner.confirmedPrices}
           lineupIndex={planner.lineupIndex}
           onLineupChange={planner.selectLineup}
@@ -137,6 +140,7 @@ export default function Planner() {
           onToggleLock={planner.toggleLock}
           onCompare={planner.compareTransfer}
           customBusy={planner.customBusy}
+          idle={planner.idle}
           customError={planner.customError}
           playerData={planner.playerData ?? data}
           playerId={planner.playerId}

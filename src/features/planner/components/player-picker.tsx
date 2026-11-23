@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { TextField } from "@jack.winter/pancake-ui";
 import type { Data, Player } from "@/lib/schemas";
 import { money } from "../format";
+import { findClub } from "../players";
 import "./player-picker.css";
 
 export function PlayerPicker({
@@ -31,7 +32,7 @@ export function PlayerPicker({
   const [activeIndex, setActiveIndex] = useState(0);
   const selected = players.find((player) => player.id === value);
   const club = (player: Player) =>
-    teams.find((team) => team.id === player.team)?.short_name ?? "";
+    findClub(teams, player.team)?.short_name ?? "";
   const matches = players.filter((player) =>
     `${player.web_name} ${club(player)}`
       .toLocaleLowerCase()

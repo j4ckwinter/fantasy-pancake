@@ -1,4 +1,8 @@
+import type { ReactNode } from "react";
+import type { Lineup } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
+import { findClub, findPlayer } from "../players";
+import { PlayerLink } from "./player-link";
 import "./pitch-board.css";
 
 function Shirt({ goalkeeper = false }: { goalkeeper?: boolean }) {
@@ -11,71 +15,57 @@ function Shirt({ goalkeeper = false }: { goalkeeper?: boolean }) {
     >
       <path
         d="M16 3 5 9 1 22l10 5 4-7v21h18V20l4 7 10-5-4-13-11-6-8 5-8-5Z"
+        className="pitch-board__shirt-outline"
         fill="currentColor"
-        stroke="#101914"
         strokeWidth="1.6"
         strokeLinejoin="round"
       />
-      <path d="m17 4 7 5 7-5M15 19l18 12v8L15 27Z" fill="#101914" />
-      <path d="m7 10 7 4M34 14l7-4M17 38h14" stroke="#101914" strokeWidth="2" />
-      <path d="M27 15h4v4h-4z" fill="#101914" />
+      <path
+        className="pitch-board__shirt-trim"
+        d="m17 4 7 5 7-5M15 19l18 12v8L15 27Z"
+      />
+      <path
+        className="pitch-board__shirt-outline"
+        d="m7 10 7 4M34 14l7-4M17 38h14"
+        strokeWidth="2"
+      />
+      <path className="pitch-board__shirt-trim" d="M27 15h4v4h-4z" />
     </svg>
   );
 }
 
-export function PitchBoard({
-  data,
-  lineup,
-  week,
-  variant = "before",
-  highlightIds = [],
-  onPlayerSelect,
+const positionRows = ["GK", "DEF", "MID", "FWD"];
+const illustratedShirts = [1, 4, 4, 2];
+
+function PitchFrame({
+  actual,
+  label,
+  eyebrow,
+  title,
+  formation,
+  rows,
+  caption,
 }: {
-  data?: Data | null;
-  lineup?: { ids: number[]; captain: number | null };
-  week?: number;
-  variant?: "before" | "after";
-  highlightIds?: number[];
-  onPlayerSelect?: (id: number) => void;
+  actual: boolean;
+  label: string;
+  eyebrow: string;
+  title: string;
+  formation: string;
+  rows: ReactNode[];
+  caption: string;
 }) {
-  const selected =
-    data && lineup
-      ? lineup.ids.flatMap((id) => {
-          const player = data.bootstrap.elements.find((item) => item.id === id);
-          return player ? [player] : [];
-        })
-      : [];
-  const actual = selected.length > 0;
-  const PlayerTag = onPlayerSelect ? "button" : "div";
-  const rows = [1, 2, 3, 4].map((position) =>
-    selected.filter((player) => player.element_type === position),
-  );
-  const formation = actual
-    ? rows
-        .slice(1)
-        .map((row) => row.length)
-        .join("–")
-    : "4–4–2";
   return (
     <aside
       className={`pitch-board${actual ? " pitch-board--actual" : " pitch-board--illustration"}`}
-      aria-label={
-        actual
-          ? variant === "after"
-            ? "Preview starting lineup"
-            : "Baseline starting lineup"
-          : "Illustrative football formation"
-      }
+      aria-label={label}
     >
       <div className="pitch-board__header">
         <div>
           <span className="pitch-board__eyebrow">
             <span className="pitch-board__signal" />
-            {actual
-              ? `${variant === "after" ? "PREVIEW" : "BASELINE"} / MATCHDAY XI`
-              : "THE TACTICS BOARD"}
+            {eyebrow}
           </span>
-          <h2>{actual ? "Your starting XI" : "Every spot counts"}</h2>
+          <h2>{title}</h2>
         </div>
         <span className="pitch-board__formation">
           <small>SHAPE</small>
@@ -101,73 +91,16 @@ export function PitchBoard({
           {rows.map((row, index) => (
             <div
               className="pitch-board__row"
-              data-position={["GK", "DEF", "MID", "FWD"][index]}
+              data-position={positionRows[index]}
               key={index}
             >
-              {actual
-                ? row.map((player) => (
-                    <PlayerTag
-                      className={`pitch-board__player${highlightIds.includes(player.id) ? " pitch-board__player--entered" : ""}`}
-                      key={player.id}
-                      type={onPlayerSelect ? "button" : undefined}
-                      onClick={
-                        onPlayerSelect
-                          ? (event) => {
-                              // Safari does not focus buttons on pointer activation.
-                              event.currentTarget.focus({
-                                preventScroll: true,
-                              });
-                              onPlayerSelect(player.id);
-                            }
-                          : undefined
-                      }
-                      aria-label={
-                        onPlayerSelect
-                          ? `View ${player.web_name} details${lineup?.captain === player.id ? ", captain" : ""}${highlightIds.includes(player.id) ? ", enters starting XI" : ""}`
-                          : undefined
-                      }
-                    >
-                      <div className="pitch-board__kit">
-                        <Shirt goalkeeper={index === 0} />
-                        {lineup?.captain === player.id && (
-                          <span
-                            className="pitch-board__captain"
-                            aria-label="Captain"
-                          >
-                            C
-                          </span>
-                        )}
-                      </div>
-                      <span className="pitch-board__name">
-                        {player.web_name}
-                      </span>
-                      <span className="pitch-board__club">
-                        {
-                          data?.bootstrap.teams.find(
-                            (team) => team.id === player.team,
-                          )?.short_name
-                        }
-                      </span>
-                    </PlayerTag>
-                  ))
-                : Array.from({ length: [1, 4, 4, 2][index] }, (_, shirt) => (
-                    <div
-                      className="pitch-board__player pitch-board__player--illustration"
-                      key={shirt}
-                    >
-                      <Shirt goalkeeper={index === 0} />
-                    </div>
-                  ))}
+              {row}
             </div>
           ))}
         </div>
       </div>
       <div className="pitch-board__footer">
-        <p className="pitch-board__caption">
-          {actual
-            ? `${week ? `GW${week} · ` : ""}${variant === "after" ? "Preview after selected transfers" : "Baseline, before a transfer"}`
-            : "Illustrative formation · your XI appears after analysis"}
-        </p>
+        <p className="pitch-board__caption">{caption}</p>
         {actual && (
           <span className="pitch-board__legend">
             <b>C</b> Captain
@@ -178,71 +111,95 @@ export function PitchBoard({
   );
 }
 
-export function FixtureStrip({
+export function PitchIllustration() {
+  return (
+    <PitchFrame
+      actual={false}
+      label="Illustrative football formation"
+      eyebrow="THE TACTICS BOARD"
+      title="Every spot counts"
+      formation={illustratedShirts.slice(1).join("–")}
+      rows={illustratedShirts.map((count, index) =>
+        Array.from({ length: count }, (_, shirt) => (
+          <div
+            className="pitch-board__player pitch-board__player--illustration"
+            key={shirt}
+          >
+            <Shirt goalkeeper={index === 0} />
+          </div>
+        )),
+      )}
+      caption="Illustrative formation · your XI appears after analysis"
+    />
+  );
+}
+
+export function PitchBoard({
   data,
-  playerId,
-  weeks,
+  lineup,
+  week,
+  variant,
+  highlightIds,
+  onPlayerSelect,
 }: {
   data: Data;
-  playerId: number;
-  weeks: number[];
+  lineup: Lineup;
+  week: number;
+  variant: "before" | "after";
+  highlightIds: number[];
+  onPlayerSelect: (id: number) => void;
 }) {
-  const player = data.bootstrap.elements.find((item) => item.id === playerId);
+  const selected = lineup.ids.flatMap((id) => {
+    const player = findPlayer(data.bootstrap.elements, id);
+    return player ? [player] : [];
+  });
+  if (!selected.length) return <PitchIllustration />;
+  const rows = positionRows.map((_, index) =>
+    selected.filter((player) => player.element_type === index + 1),
+  );
   return (
-    <div
-      className="fixture-strip"
-      aria-label="Upcoming fixtures and difficulty"
-    >
-      {weeks.map((week) => {
-        const fixtures = player
-          ? data.fixtures.filter(
-              (fixture) =>
-                fixture.event === week &&
-                !fixture.finished &&
-                (fixture.team_h === player.team ||
-                  fixture.team_a === player.team),
-            )
-          : [];
-        return (
-          <div className="fixture-strip__week" key={week}>
-            <span className="fixture-strip__label">GW{week}</span>
-            {fixtures.length ? (
-              fixtures.map((fixture) => {
-                const home = fixture.team_h === player?.team;
-                const opponent = data.bootstrap.teams.find(
-                  (team) =>
-                    team.id === (home ? fixture.team_a : fixture.team_h),
-                );
-                const difficulty = home
-                  ? fixture.team_h_difficulty
-                  : fixture.team_a_difficulty;
-                return (
-                  <div
-                    className={`fixture-strip__match fixture-strip__match--${difficulty}`}
-                    key={fixture.id}
-                  >
-                    <strong>
-                      {opponent?.short_name ?? "TBC"}{" "}
-                      <span>({home ? "H" : "A"})</span>
-                    </strong>
-                    <span className="fixture-strip__difficulty">
-                      <span className="fixture-strip__difficulty-label">
-                        Difficulty{" "}
-                      </span>
-                      {difficulty}
-                    </span>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="fixture-strip__match fixture-strip__match--blank">
-                <strong>Blank</strong>
-                <span className="fixture-strip__difficulty">No fixture</span>
+    <PitchFrame
+      actual
+      label={
+        variant === "after"
+          ? "Preview starting lineup"
+          : "Baseline starting lineup"
+      }
+      eyebrow={`${variant === "after" ? "PREVIEW" : "BASELINE"} / MATCHDAY XI`}
+      title="Your starting XI"
+      formation={rows
+        .slice(1)
+        .map((row) => row.length)
+        .join("–")}
+      rows={rows.map((row, index) =>
+        row.map((player) => {
+          const captain = lineup.captain === player.id;
+          const entered = highlightIds.includes(player.id);
+          return (
+            <PlayerLink
+              className={`pitch-board__player${entered ? " pitch-board__player--entered" : ""}`}
+              key={player.id}
+              playerId={player.id}
+              onSelect={onPlayerSelect}
+              label={`View ${player.web_name} details${captain ? ", captain" : ""}${entered ? ", enters starting XI" : ""}`}
+            >
+              <div className="pitch-board__kit">
+                <Shirt goalkeeper={index === 0} />
+                {captain && (
+                  <span className="pitch-board__captain" aria-label="Captain">
+                    C
+                  </span>
+                )}
               </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+              <span className="pitch-board__name">{player.web_name}</span>
+              <span className="pitch-board__club">
+                {findClub(data.bootstrap.teams, player.team)?.short_name}
+              </span>
+            </PlayerLink>
+          );
+        }),
+      )}
+      caption={`GW${week} · ${variant === "after" ? "Preview after selected transfers" : "Baseline, before a transfer"}`}
+    />
   );
 }

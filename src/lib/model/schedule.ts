@@ -1,6 +1,10 @@
-import type { Data, Player } from "../schemas";
+import type { Data, Fixture, Player } from "../schemas";
 
-export function upcomingWeeks(data: Data): number[] {
+const HORIZON_WEEKS = 4;
+
+export function upcomingWeeks(data: {
+  bootstrap: Pick<Data["bootstrap"], "events">;
+}): number[] {
   const events = [...data.bootstrap.events].sort((a, b) => a.id - b.id);
   const next =
     events.find((event) => event.is_next) ??
@@ -10,9 +14,33 @@ export function upcomingWeeks(data: Data): number[] {
   return next
     ? events
         .filter((event) => event.id >= next.id)
-        .slice(0, 4)
+        .slice(0, HORIZON_WEEKS)
         .map((event) => event.id)
     : [];
+}
+
+export function playsIn(fixture: Fixture, team: number): boolean {
+  return fixture.team_h === team || fixture.team_a === team;
+}
+
+export function scheduledTeamFixtures(
+  fixtures: Fixture[],
+  team: number,
+  week: number,
+): Fixture[] {
+  return fixtures.filter(
+    (fixture) =>
+      fixture.event === week && !fixture.finished && playsIn(fixture, team),
+  );
+}
+
+export function finishedTeamFixtures(
+  fixtures: Fixture[],
+  team: number,
+): Fixture[] {
+  return fixtures.filter(
+    (fixture) => fixture.finished && playsIn(fixture, team),
+  );
 }
 
 export function fixturesFor(
@@ -21,12 +49,7 @@ export function fixturesFor(
   weeks: number[],
 ): string[] {
   return weeks.map((week) => {
-    const fixtures = data.fixtures.filter(
-      (fixture) =>
-        fixture.event === week &&
-        !fixture.finished &&
-        (fixture.team_h === player.team || fixture.team_a === player.team),
-    );
+    const fixtures = scheduledTeamFixtures(data.fixtures, player.team, week);
     const labels = fixtures.map((fixture) => {
       const home = fixture.team_h === player.team;
       const opponent = data.bootstrap.teams.find(

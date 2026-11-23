@@ -1,13 +1,13 @@
 .transfer-plan-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: var(--space-16);
 }
 .results-workspace .transfer-plan {
-  padding: 18px;
+  padding: var(--space-18);
 }
 .transfer-plan.is-selected {
-  border-color: #9ab755;
+  border-color: var(--color-border-selected);
 }
 .transfer-plan ol {
   list-style: none;
@@ -18,55 +18,55 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
-  padding: 10px 0;
-  border-top: 1px solid var(--line);
+  gap: var(--space-12);
+  padding: var(--space-10) 0;
+  border-top: 1px solid var(--color-border);
 }
 .transfer-plan li .eyebrow {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: var(--space-5);
 }
 .plan-week {
-  font-size: 11px;
+  font-size: var(--text-11);
   font-weight: 650;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .plan-arrow {
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 .plan-outcome {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  border-top: 1px solid var(--line);
-  padding-top: 12px;
+  gap: var(--space-14);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-12);
 }
 .plan-outcome .alternative-gain {
   text-align: left;
 }
 .plan-outcome .alternative-gain strong {
-  font-size: 23px;
+  font-size: var(--text-23);
 }
 .plan-cost {
   display: grid;
-  gap: 4px;
-  font-size: 12px;
+  gap: var(--space-4);
+  font-size: var(--text-12);
 }
 .plan-cost span {
-  color: var(--muted);
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: var(--text-11);
 }
 @media (max-width: 700px) {
   .results-workspace .transfer-plan {
-    padding: 14px;
+    padding: var(--space-14);
   }
   .transfer-plan li {
     grid-template-columns: minmax(0, 1fr) 14px minmax(0, 1fr);
-    gap: 8px;
+    gap: var(--space-8);
   }
   .transfer-plan li .player-detail-link {
-    font-size: 14px;
+    font-size: var(--text-14);
     overflow-wrap: anywhere;
   }
   .plan-outcome {
@@ -86,21 +86,21 @@
   grid-template-columns: 34px minmax(0, 1fr) 14px minmax(0, 1fr);
 }
 .plan-cost__balance strong {
-  color: var(--ink);
-  font-size: 12px;
+  color: var(--color-ink);
+  font-size: var(--text-12);
 }
 .plan-cost__balance .plan-cost__hit {
-  color: #8a351d;
+  color: var(--color-text-cost);
 }
 @media (max-width: 700px) {
   .results-workspace .transfer-plan .transfer-group-heading {
-    margin-bottom: 8px;
+    margin-bottom: var(--space-8);
   }
   .results-workspace .transfer-plan .transfer-group-heading h3 {
-    font-size: 21px;
-    margin-block: 0 4px;
+    font-size: var(--text-21);
+    margin-block: 0 var(--space-4);
   }
   .transfer-plan .plan-outcome {
-    gap: 6px 12px;
+    gap: var(--space-6) var(--space-12);
   }
 }

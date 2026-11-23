@@ -1,8 +1,11 @@
 import { Button } from "@jack.winter/pancake-ui";
 import type { Data } from "@/lib/schemas";
 import type { TransferPlan } from "@/lib/model";
-import type { Selection } from "../selection";
-import { money, signed, scoreGainLabel } from "../format";
+import { planLabels, pricesChecked, type Selection } from "../selection";
+import { findPlayer } from "../players";
+import { PlayerLink } from "./player-link";
+import { minus, money, signed, scoreGainLabel } from "../format";
+import "./transfer-group.css";
 import "./transfer-plans.css";
 
 export function TransferPlans({
@@ -25,8 +28,7 @@ export function TransferPlans({
   onClearSelection: () => void;
 }) {
   const name = (id: number) =>
-    data.bootstrap.elements.find((player) => player.id === id)?.web_name ??
-    String(id);
+    findPlayer(data.bootstrap.elements, id)?.web_name ?? String(id);
   if (!plans.length)
     return (
       <p className="muted">
@@ -41,15 +43,14 @@ export function TransferPlans({
           .map((action) => `${action.week}-${action.outId}-${action.inId}`)
           .join("/");
         const selected =
-          selection?.plan?.kind === plan.kind &&
+          selection?.kind === "plan" &&
+          selection.plan.kind === plan.kind &&
           selection.actions
             .map((action) => `${action.week}-${action.outId}-${action.inId}`)
             .join("/") === key;
         const multipleWeeks =
           new Set(plan.actions.map((action) => action.week)).size > 1;
-        const checked = plan.actions.every((action) =>
-          confirmedPrices.includes(action.outId),
-        );
+        const checked = pricesChecked(plan.actions, confirmedPrices);
         return (
           <article
             key={key}
@@ -60,11 +61,7 @@ export function TransferPlans({
                 {String(index + 1).padStart(2, "0")}
               </span>
               <div>
-                <h3>
-                  {plan.kind === "pair-now"
-                    ? "Two transfers now"
-                    : "Roll, then move"}
-                </h3>
+                <h3>{planLabels[plan.kind]}</h3>
                 <p className="muted">
                   {plan.kind === "pair-now"
                     ? `GW${plan.actions[0]?.week}`
@@ -80,32 +77,26 @@ export function TransferPlans({
                   )}
                   <div>
                     <span className="eyebrow">Sell</span>
-                    <button
-                      type="button"
+                    <PlayerLink
                       className="player-detail-link"
-                      onClick={(event) => {
-                        event.currentTarget.focus({ preventScroll: true });
-                        onPlayerSelect(action.outId);
-                      }}
+                      playerId={action.outId}
+                      onSelect={onPlayerSelect}
                     >
                       {name(action.outId)}
-                    </button>
+                    </PlayerLink>
                   </div>
                   <span className="plan-arrow" aria-hidden="true">
                     →
                   </span>
                   <div>
                     <span className="eyebrow">Buy</span>
-                    <button
-                      type="button"
+                    <PlayerLink
                       className="player-detail-link"
-                      onClick={(event) => {
-                        event.currentTarget.focus({ preventScroll: true });
-                        onPlayerSelect(action.inId);
-                      }}
+                      playerId={action.inId}
+                      onSelect={onPlayerSelect}
                     >
                       {name(action.inId)}
-                    </button>
+                    </PlayerLink>
                   </div>
                 </li>
               ))}
@@ -120,7 +111,7 @@ export function TransferPlans({
                   <strong
                     className={plan.hit > 0 ? "plan-cost__hit" : undefined}
                   >
-                    {plan.hit > 0 ? `−${plan.hit} pts hit` : "No hit"}
+                    {plan.hit > 0 ? `${minus}${plan.hit} pts hit` : "No hit"}
                   </strong>
                   <span> · {money(plan.remainingBank)} left</span>
                 </span>
