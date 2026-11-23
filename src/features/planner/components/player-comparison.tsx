@@ -1,7 +1,7 @@
 import { playerForecast } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
 import { money } from "../format";
-import { FixtureStrip } from "./pitch-board";
+import { FixtureStrip } from "./fixture-strip";
 import "./comparison-panels.css";
 import { findPlayer } from "../players";
 

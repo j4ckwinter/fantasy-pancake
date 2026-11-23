@@ -2,7 +2,7 @@ import { Button } from "@jack.winter/pancake-ui";
 import { playerForecast, type Move } from "@/lib/model";
 import type { Data, Settings } from "@/lib/schemas";
 import { money, signed, scoreGainLabel } from "../format";
-import { FixtureStrip } from "./pitch-board";
+import { FixtureStrip } from "./fixture-strip";
 import { findClub, findPlayer } from "../players";
 import { PlayerLink } from "./player-link";
 import "./exploration.css";

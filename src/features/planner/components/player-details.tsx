@@ -5,7 +5,7 @@ import { Button } from "@jack.winter/pancake-ui";
 import { playerForecast, upcomingWeeks, usableHistory } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
 import { money } from "../format";
-import { FixtureStrip } from "./pitch-board";
+import { FixtureStrip } from "./fixture-strip";
 import "./player-details.css";
 import { findClub, findPlayer } from "../players";
 
