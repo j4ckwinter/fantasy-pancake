@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { freeTransfersLabel, signed } from "./format";
+import { expectedPoints, freeTransfersLabel, signed } from "./format";
 
 describe("formatting", () => {
   it("signs gains with a plus and losses with a true minus", () => {
@@ -18,5 +18,12 @@ describe("free transfer counts", () => {
     expect(freeTransfersLabel(1)).toBe("1 free transfer");
     expect(freeTransfersLabel(0)).toBe("0 free transfers");
     expect(freeTransfersLabel(2)).toBe("2 free transfers");
+  });
+});
+
+describe("expected points", () => {
+  it("shows one decimal with the app's unit wording", () => {
+    expect(expectedPoints(7.36)).toBe("7.4 units");
+    expect(expectedPoints(0)).toBe("0.0 units");
   });
 });

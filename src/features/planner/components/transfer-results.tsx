@@ -8,6 +8,7 @@ import {
   freeTransferCap,
   nextWeekFreeTransfers,
   type Analysis,
+  type Captaincy,
   type Lineup,
   type Move,
   type TransferPlan,
@@ -47,7 +48,7 @@ export function TransferResults({
   selection,
   preview,
   previewError,
-  previewSquadIdsByWeek,
+  previewCaptaincy,
   onSelectMove,
   onSelectPlan,
   onClearSelection,
@@ -75,7 +76,7 @@ export function TransferResults({
   selection: Selection | null;
   preview: Lineup[] | null;
   previewError: string;
-  previewSquadIdsByWeek: number[][];
+  previewCaptaincy: Captaincy[] | null;
   onSelectMove: (move: Move) => void;
   onSelectPlan: (plan: TransferPlan) => void;
   onClearSelection: () => void;
@@ -315,7 +316,6 @@ export function TransferResults({
                 : "baseline"
             }
             data={data}
-            squadIds={squadIds}
             weeks={result.weeks}
             baseline={result.baseline}
             preview={preview}
@@ -330,7 +330,8 @@ export function TransferResults({
             lineupIndex={lineupIndex}
             onLineupChange={onLineupChange}
             onPlayerSelect={onPlayerSelect}
-            previewSquadIdsByWeek={previewSquadIdsByWeek}
+            captaincy={result.captaincy}
+            previewCaptaincy={previewCaptaincy}
           />
         </section>
       </div>

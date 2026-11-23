@@ -133,7 +133,7 @@ export default function Planner() {
           selection={planner.selection}
           preview={planner.preview}
           previewError={planner.previewError}
-          previewSquadIdsByWeek={planner.previewSquadIdsByWeek}
+          previewCaptaincy={planner.previewCaptaincy}
           onSelectMove={planner.selectMove}
           onSelectPlan={planner.selectPlan}
           onClearSelection={planner.clearSelection}

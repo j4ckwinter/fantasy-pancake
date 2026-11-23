@@ -25,3 +25,5 @@ export const teamLabel = (settings: Pick<Settings, "teamName" | "entryId">) =>
 
 export const freeTransfersLabel = (count: number) =>
   `${count} free transfer${count === 1 ? "" : "s"}`;
+
+export const expectedPoints = (value: number) => `${value.toFixed(1)} units`;

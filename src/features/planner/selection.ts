@@ -2,8 +2,10 @@ import { errorMessage } from "@/lib/error-message";
 import { findPlayer } from "./players";
 import {
   evaluateTransfer,
+  previewCaptaincy,
   previewTransfers,
   type Analysis,
+  type Captaincy,
   type Lineup,
   type Move,
   type TransferPlan,
@@ -37,11 +39,16 @@ export const planCategoryLabels: Record<PlanCategory, string> = {
   "roll-then-transfer": "Roll then move",
 };
 
-export const emptyPreview = {
+export const emptyPreview: {
+  selection: null;
+  preview: null;
+  previewError: string;
+  previewCaptaincy: Captaincy[] | null;
+} = {
   selection: null,
   preview: null,
   previewError: "",
-  previewSquadIdsByWeek: [],
+  previewCaptaincy: null,
 };
 
 export function pricesChecked(
@@ -128,7 +135,6 @@ export function selectedPreview(
   data: Data,
   settings: Settings,
   selection: Selection | null,
-  weeks: number[],
   baseline: Lineup[],
 ) {
   if (!selection) return emptyPreview;
@@ -144,14 +150,7 @@ export function selectedPreview(
         : null;
     const preview =
       evaluated?.lineups ?? previewTransfers(data, settings, selection.actions);
-    const previewSquadIdsByWeek = weeks.map((week) => {
-      let ids = settings.squad.map((pick) => pick.id);
-      for (const action of selection.actions) {
-        if (action.week <= week)
-          ids = ids.map((id) => (id === action.outId ? action.inId : id));
-      }
-      return ids;
-    });
+    const captaincy = previewCaptaincy(data, settings, selection.actions);
     const plan =
       selection.kind === "plan"
         ? {
@@ -182,14 +181,14 @@ export function selectedPreview(
           : { ...selection, plan: plan ?? selection.plan },
       preview,
       previewError: "",
-      previewSquadIdsByWeek,
+      previewCaptaincy: captaincy,
     };
   } catch (reason) {
     return {
       selection,
       preview: null,
       previewError: errorMessage(reason, "This option is no longer available."),
-      previewSquadIdsByWeek: [],
+      previewCaptaincy: null,
     };
   }
 }
