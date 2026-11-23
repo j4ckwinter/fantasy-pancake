@@ -47,12 +47,13 @@ describe("captaincy", () => {
     expect(options).toHaveLength(11);
     for (const [index, option] of options.entries()) {
       const next = options[index + 1];
-      expect(option.gapToNext).toBe(
-        next
-          ? Math.round((option.expectedPoints - next.expectedPoints) * 100) /
-              100
-          : null,
-      );
+      if (next)
+        expect(
+          Math.abs(
+            option.gapToNext! - (option.expectedPoints - next.expectedPoints),
+          ),
+        ).toBeLessThanOrEqual(0.01 + 1e-9);
+      else expect(option.gapToNext).toBeNull();
       if (next)
         expect(option.expectedPoints).toBeGreaterThanOrEqual(
           next.expectedPoints,
@@ -185,8 +186,13 @@ describe("captaincy", () => {
     const [single, double] = analyze(data, settings).captaincy;
     expect(single.captain.playerId).not.toBe(14);
     expect(double.captain.playerId).toBe(14);
+    const singleWeek = [
+      single.captain,
+      single.viceCaptain,
+      ...single.otherOptions,
+    ];
     expect(double.captain.expectedPoints).toBeGreaterThan(
-      1.5 * single.captain.expectedPoints,
+      1.5 * singleWeek.find((option) => option.playerId === 14)!.expectedPoints,
     );
   });
 

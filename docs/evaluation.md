@@ -12,7 +12,7 @@ The planner UI no longer offers snapshot downloads. The evaluation library can c
 
 The two simple baselines test team selection on the existing squad; they do not search alternative transfers. The lagged-points policy reports the fraction of owned players with any history, and players without history score zero when selecting its lineup. Treat that baseline cautiously when coverage is incomplete.
 
-The model identifier is `forecast-v5`. Increment it when forecasting or planning behavior changes materially. Existing exported snapshots retain their frozen decisions; evaluation never reruns the latest forecast to choose players retrospectively.
+The model identifier is `forecast-v6`. Increment it when forecasting or planning behavior changes materially. Existing exported snapshots retain their frozen decisions; evaluation never reruns the latest forecast to choose players retrospectively.
 
 ## Capture safeguards
 

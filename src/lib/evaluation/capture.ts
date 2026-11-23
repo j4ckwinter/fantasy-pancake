@@ -22,7 +22,7 @@ import {
   squadHistoryCoverage,
 } from "./baseline-policies";
 
-export const MODEL_VERSION = "forecast-v5";
+export const MODEL_VERSION = "forecast-v6";
 
 type WeeklyScores = Map<number, number>[];
 
