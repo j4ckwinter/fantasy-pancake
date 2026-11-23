@@ -9,9 +9,11 @@ export function WorkspaceHeading({
   result,
   loading = false,
   balancesFromImport,
+  canEdit,
   onEditTeam,
 }: {
   balancesFromImport: boolean;
+  canEdit: boolean;
   loading?: boolean;
   onEditTeam: () => void;
   settings: Settings;
@@ -55,6 +57,7 @@ export function WorkspaceHeading({
             <Button
               variant="secondary"
               className="workspace-heading__edit"
+              disabled={!canEdit}
               onClick={onEditTeam}
             >
               Edit team details <span aria-hidden="true">↗</span>

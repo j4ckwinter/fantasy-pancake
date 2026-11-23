@@ -38,6 +38,7 @@ export default function Planner() {
           result={result}
           loading={!!busy && !planner.reviewOpen}
           balancesFromImport={notice === "import-caveat"}
+          canEdit={planner.idle}
           onEditTeam={planner.editTeam}
         />
       ) : !settings && !busy ? (
@@ -111,7 +112,7 @@ export default function Planner() {
       {settings && result && planner.savedPlan && (
         <SavedPlanNotice
           gameweek={settings.sourceGameweek}
-          busy={!!busy}
+          busy={!planner.idle}
           onRefresh={planner.refreshSavedTeam}
         />
       )}
@@ -138,6 +139,7 @@ export default function Planner() {
           onToggleLock={planner.toggleLock}
           onCompare={planner.compareTransfer}
           customBusy={planner.customBusy}
+          idle={planner.idle}
           customError={planner.customError}
           playerData={planner.playerData ?? data}
           playerId={planner.playerId}

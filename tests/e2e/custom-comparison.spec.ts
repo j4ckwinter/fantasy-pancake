@@ -251,3 +251,34 @@ test("incoming picker requires a choice and supports keyboard search", async ({
   await expect(picker).toHaveValue("");
   await expect(compare).toBeDisabled();
 });
+
+test("team actions are unavailable while a custom comparison runs", async ({
+  page,
+}) => {
+  await failHistory(page);
+  await importTeam(page);
+  await expect(page.getByLabel("Baseline starting lineup")).toBeVisible();
+  const history = gate();
+  await page.route("**/api/history/*", async (route) => {
+    await history.opened;
+    await route.fulfill({ json: { history: [] } });
+  });
+  await compareTransfer(page, "8", "New Star");
+  await expect(
+    page.getByRole("button", { name: "Comparing…", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Edit team details" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", {
+      name: "Keep Player 1",
+      exact: true,
+      includeHidden: true,
+    }),
+  ).toBeDisabled();
+  history.release();
+  await expect(
+    page.getByRole("button", { name: "Edit team details" }),
+  ).toBeEnabled();
+});

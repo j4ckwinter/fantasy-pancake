@@ -6,10 +6,12 @@ import "./exploration.css";
 export function PlayerLocks({
   data,
   settings,
+  disabled,
   onToggle,
 }: {
   data: Data;
   settings: Settings;
+  disabled: boolean;
   onToggle: (id: number) => void;
 }) {
   const lockedIds = settings.lockedPlayerIds ?? [];
@@ -43,6 +45,7 @@ export function PlayerLocks({
                 type="button"
                 variant="secondary"
                 aria-pressed={locked}
+                disabled={disabled}
                 aria-label={`${locked ? "Unlock" : "Keep"} ${player.web_name}`}
                 onClick={() => onToggle(id)}
               >

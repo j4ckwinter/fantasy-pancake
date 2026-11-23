@@ -44,6 +44,7 @@ export function TransferResults({
   onToggleLock,
   onCompare,
   customBusy,
+  idle,
   customError,
   playerId,
   onPlayerSelect,
@@ -71,6 +72,7 @@ export function TransferResults({
   onToggleLock: (id: number) => void;
   onCompare: (outId: number, inId: number) => void;
   customBusy: boolean;
+  idle: boolean;
   customError: string;
   playerId: number | null;
   onPlayerSelect: (id: number) => void;
@@ -264,6 +266,7 @@ export function TransferResults({
             <PlayerLocks
               data={data}
               settings={settings}
+              disabled={!idle}
               onToggle={onToggleLock}
             />
           </section>

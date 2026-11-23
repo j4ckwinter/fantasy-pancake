@@ -322,7 +322,7 @@ export function usePlanner() {
   }
 
   function editTeam() {
-    if (!settings || !result || busy) return;
+    if (!settings || !result || operation.blocked()) return;
     dispatch({ type: "edit-started" });
     operation.invalidate();
   }
@@ -373,6 +373,7 @@ export function usePlanner() {
     result,
     busy,
     customBusy,
+    idle: !busy && !customBusy,
     error: session.error,
     customError: session.customError,
     notice: session.notice,
