@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { expectedPoints, freeTransfersLabel, signed } from "./format";
+import {
+  displayedLead,
+  expectedPoints,
+  freeTransfersLabel,
+  signed,
+} from "./format";
 
 describe("formatting", () => {
   it("signs gains with a plus and losses with a true minus", () => {
@@ -25,5 +30,14 @@ describe("expected points", () => {
   it("shows one decimal with the app's unit wording", () => {
     expect(expectedPoints(7.36)).toBe("7.4 units");
     expect(expectedPoints(0)).toBe("0.0 units");
+  });
+});
+
+describe("captain lead", () => {
+  it("measures the lead between the numbers people see", () => {
+    expect(displayedLead(7.36, 7.34)).toBe(0.1);
+    expect(displayedLead(7.32, 7.34)).toBe(0);
+    expect(displayedLead(7.44, 7.25)).toBe(0.1);
+    expect(displayedLead(7.7, 3.8)).toBe(3.9);
   });
 });

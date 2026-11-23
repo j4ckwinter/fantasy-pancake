@@ -1,6 +1,6 @@
 import type { CaptainOption, Captaincy } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
-import { expectedPoints } from "../format";
+import { displayedLead, expectedPoints } from "../format";
 import { findPlayer } from "../players";
 import { PlayerLink } from "./player-link";
 import "./captain-pick.css";
@@ -32,7 +32,7 @@ export function CaptainPick({
     findPlayer(data.bootstrap.elements, id)?.web_name ?? "Unknown";
   const { captain, viceCaptain, otherOptions } = captaincy;
   const [third] = otherOptions;
-  const gap = captain.gapToNext ?? 0;
+  const gap = displayedLead(captain.expectedPoints, viceCaptain.expectedPoints);
   const ranked: [Role, CaptainOption][] = [
     ["captain", captain],
     ["vice", viceCaptain],

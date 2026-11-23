@@ -27,3 +27,8 @@ export const freeTransfersLabel = (count: number) =>
   `${count} free transfer${count === 1 ? "" : "s"}`;
 
 export const expectedPoints = (value: number) => `${value.toFixed(1)} units`;
+
+const tenths = (value: number) => Math.round(value * 10);
+
+export const displayedLead = (leader: number, next: number) =>
+  (tenths(leader) - tenths(next)) / 10;
