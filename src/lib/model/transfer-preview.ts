@@ -43,15 +43,15 @@ export function transferContext(data: Data, settings: Settings) {
   };
 }
 
-type Context = ReturnType<typeof transferContext>;
+export type TransferContext = ReturnType<typeof transferContext>;
 
-export function previewTransfers(
-  data: Data,
-  settings: Settings,
+export type PreviewedWeek = { squad: Player[]; lineup: Lineup };
+
+export function previewWeeks(
+  context: TransferContext,
   actions: TransferAction[],
-): Lineup[] {
-  const context = transferContext(data, settings);
-  const { weeks, scores, rules } = context;
+): PreviewedWeek[] {
+  const { data, weeks, scores, rules } = context;
   if (actions.some((action) => !weeks.includes(action.week)))
     throw new Error("Choose a gameweek within the forecast horizon.");
   let state = context.start;
@@ -61,9 +61,21 @@ export function previewTransfers(
       state,
       actions.filter((action) => action.week === week),
     );
-    const lineup = bestLineup(data, state.squad, scores[index]);
-    return { ...lineup, score: roundScore(lineup.score) };
+    return {
+      squad: state.squad,
+      lineup: bestLineup(data, state.squad, scores[index]),
+    };
   });
+}
+
+export function previewTransfers(
+  data: Data,
+  settings: Settings,
+  actions: TransferAction[],
+): Lineup[] {
+  return previewWeeks(transferContext(data, settings), actions).map(
+    ({ lineup }) => ({ ...lineup, score: roundScore(lineup.score) }),
+  );
 }
 
 function totalScore(lineups: Lineup[]): number {
@@ -71,7 +83,7 @@ function totalScore(lineups: Lineup[]): number {
 }
 
 export function evaluatePreparedTransfer(
-  context: Context,
+  context: TransferContext,
   outId: number,
   inId: number,
 ): { move: Move; lineups: Lineup[] } {
@@ -119,7 +131,7 @@ export function evaluatePreparedTransfer(
 }
 
 export function withAvailabilitySensitivity(
-  context: Context,
+  context: TransferContext,
   moves: Move[],
 ): Move[] {
   const { data, settings, weeks, squad, byId } = context;

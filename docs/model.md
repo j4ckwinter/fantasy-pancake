@@ -43,7 +43,18 @@ Single-transfer cards show gains under both scenarios, each against that scenari
 
 ## Lineups, transfer cost and search
 
-Each week uses the best legal starting XI and captain under the forecast. Captaincy doubles the selected captain's score. Bench improvements count only when they improve the starting XI. Automatic substitutions, vice-captain fallback and chips are not simulated.
+Each week uses the best legal starting XI and captain under the forecast. Captaincy doubles the selected captain's score. Bench improvements count only when they improve the starting XI. Automatic substitutions, vice-captain fallback and chips are not simulated in transfer scores; the captaincy advice below is guidance only and does not change them.
+
+## Captaincy and bench order
+
+For each horizon week, the captaincy module ranks the chosen starting XI (`captaincy.ts`) for the current squad (`Analysis.captaincy`) or a previewed one (`previewCaptaincy`). It takes the week's per-player forecasts and play chances as values, so it does not depend on how those forecasts are produced.
+
+- **Captain options** rank starters by that week's forecast, highest first, with ties broken by the lower player id. Each option carries its forecast and the gap to the next option. `bestLineup` takes its captain from the same ranking, so the lineup's captain and the top option always agree.
+- **Vice-captain** is the second-ranked option. Its value if the captain misses out is not modelled separately.
+- **Play chance** for a week is zero without a scheduled fixture. Otherwise it is the week's availability multiplied by the chance of at least one appearance across the week's fixtures, treating fixtures as independent: `availability × (1 − (1 − appearance)^fixtures)`.
+- **Bench order** keeps the backup goalkeeper fixed and orders the three outfield reserves by `cover × forecast`, highest first; ties fall to the higher forecast, then the lower id. Cover is the chance that at least one starter the reserve could legally replace fails to play, treating starters as independent. A replacement is legal when the formation stays within each position's minimum and maximum after the swap. Blank-week reserves forecast zero and sort last.
+
+This is an approximation of automatic substitution. Each reserve's cover is computed on its own, so it ignores that an earlier reserve may already have filled a vacancy, the order FPL processes substitutions in, and correlated absences such as a whole club blanking. The ranking adds no output to existing transfer scores, so `forecast-v5` is unchanged.
 
 Single transfers search all eligible players. Paired and delayed plans use four highest horizon-scoring and two cheapest unowned candidates per position. This bounded search is not exhaustive and can miss the best enabling move or a deferred specialist. The best qualifying pair-now and roll-then-transfer plan are shown in their own categories alongside grouped single-transfer options; these are alternatives, not cumulative recommendations.
 

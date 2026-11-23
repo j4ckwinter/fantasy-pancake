@@ -34,6 +34,9 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Reasons shown for a single transfer                               | `src/lib/model/transfer-reasons.ts`                              |
 | Risk messages shown for an incoming player                        | `src/lib/model/player-risks.ts`                                  |
 | Rounding of reported score units                                  | `src/lib/model/round-score.ts`                                   |
+| Captain ranking, vice-captain and bench order                     | `src/lib/model/captaincy.ts`                                     |
+| Chance a player appears in a gameweek                             | `src/lib/model/play-chance.ts`                                   |
+| Weekly captaincy for the current or a previewed squad             | `src/lib/model/captaincy-preview.ts`                             |
 | Position ids; per-position scoring weights and attacking priors   | `src/lib/model/position.ts`; `scoring.ts`, `forecast-history.ts` |
 | Match length, 60-minute appearances and recency half-life         | `src/lib/model/match-minutes.ts`, `recency.ts`                   |
 | Server-side FPL access and caching                                | `src/lib/fpl.ts`                                                 |

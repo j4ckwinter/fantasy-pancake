@@ -9,8 +9,11 @@ import {
 } from "./model/transfer-preview";
 import { freeTransferCap } from "./model/transfer-rules";
 import { roundScore } from "./model/round-score";
+import { captaincyByWeek } from "./model/captaincy-preview";
 
 export { evaluateTransfer, previewTransfers } from "./model/transfer-preview";
+export { previewCaptaincy } from "./model/captaincy-preview";
+export type { BenchSlot, CaptainOption, Captaincy } from "./model/captaincy";
 export { playerForecast, usableHistory } from "./model/forecast-history";
 export type {
   Analysis,
@@ -46,6 +49,7 @@ export function analyze(data: Data, settings: Settings): Analysis {
     return {
       weeks,
       baseline: [],
+      captaincy: [],
       moves: [],
       plans: [],
       threshold,
@@ -68,6 +72,10 @@ export function analyze(data: Data, settings: Settings): Analysis {
       ...lineup,
       score: roundScore(lineup.score),
     })),
+    captaincy: captaincyByWeek(
+      context,
+      baseline.map((lineup) => ({ squad, lineup })),
+    ),
     moves: withAvailabilitySensitivity(context, shortlist(moves)),
     plans,
     threshold,
