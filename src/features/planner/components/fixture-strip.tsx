@@ -1,6 +1,6 @@
 import type { Data } from "@/lib/schemas";
 import { findClub, findPlayer } from "../players";
-import "./pitch-board.css";
+import "./fixture-strip.css";
 
 export function FixtureStrip({
   data,
