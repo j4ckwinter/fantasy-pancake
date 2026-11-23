@@ -330,7 +330,7 @@
     padding: var(--space-14);
   }
   .results-workspace .options-heading {
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--space-6);
   }
   .results-workspace .options-heading h2 {
     font-size: var(--text-15);

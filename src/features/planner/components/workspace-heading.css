@@ -197,15 +197,15 @@
   .workspace-heading--results.workspace-heading {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-12);
-    padding: var(--space-16);
+    gap: var(--space-10);
+    padding: var(--space-12) var(--space-16) var(--space-14);
   }
   .workspace-heading--results.workspace-heading h1 {
     font-size: var(--text-24);
   }
   .workspace-heading--results .workspace-heading__summary {
     align-items: stretch;
-    gap: var(--space-12);
+    gap: var(--space-10);
   }
   .workspace-heading--results .workspace-figures {
     order: -1;
