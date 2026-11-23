@@ -16,7 +16,7 @@ export type TransferRules = {
 
 type Swap = Pick<TransferAction, "outId" | "inId">;
 
-export type TransferCheck =
+type TransferCheck =
   { legal: true; state: SquadState } | { legal: false; reason: string };
 
 export function isTransferable(player: Player): boolean {

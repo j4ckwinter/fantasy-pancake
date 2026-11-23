@@ -117,10 +117,7 @@ export const picksSchema = z.object({
   entry_history: z.object({ event: z.number().int(), bank: nonnegative.int() }),
   picks: z.array(z.object({ element: z.number().int() })).length(SQUAD_SIZE),
 });
-export const availabilityScenarioSchema = z.enum([
-  "persistent",
-  "recover-next-week",
-]);
+const availabilityScenarioSchema = z.enum(["persistent", "recover-next-week"]);
 export const settingsSchema = z.object({
   version: z.literal(1),
   entryId: z.number().int().positive(),
@@ -155,7 +152,6 @@ export const dataSchema = z.object({
 export type AvailabilityScenario = z.infer<typeof availabilityScenarioSchema>;
 export type Player = z.infer<typeof playerSchema>;
 export type Fixture = z.infer<typeof fixtureSchema>;
-export type Bootstrap = z.infer<typeof bootstrapSchema>;
 export type Settings = z.infer<typeof settingsSchema>;
 export type Data = z.infer<typeof dataSchema>;
 export type History = z.infer<typeof historySchema>["history"];

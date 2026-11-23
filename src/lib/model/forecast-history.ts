@@ -5,8 +5,6 @@ import { fullMatches } from "./match-minutes";
 import { positionOf, type Position } from "./position";
 import { recencyWeight } from "./recency";
 
-export type { MinuteOutcome } from "./minutes-forecast";
-
 export type PlayerForecast = MinutesForecast & {
   historyMatches: number;
   xg90: number;

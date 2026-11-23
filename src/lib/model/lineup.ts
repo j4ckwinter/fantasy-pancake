@@ -2,7 +2,7 @@ import type { Data, Player } from "../schemas";
 import type { Lineup } from "./types";
 import { POSITIONS } from "./position";
 
-export type LineupRules = {
+type LineupRules = {
   bootstrap: Pick<Data["bootstrap"], "element_types" | "game_settings">;
 };
 

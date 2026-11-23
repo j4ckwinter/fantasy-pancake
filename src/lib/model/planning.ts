@@ -183,7 +183,6 @@ function rollPlans(
   return singleSwaps(search).flatMap((swap) => {
     const check = checkTransfers(search.rules, search.start, [swap]);
     if (!check.legal) return [];
-    const hit = transferHit(1, deferredFreeTransfers);
     const laterGain = search
       .gains(check.state.squad)
       .slice(1)
@@ -192,8 +191,8 @@ function rollPlans(
       {
         kind: "roll-then-transfer",
         actions: [{ week: weeks[1], ...swap }],
-        gain: roundScore(laterGain - hit),
-        hit,
+        gain: roundScore(laterGain),
+        hit: 0,
         remainingBank: check.state.bank,
         freeTransfersAfterPlan: freeTransfersLeft(1, deferredFreeTransfers),
         reasons: [...rollReasons(weeks, cap), ...assumptions],
