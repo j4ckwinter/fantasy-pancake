@@ -19,6 +19,11 @@ async function smallTouchTargets(page: Page) {
 }
 
 async function lowContrastText(page: Page) {
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .every((animation) => animation.playState !== "running"),
+  );
   return page.evaluate(() => {
     const channel = (value: number) => {
       const c = value / 255;
