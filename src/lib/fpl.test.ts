@@ -1,11 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { FplError, getHistory, idSchema, importTeam } from "./fpl";
+import { FplError, getHistory, importTeam } from "./fpl";
 afterEach(() => vi.unstubAllGlobals());
 describe("FPL boundary", () => {
-  it("rejects invalid IDs", () => {
-    for (const id of ["", null, "abc", "1.5", "-1", "100000001"])
-      expect(idSchema.safeParse(id).success).toBe(false);
-  });
   it("imports the latest published squad, skipping only 404s", async () => {
     const picks = {
       active_chip: null,

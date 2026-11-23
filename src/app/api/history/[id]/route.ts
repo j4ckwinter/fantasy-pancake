@@ -1,4 +1,6 @@
-import { getHistory, errorResponse, idSchema } from "@/lib/fpl";
+import { getHistory } from "@/lib/fpl";
+import { errorResponse } from "../../error-response";
+import { idSchema } from "../../fpl-id";
 export const dynamic = "force-dynamic";
 export async function GET(
   _request: Request,
