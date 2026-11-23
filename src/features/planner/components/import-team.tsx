@@ -1,5 +1,5 @@
 import { Button, TextField } from "@jack.winter/pancake-ui";
-import { PitchBoard } from "./pitch-board";
+import { PitchIllustration } from "./pitch-board";
 import "./landing.css";
 export function ImportTeam({
   ready,
@@ -69,7 +69,7 @@ export function ImportTeam({
           </section>
         )}
       </div>
-      <PitchBoard />
+      <PitchIllustration />
     </section>
   );
 }
