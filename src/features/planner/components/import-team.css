@@ -91,11 +91,6 @@
   margin-bottom: 0;
   font-weight: 700;
 }
-.import-form .pancake-field-description {
-  font-size: var(--text-9);
-  overflow-wrap: anywhere;
-  margin-top: var(--space-4);
-}
 .import-card > .muted:last-child {
   font-size: var(--text-10);
   border-top: 1px solid var(--color-line);

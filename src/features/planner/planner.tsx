@@ -1,5 +1,6 @@
 "use client";
-import { BannerToast, Button } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
+import { Banner } from "@/components/banner";
 import { overLimitClubs, validateSquad } from "@/lib/model";
 import { usePlanner } from "./use-planner";
 import { PlannerLoading } from "./components/planner-loading";
@@ -52,9 +53,9 @@ export default function Planner() {
       ) : null}
       {error && (
         <div className="notice">
-          <BannerToast tone="error" title="Something needs attention">
+          <Banner tone="error" title="Something needs attention">
             {error}
-          </BannerToast>
+          </Banner>
         </div>
       )}
       {busy && (
@@ -70,26 +71,28 @@ export default function Planner() {
         />
       )}
       {!data && !busy && (
-        <Button onClick={planner.retry}>Retry loading data</Button>
+        <Button variant="brand" onClick={planner.retry}>
+          Retry loading data
+        </Button>
       )}
       {data && !settings && notice && (
         <div className="notice">
-          <BannerToast title="Saved settings" tone="warning">
+          <Banner title="Saved settings" tone="warning">
             {noticeText[notice]}
-          </BannerToast>
+          </Banner>
         </div>
       )}
       {!settings && !busy && <PlannerPrinciples />}
       {excessClubs.length > 0 && (
         <div className="notice">
-          <BannerToast title="Check this club-limit exception" tone="warning">
+          <Banner title="Check this club-limit exception" tone="warning">
             You have more than three players from {excessClubs.join(", ")}. Keep
             this only if it matches your actual FPL squad after a real-world
             club transfer. Rolling is allowed, but any suggested transfer must
             restore every club to the limit. If that needs multiple moves, this
             planner may only find a correction if one or two transfers can
             restore the limits.
-          </BannerToast>
+          </Banner>
         </div>
       )}
       {data && settings && showTeamReview && (

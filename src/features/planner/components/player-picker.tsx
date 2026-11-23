@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { TextField } from "@jack.winter/pancake-ui";
+import { TextField } from "@/components/field";
 import type { Data, Player } from "@/lib/schemas";
 import { money } from "../format";
 import { findClub } from "../players";

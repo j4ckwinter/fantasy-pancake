@@ -1,4 +1,4 @@
-import { Button } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
 import { playerForecast, type Move } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
 import { minus, money, signed, scoreGainLabel } from "../format";
@@ -117,7 +117,7 @@ export function GroupedTransfers({
                     </div>
                     <Button
                       type="button"
-                      variant="secondary"
+                      variant="outline"
                       className="preview-toggle"
                       aria-pressed={selected}
                       aria-label={`Preview ${outgoing.web_name} to ${incoming.web_name}`}

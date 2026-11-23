@@ -1,5 +1,7 @@
 import { useRef } from "react";
-import { BannerToast, Button, EmptyState } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
+import { Banner } from "@/components/banner";
+import { EmptyState } from "@/components/empty-state";
 import type { Data, Settings } from "@/lib/schemas";
 import {
   freeTransferCap,
@@ -129,9 +131,9 @@ export function TransferResults({
       }}
     >
       {notice === "settings-not-saved" && (
-        <BannerToast title="Settings not saved" tone="warning">
+        <Banner title="Settings not saved" tone="warning">
           {noticeText[notice]}
-        </BannerToast>
+        </Banner>
       )}
       <MobilePlannerNav
         onCompare={() => {
@@ -163,7 +165,7 @@ export function TransferResults({
               ).map(([value, label]) => (
                 <Button
                   key={value}
-                  variant="secondary"
+                  variant="outline"
                   aria-pressed={category === value}
                   onClick={() => {
                     if (category === value) return;

@@ -85,7 +85,7 @@
   border: 0;
   background: transparent;
   color: var(--color-text-label);
-  font: 700 var(--text-11) var(--font-pancake);
+  font: 700 var(--text-11) var(--font-ui);
   padding: var(--space-10) var(--space-4);
   border-radius: var(--radius-5);
   cursor: pointer;

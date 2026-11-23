@@ -1,4 +1,5 @@
-import { Button, TextField } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
+import { TextField } from "@/components/field";
 import { PitchIllustration } from "./pitch-board";
 import "./import-team.css";
 export function ImportTeam({
@@ -61,7 +62,9 @@ export function ImportTeam({
                 required
                 aria-describedby="team-id-help"
               />
-              <Button type="submit">Import team →</Button>
+              <Button variant="brand" type="submit">
+                Import team →
+              </Button>
             </form>
             <p id="team-id-help" className="import-id-example">
               Example: /entry/<strong>123456</strong>/event/9

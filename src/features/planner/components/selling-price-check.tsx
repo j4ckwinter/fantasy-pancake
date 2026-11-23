@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Button, TextField } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
+import { TextField } from "@/components/field";
 import type { Player } from "@/lib/schemas";
 import { fromMillions, toMillions } from "../format";
 import "./selling-price-check.css";
@@ -34,7 +35,7 @@ export function SellingPriceCheck({
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
       />
-      <Button type="submit" variant="secondary">
+      <Button type="submit" variant="outline">
         {confirmed && fromMillions(Number(draft)) === value
           ? "Recheck price"
           : "Confirm price"}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef } from "react";
-import { Button } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
 import { playerForecast, upcomingWeeks, usableHistory } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
 import { money } from "../format";
@@ -71,7 +71,7 @@ export function PlayerDetails({
           </p>
         </div>
         <Button
-          variant="secondary"
+          variant="outline"
           onClick={onClose}
           aria-label="Close player details"
         >

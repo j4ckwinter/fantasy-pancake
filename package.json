@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@fontsource-variable/geist": "5.3.0",
-    "@jack.winter/pancake-ui": "0.1.1",
     "class-variance-authority": "0.7.1",
     "cn": "0.5.2",
     "lucide-react": "1.73.0",

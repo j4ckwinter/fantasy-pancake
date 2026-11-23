@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Button } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
 import "./workspace-heading.css";
 import type { Settings } from "@/lib/schemas";
 import type { Analysis } from "@/lib/model";
@@ -58,7 +58,7 @@ export function WorkspaceHeading({
         <div className="workspace-heading__summary">
           {result && (
             <Button
-              variant="secondary"
+              variant="outline"
               className="workspace-heading__edit"
               disabled={!canEdit}
               onClick={onEditTeam}

@@ -74,7 +74,7 @@ body {
   margin: 0;
   background: var(--color-page);
   color: var(--color-ink);
-  font-family: var(--font-pancake);
+  font-family: var(--font-ui);
   font-size: var(--text-14);
   line-height: 1.6;
 }

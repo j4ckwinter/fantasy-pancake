@@ -1,4 +1,4 @@
-import { Button } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
 import "./saved-plan-notice.css";
 
 export function SavedPlanNotice({
@@ -16,7 +16,7 @@ export function SavedPlanNotice({
         <strong>Saved plan · GW{gameweek} picks</strong>
         <span>Check your bank and free transfers.</span>
       </div>
-      <Button variant="secondary" disabled={busy} onClick={onRefresh}>
+      <Button variant="outline" disabled={busy} onClick={onRefresh}>
         Refresh from FPL
       </Button>
     </aside>

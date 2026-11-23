@@ -1,4 +1,5 @@
-import { Button, StatusChip } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/status-badge";
 import { freeTransfersLabel } from "../format";
 import "./roll-option.css";
 
@@ -21,8 +22,8 @@ export function RollOption({
           <h3>Roll the transfer</h3>
           <p>No hit · {freeTransfersLabel(nextFreeTransfers)} next GW*</p>
         </div>
-        <StatusChip tone="success">Recommended</StatusChip>
-        <Button variant="secondary" onClick={onPreview}>
+        <StatusBadge tone="success">Recommended</StatusBadge>
+        <Button variant="outline" onClick={onPreview}>
           View unchanged squad <span aria-hidden="true">→</span>
         </Button>
       </div>

@@ -21,9 +21,10 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Selections, their labels and plan categories                      | `src/features/planner/selection.ts`                              |
 | Planner status, notice and error messages                         | `src/features/planner/messages.ts`                               |
 | Rendering and local UI interactions                               | `src/features/planner/components/`                               |
-| Design tokens and Pancake UI overrides                            | `src/app/tokens.css`                                             |
+| Design tokens, the dark palette and shadcn's theme variables      | `src/app/tokens.css`                                             |
 | Named layout breakpoints for media queries and scripts            | `src/app/breakpoints.ts`                                         |
 | Rules that keep style values on tokens and breakpoints            | `src/app/style-tokens.test.ts`                                   |
+| Generic controls: shadcn primitives and the app's wrappers        | `src/components/ui/`, `src/components/`                          |
 | Styles that several planner components share                      | `src/features/planner/shared.css`                                |
 | A component's own styles, imported by that component              | `src/features/planner/components/<component>.css`                |
 | Recommendation orchestration and public model exports             | `src/lib/model.ts`                                               |
@@ -49,7 +50,7 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 - Keep model calculations independent of React, Next.js, browser storage and HTTP. Call the public model entry point from features; model internals must not depend on feature or route code.
 - Validate external and persisted data at the owning boundary using the existing schemas. Supply storage to settings functions rather than hiding browser access inside them.
 - Reuse existing domain rules, price conversions and formatting where applicable. Extract shared code when it represents the same responsibility; avoid generic utility collections, speculative interfaces or class hierarchies just to satisfy SOLID/DRY terminology.
-- Put new feature-specific code under `src/features/<feature>/`. Promote code to a shared module only when there are real consumers with the same needs. Reuse Pancake UI primitives for generic controls.
+- Put new feature-specific code under `src/features/<feature>/`. Promote code to a shared module only when there are real consumers with the same needs. Build generic controls from shadcn: vendored primitives live in `src/components/ui/` (edit them in place for app-wide defaults), and the app's wrappers around them (`field.tsx`, `banner.tsx`, `status-badge.tsx`, `disclosure.tsx`, `empty-state.tsx`) live in `src/components/`.
 - Preserve public model exports and saved-settings compatibility unless the requested change requires a deliberate migration. Preserve behavior and appearance during refactoring.
 - When a requirement justifies changing a boundary, explain the reason and update this file and the README architecture overview with the implementation.
 

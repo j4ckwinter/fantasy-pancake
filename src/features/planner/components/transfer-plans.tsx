@@ -1,4 +1,4 @@
-import { Button } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
 import type { Data } from "@/lib/schemas";
 import type { TransferPlan } from "@/lib/model";
 import { planLabels, pricesChecked, type Selection } from "../selection";
@@ -121,7 +121,7 @@ export function TransferPlans({
                 </span>
               </div>
               <Button
-                variant="secondary"
+                variant="outline"
                 className="preview-toggle"
                 aria-pressed={selected}
                 onClick={() => (selected ? onClearSelection() : onSelect(plan))}

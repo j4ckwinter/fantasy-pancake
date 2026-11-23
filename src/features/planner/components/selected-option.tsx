@@ -1,5 +1,6 @@
 import { useEffect, type RefObject } from "react";
-import { Disclosure, StatusChip } from "@jack.winter/pancake-ui";
+import { StatusBadge } from "@/components/status-badge";
+import { Disclosure } from "@/components/disclosure";
 import type { Lineup } from "@/lib/model";
 import { WeeklyBreakdown } from "./weekly-breakdown";
 import { PlayerComparison } from "./player-comparison";
@@ -53,9 +54,9 @@ export function SelectedOption({
         className="selected-option"
         aria-label="Selected transfer option"
       >
-        <StatusChip tone={checked ? "success" : "warning"}>
+        <StatusBadge tone={checked ? "success" : "warning"}>
           {checked ? "Prices checked" : "Provisional prices"}
-        </StatusChip>
+        </StatusBadge>
         {previewError ? (
           <p role="alert">{previewError}</p>
         ) : (
@@ -63,9 +64,9 @@ export function SelectedOption({
             <>
               {option.gain <= threshold && (
                 <p className="muted">
-                  <StatusChip tone="neutral">
+                  <StatusBadge tone="neutral">
                     Below shortlist threshold
-                  </StatusChip>{" "}
+                  </StatusBadge>{" "}
                   This option does not clear the {threshold.toFixed(1)}{" "}
                   score-unit margin for making a transfer.
                 </p>

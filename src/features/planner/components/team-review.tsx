@@ -1,9 +1,6 @@
-import {
-  BannerToast,
-  Button,
-  Select,
-  TextField,
-} from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
+import { TextField, SelectField } from "@/components/field";
+import { Banner } from "@/components/banner";
 import { freeTransferCap, TRANSFER_HIT_POINTS } from "@/lib/model";
 import type { Data, Settings } from "@/lib/schemas";
 import { SquadEditor } from "./squad-editor";
@@ -56,7 +53,7 @@ export function TeamReview({
         </div>
         <Button
           type="button"
-          variant="secondary"
+          variant="outline"
           disabled={busy}
           onClick={onImportAnother}
         >
@@ -90,7 +87,7 @@ export function TeamReview({
               })
             }
           />
-          <Select
+          <SelectField
             label="Free transfers remaining"
             value={settings.freeTransfers}
             onChange={(e) =>
@@ -105,7 +102,7 @@ export function TeamReview({
                 {i}
               </option>
             ))}
-          </Select>
+          </SelectField>
         </div>
         {settings.freeTransfers === 0 && (
           <p className="team-settings-note">
@@ -114,7 +111,7 @@ export function TeamReview({
         )}
         <details className="forecast-settings">
           <summary>Advanced options</summary>
-          <Select
+          <SelectField
             label="Availability assumption"
             value={settings.availabilityScenario ?? "persistent"}
             onChange={(event) =>
@@ -131,7 +128,7 @@ export function TeamReview({
             <option value="recover-next-week">
               Flagged players recover after next gameweek
             </option>
-          </Select>
+          </SelectField>
           {settings.availabilityScenario === "recover-next-week" && (
             <p className="muted">
               Recovery is a what-if scenario, not a predicted return date.
@@ -140,13 +137,13 @@ export function TeamReview({
         </details>
         {errors.length > 0 && (
           <div className="notice">
-            <BannerToast title="Check your squad" tone="warning">
+            <Banner title="Check your squad" tone="warning">
               <ul>
                 {errors.map((e) => (
                   <li key={e}>{e}</li>
                 ))}
               </ul>
-            </BannerToast>
+            </Banner>
           </div>
         )}
         <div className="section-title squad-summary-heading">
@@ -158,7 +155,7 @@ export function TeamReview({
           </div>
           <Button
             type="button"
-            variant="secondary"
+            variant="outline"
             aria-expanded={editingTeam}
             onClick={onToggleEditing}
           >
@@ -176,7 +173,7 @@ export function TeamReview({
           {canReturnToShortlist && hasTeamEdits && (
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               className="team-settings-discard"
               disabled={busy}
               onClick={onCancel}
@@ -185,7 +182,7 @@ export function TeamReview({
             </Button>
           )}
           <Button
-            variant="secondary"
+            variant="outline"
             type="submit"
             disabled={busy || errors.length > 0}
           >

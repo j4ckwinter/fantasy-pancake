@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
 import { marketPricePick } from "../settings";
 import { money } from "../format";
 import { PlayerPicker } from "./player-picker";
@@ -132,7 +132,7 @@ function SquadPlayerRow({
         <Button
           ref={trigger}
           type="button"
-          variant="secondary"
+          variant="outline"
           aria-label={`Replace ${name}`}
           aria-expanded={replacing}
           onClick={() => (replacing ? close() : setReplacing(true))}
@@ -160,7 +160,7 @@ function SquadPlayerRow({
               close();
             }}
           />
-          <Button type="button" variant="secondary" onClick={close}>
+          <Button type="button" variant="outline" onClick={close}>
             Cancel replacement
           </Button>
         </div>

@@ -1,4 +1,4 @@
-import { Button } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
 import type { Data, Settings } from "@/lib/schemas";
 import { findPlayer } from "../players";
 import "./player-locks.css";
@@ -43,7 +43,7 @@ export function PlayerLocks({
               <Button
                 key={id}
                 type="button"
-                variant="secondary"
+                variant="outline"
                 aria-pressed={locked}
                 disabled={disabled}
                 aria-label={`${locked ? "Unlock" : "Keep"} ${player.web_name}`}

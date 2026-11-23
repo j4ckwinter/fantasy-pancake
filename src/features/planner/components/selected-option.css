@@ -19,13 +19,6 @@
   border-radius: 0;
   background: transparent;
 }
-.selected-option > details > summary {
-  padding: var(--space-14) 0;
-  background: transparent;
-}
-.selected-option > details > .pancake-disclosure-content {
-  padding: 0 0 var(--space-16);
-}
 .transfer-details {
   min-width: 0;
   border: 1px solid var(--color-border-strong);

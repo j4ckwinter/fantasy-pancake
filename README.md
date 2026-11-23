@@ -4,7 +4,7 @@
 
 i’m tired of thinking about fpl so much. i built this to help me pick my transfers.
 
-built with Next.js, React, TypeScript and Pancake UI. no login, no automatic transfers. your settings stay in your browser.
+built with Next.js, React, TypeScript, Tailwind and shadcn/ui. no login, no automatic transfers. your settings stay in your browser.
 
 ## run locally
 
@@ -68,7 +68,6 @@ keep fetching and persistence out of presentation components, and browser code o
 
 - [API findings](docs/api-investigation.md): what public FPL data can and can’t tell us.
 - [evaluation](docs/evaluation.md): score existing snapshots after matches finish. there’s no snapshot download in the UI.
-- [Pancake UI](https://github.com/j4ckwinter/pancake-ui): shared components, installed from npm as `@jack.winter/pancake-ui`.
 
 `unrs-resolver` is pinned to 1.11.1 because the advertised 1.13.0 tarball returned 404 during setup. replace it once an upgrade is verified. other dependency follow-ups live in the [release guide](docs/deployment.md#dependency-and-source-release-status).
 
@@ -76,4 +75,4 @@ keep fetching and persistence out of presentation components, and browser code o
 
 Fantasy Pancake is proprietary. keep this repository private; see [LICENSE](LICENSE). `private: true` prevents npm publication, not public GitHub access.
 
-Pancake UI remains [MIT licensed](https://github.com/j4ckwinter/pancake-ui/blob/main/LICENSE). the Geist font (installed from npm as `@fontsource-variable/geist`) keeps its SIL Open Font License; other dependencies keep their own licenses.
+shadcn/ui components are vendored under the MIT license in `src/components/ui/`. the Geist font (installed from npm as `@fontsource-variable/geist`) keeps its SIL Open Font License; other dependencies keep their own licenses.
