@@ -284,3 +284,19 @@ test("an invalid initial imported squad opens correction instead of losing the i
   await expect(page.getByLabel("Bank balance (£m)")).toHaveValue("0.5");
   await expect(shortlistHeading(page)).toHaveCount(0);
 });
+
+test("a fresh import marks its balances as estimates until the team is updated", async ({
+  page,
+}) => {
+  await importTeam(page);
+  await expect(shortlistHeading(page)).toBeVisible();
+  const figures = page.locator(".workspace-figures");
+  await expect(figures).toContainText("Deadline bank");
+  await expect(figures).toContainText("Assumed FTs");
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await page.getByLabel("Free transfers remaining").selectOption("2");
+  await saveAndViewShortlist(page);
+  await expect(shortlistHeading(page)).toBeVisible();
+  await expect(figures).toContainText("In the bank");
+  await expect(figures).not.toContainText("Assumed");
+});

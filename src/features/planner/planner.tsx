@@ -37,6 +37,7 @@ export default function Planner() {
           settings={settings}
           result={result}
           loading={!!busy && !planner.reviewOpen}
+          balancesFromImport={notice === "import-caveat"}
           onEditTeam={planner.editTeam}
         />
       ) : !settings && !busy ? (

@@ -8,8 +8,10 @@ export function WorkspaceHeading({
   settings,
   result,
   loading = false,
+  balancesFromImport,
   onEditTeam,
 }: {
+  balancesFromImport: boolean;
   loading?: boolean;
   onEditTeam: () => void;
   settings: Settings;
@@ -60,13 +62,13 @@ export function WorkspaceHeading({
           )}
           <dl className="workspace-figures">
             <div>
-              <dt>In the bank</dt>
+              <dt>{balancesFromImport ? "Deadline bank" : "In the bank"}</dt>
               <dd>
                 {Number.isFinite(settings.bank) ? money(settings.bank) : "—"}
               </dd>
             </div>
             <div>
-              <dt>Free transfers</dt>
+              <dt>{balancesFromImport ? "Assumed FTs" : "Free transfers"}</dt>
               <dd>{settings.freeTransfers}</dd>
             </div>
             {result?.weeks.length ? (
