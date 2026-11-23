@@ -17,7 +17,13 @@ import {
 } from "./settings";
 import { historyCandidates } from "./history-candidates";
 import { plannerDataExpired } from "./freshness";
-import { selectedPreview, type Selection } from "./selection";
+import {
+  planSelection,
+  selectedPreview,
+  transferSelection,
+  type PlanCategory,
+  type Selection,
+} from "./selection";
 import {
   checkTeamSettings,
   comparingPlans,
@@ -68,9 +74,7 @@ export function usePlanner() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [reviewOpen, setReviewOpen] = useState(false);
-  const [planCategory, setPlanCategory] = useState<
-    "singles" | "pair-now" | "roll-then-transfer"
-  >("singles");
+  const [planCategory, setPlanCategory] = useState<PlanCategory>("singles");
   const [editingTeam, setEditingTeam] = useState(false);
   const [confirmedPrices, setConfirmedPrices] = useState<number[]>([]);
   const [priceNotice, setPriceNotice] = useState("");
@@ -383,16 +387,14 @@ export function usePlanner() {
     }
     revision.current++;
     if (!result?.weeks.length) return;
-    const name = (id: number) =>
-      data?.bootstrap.elements.find((player) => player.id === id)?.web_name ??
-      String(id);
-    setSelection({
-      key: `${move.outId}-${move.inId}`,
-      custom,
-      label: `${name(move.outId)} → ${name(move.inId)}`,
-      actions: [{ week: result.weeks[0], outId: move.outId, inId: move.inId }],
-      move,
-    });
+    setSelection(
+      transferSelection(
+        data?.bootstrap.elements ?? [],
+        result.weeks[0],
+        move,
+        custom,
+      ),
+    );
   }
   function selectPlan(plan: TransferPlan) {
     if (plannerDataExpired(loadedAt.current)) {
@@ -400,12 +402,7 @@ export function usePlanner() {
       return;
     }
     revision.current++;
-    setSelection({
-      key: plan.kind,
-      label: plan.kind === "pair-now" ? "Two transfers now" : "Roll, then move",
-      actions: plan.actions,
-      plan,
-    });
+    setSelection(planSelection(plan));
   }
   async function compareTransfer(outId: number, inId: number) {
     if (
@@ -450,16 +447,14 @@ export function usePlanner() {
       setSettings(currentSettings);
       const nextResult = analyze(enriched.data, currentSettings);
       setResult(nextResult);
-      const name = (id: number) =>
-        enriched.data.bootstrap.elements.find((player) => player.id === id)
-          ?.web_name ?? String(id);
-      setSelection({
-        key: `${outId}-${inId}`,
-        custom: true,
-        label: `${name(outId)} → ${name(inId)}`,
-        actions: [{ week: nextResult.weeks[0], outId, inId }],
-        move: evaluated.move,
-      });
+      setSelection(
+        transferSelection(
+          enriched.data.bootstrap.elements,
+          nextResult.weeks[0],
+          evaluated.move,
+          true,
+        ),
+      );
     } catch (reason) {
       if (currentRevision === revision.current) {
         const message = errorMessage(

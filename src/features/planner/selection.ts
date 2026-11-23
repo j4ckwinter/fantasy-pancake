@@ -6,7 +6,7 @@ import {
   type Move,
   type TransferPlan,
 } from "@/lib/model";
-import type { Data, Settings } from "@/lib/schemas";
+import type { Data, Player, Settings } from "@/lib/schemas";
 
 export type Selection = {
   key: string;
@@ -16,6 +16,39 @@ export type Selection = {
   move?: Move;
   plan?: TransferPlan;
 };
+
+export type PlanCategory = "singles" | TransferPlan["kind"];
+
+const planLabels: Record<TransferPlan["kind"], string> = {
+  "pair-now": "Two transfers now",
+  "roll-then-transfer": "Roll, then move",
+};
+
+export function transferSelection(
+  players: Player[],
+  week: number,
+  move: Move,
+  custom: boolean,
+): Selection {
+  const name = (id: number) =>
+    players.find((player) => player.id === id)?.web_name ?? String(id);
+  return {
+    key: `${move.outId}-${move.inId}`,
+    custom,
+    label: `${name(move.outId)} → ${name(move.inId)}`,
+    actions: [{ week, outId: move.outId, inId: move.inId }],
+    move,
+  };
+}
+
+export function planSelection(plan: TransferPlan): Selection {
+  return {
+    key: plan.kind,
+    label: planLabels[plan.kind],
+    actions: plan.actions,
+    plan,
+  };
+}
 
 export function selectedPreview(
   data: Data,
