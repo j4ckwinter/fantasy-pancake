@@ -1,3 +1,61 @@
+.lineup-preview__selection {
+  padding: var(--space-20) 0 var(--space-12);
+}
+.lineup-preview__selection h3 {
+  margin: var(--space-8) 0;
+  font-size: var(--text-20);
+  letter-spacing: -0.5px;
+}
+.lineup-preview__selection p,
+.lineup-preview__changes p {
+  font-size: var(--text-12);
+  line-height: 1.6;
+}
+.lineup-preview__mode {
+  margin-top: var(--space-8);
+}
+.lineup-preview__mode button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.lineup-preview__changes {
+  display: grid;
+  gap: var(--space-14);
+  padding: var(--space-16) var(--space-14);
+  border-top: 1px solid var(--color-border-subtle);
+}
+.lineup-preview__changes p {
+  margin: 0;
+}
+.lineup-preview__changes strong {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+  display: block;
+  font-size: var(--text-11);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.lineup-preview__bench > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin-top: var(--space-8);
+}
+.lineup-preview__bench button {
+  border: 1px solid var(--color-border-bench);
+  border-radius: var(--radius-999);
+  background: var(--color-white);
+  color: var(--color-ink);
+  min-height: 36px;
+  padding: var(--space-7) var(--space-11);
+  font: inherit;
+  font-size: var(--text-11);
+  cursor: pointer;
+}
+.lineup-preview__bench button:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
 .analysis-sidebar {
   display: grid;
   gap: var(--space-20);
