@@ -193,7 +193,7 @@ describe("planning ahead", () => {
     expect(new Set(variants).size).toBe(variants.length);
     const transferSets = plans.map((plan) =>
       plan.actions
-        .map((action) => `${action.outId}>${action.inId}`)
+        .map((action) => `${action.week}:${action.outId}>${action.inId}`)
         .sort()
         .join(),
     );

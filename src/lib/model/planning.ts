@@ -22,6 +22,7 @@ import {
   PLAN_BEAM_WIDTH,
   adjustedValue,
   compareCandidates,
+  exchangedPlayers,
   searchPlans,
   WEEK_TRANSFER_CHOICES,
   type PlanCandidate,
@@ -82,10 +83,13 @@ const ALTERNATIVE_ORDER = [
 ] as const satisfies readonly Exclude<PlanVariant, "best">[];
 
 function transferSet(candidate: PlanCandidate): string {
-  return candidate.actions
-    .map((action) => `${action.outId}>${action.inId}`)
-    .sort()
-    .join(",");
+  const weeks = [...new Set(candidate.actions.map((action) => action.week))];
+  return weeks
+    .map(
+      (week) =>
+        `${week}:${exchangedPlayers(candidate.actions.filter((action) => action.week === week))}`,
+    )
+    .join(" ");
 }
 
 function movesIn(candidate: PlanCandidate, week: number | undefined) {

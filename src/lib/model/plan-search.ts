@@ -136,6 +136,19 @@ function swapOptions(space: SearchSpace, node: Node, hold: Scorer) {
   return options;
 }
 
+function byPlayerIds(a: Swap, b: Swap): number {
+  return a.outId - b.outId || a.inId - b.inId;
+}
+
+export function exchangedPlayers(swaps: readonly Swap[]): string {
+  const ids = (pick: (swap: Swap) => number) =>
+    swaps
+      .map(pick)
+      .sort((a, b) => a - b)
+      .join(",");
+  return `${ids((swap) => swap.outId)}>${ids((swap) => swap.inId)}`;
+}
+
 function bestPairs(
   space: SearchSpace,
   state: SquadState,
@@ -147,7 +160,6 @@ function bestPairs(
       a.swap.outId - b.swap.outId ||
       a.swap.inId - b.swap.inId,
   );
-  const order = new Map(state.squad.map((player, index) => [player.id, index]));
   const seen = new Set<string>();
   const ranked: { swaps: Swap[]; estimate: number; key: string }[] = [];
   for (const seed of byDelta.slice(0, PAIR_SEED_SWAPS)) {
@@ -157,10 +169,8 @@ function bestPairs(
         partner.swap.inId === seed.swap.inId
       )
         continue;
-      const swaps = [seed.swap, partner.swap].sort(
-        (a, b) => order.get(a.outId)! - order.get(b.outId)!,
-      );
-      const key = swaps.map((swap) => `${swap.outId}>${swap.inId}`).join(",");
+      const swaps = [seed.swap, partner.swap].sort(byPlayerIds);
+      const key = exchangedPlayers(swaps);
       if (seen.has(key)) continue;
       seen.add(key);
       ranked.push({ swaps, estimate: seed.delta + partner.delta, key });

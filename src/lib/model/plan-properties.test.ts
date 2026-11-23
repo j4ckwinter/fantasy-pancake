@@ -116,6 +116,44 @@ describe("plan properties over generated squads", () => {
   });
 });
 
+function playersMovedEachWeek(plan: TransferPlan) {
+  return plan.weeks
+    .filter((week) => week.actions.length)
+    .map((week) => {
+      const ids = (pick: (action: TransferAction) => number) =>
+        week.actions.map(pick).sort((a, b) => a - b);
+      return JSON.stringify([
+        week.week,
+        ids((a) => a.outId),
+        ids((a) => a.inId),
+      ]);
+    })
+    .join();
+}
+
+describe("plan identity", () => {
+  it("does not depend on the order of the squad", () => {
+    for (let seed = 1; seed <= GENERATED_CASES; seed++) {
+      const { data, settings } = generatedCase(seed);
+      const reversed = { ...settings, squad: [...settings.squad].reverse() };
+      expect(analyze(data, reversed).plans, `seed ${seed}`).toEqual(
+        analyze(data, settings).plans,
+      );
+    }
+  });
+
+  it("never offers two plans that move the same players in the same weeks", () => {
+    for (let seed = 1; seed <= GENERATED_CASES; seed++) {
+      const { data, settings } = generatedCase(seed);
+      const planAhead = analyze(data, settings).plans.filter(
+        (plan) => plan.kind === "plan-ahead",
+      );
+      const moved = planAhead.map(playersMovedEachWeek);
+      expect(new Set(moved).size, `seed ${seed}`).toBe(moved.length);
+    }
+  });
+});
+
 type Swap = Pick<TransferAction, "outId" | "inId">;
 
 function scoresFor(data: Data, weeks: number[]) {
