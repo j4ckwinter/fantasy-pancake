@@ -1,16 +1,31 @@
 .transfer-group-heading {
   display: flex;
   align-items: center;
-  gap: var(--space-1rem);
-  margin-bottom: var(--space-1rem);
+  gap: var(--space-12);
 }
 .transfer-group-heading h3 {
-  margin: var(--space-0-25rem) 0;
-  font-size: var(--text-group-title);
-  letter-spacing: -0.04em;
-}
-.transfer-group-heading p {
   margin: 0;
+  font-size: var(--text-20);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+.transfer-group-subtitle {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-12);
+  font-variant-numeric: tabular-nums;
+}
+.transfer-rank {
+  flex: none;
+  padding: var(--space-2) var(--space-6);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-6);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-muted);
+  font-size: var(--text-12);
+  font-weight: 600;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
 }
 .player-detail-link {
   padding: 0;
@@ -18,39 +33,43 @@
   background: none;
   color: inherit;
   font: inherit;
-  font-weight: 750;
+  font-weight: inherit;
   text-align: left;
   cursor: pointer;
   text-decoration: underline;
   text-decoration-color: var(--color-underline);
+  text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
 }
 .player-detail-link:hover {
   text-decoration-color: currentColor;
 }
 .player-detail-link:focus-visible {
-  outline: 2px solid var(--color-ink);
-  outline-offset: 4px;
+  outline: none;
   border-radius: var(--radius-2);
+  box-shadow: var(--shadow-focus);
 }
 .alternative-gain {
   display: grid;
-  gap: var(--space-0-25rem);
+  gap: var(--space-2);
   min-width: 0;
+  font-variant-numeric: tabular-nums;
 }
 .alternative-gain > span {
-  font-size: var(--text-0-75rem);
+  font-size: var(--text-11);
   color: var(--color-text-muted);
 }
 .alternative-gain > strong {
-  font-size: var(--text-1-6rem);
-  letter-spacing: -0.04em;
+  font-size: var(--text-20);
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 @media (max-width: 700px) {
   .alternative-gain {
     text-align: right;
   }
-  .alternative-gain > span {
-    font-size: var(--text-11);
+  .transfer-group-heading h3 {
+    font-size: var(--text-18);
   }
 }

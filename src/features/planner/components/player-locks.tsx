@@ -1,4 +1,5 @@
-import { Button } from "@jack.winter/pancake-ui";
+import { ChevronDownIcon, LockIcon, PlusIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { Data, Settings } from "@/lib/schemas";
 import { findPlayer } from "../players";
 import "./player-locks.css";
@@ -19,15 +20,16 @@ export function PlayerLocks({
     <details className="planner-tool">
       <summary>
         <span className="planner-tool__icon" aria-hidden="true">
-          ◇
+          <LockIcon className="size-4" />
         </span>
         <span className="planner-tool__label">
           <span>{`Keep players · ${lockedIds.length} locked`}</span>
           <small>Protect your must-keep players from transfers.</small>
         </span>
-        <span className="planner-tool__chevron" aria-hidden="true">
-          +
-        </span>
+        <ChevronDownIcon
+          aria-hidden="true"
+          className="planner-tool__chevron size-4"
+        />
       </summary>
       <div className="custom-panel-content">
         <p className="muted">
@@ -43,13 +45,17 @@ export function PlayerLocks({
               <Button
                 key={id}
                 type="button"
-                variant="secondary"
+                variant="outline"
                 aria-pressed={locked}
                 disabled={disabled}
                 aria-label={`${locked ? "Unlock" : "Keep"} ${player.web_name}`}
                 onClick={() => onToggle(id)}
               >
-                <span aria-hidden="true">{locked ? "●" : "+"}</span>{" "}
+                {locked ? (
+                  <LockIcon aria-hidden="true" className="size-4" />
+                ) : (
+                  <PlusIcon aria-hidden="true" className="size-4" />
+                )}
                 {player.web_name}
               </Button>
             );

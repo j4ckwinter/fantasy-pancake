@@ -11,10 +11,11 @@
     z-index: var(--z-mobile-nav);
     max-width: 420px;
     margin-inline: auto;
+    gap: var(--space-4);
     padding: var(--space-6);
-    border: 1px solid var(--color-night-border-strong);
-    border-radius: var(--radius-20);
-    background: var(--color-night-raised);
+    border: 1px solid var(--color-night-border);
+    border-radius: var(--radius-16);
+    background: var(--color-night);
     box-shadow: var(--shadow-mobile-nav);
   }
   .workspace-mobile-nav a {
@@ -22,35 +23,26 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--space-5);
-    min-height: 52px;
+    gap: var(--space-2);
+    min-height: var(--space-44);
     padding: var(--space-6) var(--space-10);
-    border-radius: var(--radius-14);
-    color: var(--color-on-night-soft);
+    border-radius: var(--radius-10);
+    color: var(--color-on-night-muted);
     text-decoration: none;
     font-size: var(--text-11);
-    font-weight: 650;
+    font-weight: 500;
     line-height: 1.2;
     -webkit-tap-highlight-color: transparent;
   }
-  .workspace-mobile-nav svg {
-    width: 21px;
-    height: 21px;
-    fill: none;
-    stroke: var(--color-accent);
-    stroke-width: 1.6;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
   .workspace-mobile-nav a[aria-current="location"],
   .workspace-mobile-nav a:active {
-    background: var(--color-night-active);
-    color: var(--color-accent);
+    background: var(--color-night-raised);
+    color: var(--color-brand);
+    font-weight: 600;
   }
   .workspace-mobile-nav a:focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-brand);
     outline-offset: -2px;
-    background: var(--color-night-active);
   }
   .planner-workspace:has(.workspace-mobile-nav) {
     padding-bottom: calc(var(--space-100) + env(safe-area-inset-bottom));

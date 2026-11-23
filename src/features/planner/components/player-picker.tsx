@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { TextField } from "@jack.winter/pancake-ui";
+import { CheckIcon, SearchXIcon } from "lucide-react";
+import { TextField } from "@/components/field";
 import type { Data, Player } from "@/lib/schemas";
 import { money } from "../format";
 import { findClub } from "../players";
@@ -163,7 +164,12 @@ export function PlayerPicker({
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => choose(player)}
               >
-                <strong>{player.web_name}</strong>
+                <strong>
+                  {player.web_name}
+                  {selected?.id === player.id && (
+                    <CheckIcon aria-hidden="true" className="size-4" />
+                  )}
+                </strong>
                 <span>
                   {club(player)} · {money(player.now_cost)}
                 </span>
@@ -171,7 +177,10 @@ export function PlayerPicker({
             ))}
           </ul>
           {!matches.length && (
-            <p role="status">No matching players. Try another name or club.</p>
+            <p role="status">
+              <SearchXIcon aria-hidden="true" className="size-4" />
+              No matching players. Try another name or club.
+            </p>
           )}
         </div>
       )}

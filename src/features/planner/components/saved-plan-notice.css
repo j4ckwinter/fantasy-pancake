@@ -1,29 +1,50 @@
 .saved-plan-notice {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-8) var(--space-16);
-  padding: var(--space-8) 0;
-  border-bottom: 1px solid var(--color-border);
-  font-size: var(--text-12);
+  gap: var(--space-12) var(--space-14);
+  margin-block: var(--space-12);
+  padding: var(--space-10) var(--space-10) var(--space-10) var(--space-14);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-14);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  font-size: var(--text-13);
 }
-.saved-plan-notice > div {
+.saved-plan-notice__icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--radius-8);
+  background: var(--color-surface-selected);
+  color: var(--color-text-positive);
+}
+.saved-plan-notice__copy {
   display: flex;
+  flex: 1;
   flex-wrap: wrap;
-  gap: var(--space-4) var(--space-12);
+  gap: var(--space-2) var(--space-10);
+  min-width: 0;
 }
-.saved-plan-notice span {
+.saved-plan-notice strong {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.saved-plan-notice__copy span {
   color: var(--color-text-muted);
 }
-.saved-plan-notice button {
-  flex-shrink: 0;
-  min-width: 0;
-  min-height: 44px;
-  padding: var(--space-8) var(--space-12);
-  font-size: var(--text-12);
+.saved-plan-notice > button {
+  flex: none;
 }
 @media (max-width: 480px) {
   .saved-plan-notice {
     flex-wrap: wrap;
+  }
+  .saved-plan-notice__copy {
+    flex-direction: column;
+  }
+  .saved-plan-notice > button {
+    width: 100%;
   }
 }

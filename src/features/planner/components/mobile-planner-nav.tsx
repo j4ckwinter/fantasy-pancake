@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ArrowLeftRightIcon, Grid2x2Icon, ListIcon } from "lucide-react";
 import { mobileLayoutQuery } from "@/app/breakpoints";
 import "./mobile-planner-nav.css";
 
@@ -44,10 +45,7 @@ export function MobilePlannerNav({ onCompare }: { onCompare: () => void }) {
           activeSection === "planner-options" ? "location" : undefined
         }
       >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M9 6h11M9 12h11M9 18h11" />
-          <path d="M4 6h.01M4 12h.01M4 18h.01" strokeWidth="3" />
-        </svg>
+        <ListIcon aria-hidden="true" className="size-4" />
         <span>Options</span>
       </a>
       <a
@@ -56,11 +54,7 @@ export function MobilePlannerNav({ onCompare }: { onCompare: () => void }) {
           activeSection === "planner-squad" ? "location" : undefined
         }
       >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="5" y="3" width="14" height="18" rx="2" />
-          <path d="M5 12h14M9 3v4h6V3M9 21v-4h6v4" />
-          <circle cx="12" cy="12" r="2.5" />
-        </svg>
+        <Grid2x2Icon aria-hidden="true" className="size-4" />
         <span>Squad</span>
       </a>
       <a
@@ -70,9 +64,7 @@ export function MobilePlannerNav({ onCompare }: { onCompare: () => void }) {
         }
         onClick={onCompare}
       >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4" />
-        </svg>
+        <ArrowLeftRightIcon aria-hidden="true" className="size-4" />
         <span>Compare</span>
       </a>
     </nav>

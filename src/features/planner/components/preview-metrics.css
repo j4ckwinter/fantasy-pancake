@@ -1,33 +1,38 @@
 .metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-12);
-  margin: var(--space-18) 0;
-  padding: var(--space-16) 0;
-  border-block: 1px solid var(--color-border);
+  gap: var(--space-8);
+  margin: 0;
+}
+.metric {
+  min-width: 0;
+  padding: var(--space-10) var(--space-12);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-10);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
 }
 .metric strong {
   display: block;
-  font-size: var(--text-31);
-  line-height: 1.25;
-  font-weight: 750;
-  letter-spacing: -1.4px;
+  font-size: var(--text-20);
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.4px;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .metric span {
   display: block;
-  font-size: var(--text-10);
-  line-height: 1.5;
-  margin-top: var(--space-5);
-  color: var(--color-text-secondary);
-}
-@media (max-width: 780px) {
-  .metric strong {
-    font-size: var(--text-30);
-  }
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--text-11);
+  line-height: 1.4;
 }
 @media (max-width: 380px) {
+  .metric {
+    padding: var(--space-8) var(--space-10);
+  }
   .metric strong {
-    font-size: var(--text-26);
+    font-size: var(--text-17);
   }
 }

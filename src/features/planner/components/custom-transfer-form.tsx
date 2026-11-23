@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Button, Select } from "@jack.winter/pancake-ui";
+import { Button } from "@/components/ui/button";
+import { SelectField } from "@/components/field";
 import type { Move } from "@/lib/model";
 import type { Data, Settings } from "@/lib/schemas";
 import { money } from "../format";
@@ -68,7 +69,7 @@ export function CustomTransferForm({
       }}
     >
       <div className="custom-transfer-fields">
-        <Select
+        <SelectField
           label="Player to sell"
           value={outgoing?.id ?? ""}
           disabled={busy || !hasUnlockedPlayer}
@@ -103,7 +104,7 @@ export function CustomTransferForm({
                 ))}
             </optgroup>
           ))}
-        </Select>
+        </SelectField>
         <PlayerPicker
           key={outgoing?.id ?? "no-outgoing"}
           players={candidates}
@@ -117,7 +118,11 @@ export function CustomTransferForm({
         <p className="muted">
           Compare a player in the same position. Your squad stays unchanged.
         </p>
-        <Button type="submit" disabled={busy || !outgoing || !incoming}>
+        <Button
+          variant="brand"
+          type="submit"
+          disabled={busy || !outgoing || !incoming}
+        >
           {busy ? "Comparing…" : "Compare my transfer"}
         </Button>
       </div>

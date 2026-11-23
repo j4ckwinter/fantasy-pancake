@@ -19,11 +19,12 @@
 }
 .custom-transfer-submit p {
   margin: 0;
-  font-size: var(--text-0-85rem);
+  font-size: var(--text-12);
 }
 .custom-transfer-error {
   margin: 0;
   color: var(--color-text-danger);
+  font-size: var(--text-13);
 }
 @media (max-width: 700px) {
   .custom-transfer-fields {
@@ -35,16 +36,28 @@
   }
 }
 .custom-comparison-result {
-  padding: var(--space-1rem);
-  border-left: 3px solid var(--color-ink);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8) var(--space-16);
+  padding: var(--space-12) var(--space-14);
+  border: 1px solid var(--color-border-selected);
+  border-radius: var(--radius-10);
   background: var(--color-surface-selected);
-  font-size: var(--text-0-9rem);
+  color: var(--color-success-text);
+  font-size: var(--text-13);
 }
 .custom-comparison-result p {
-  margin: var(--space-0-5rem) 0;
+  margin: 0;
 }
 .custom-comparison-result a {
+  border-radius: var(--radius-4);
   color: var(--color-ink);
-  font-weight: 700;
+  font-weight: 600;
   text-underline-offset: 0.2em;
+}
+.custom-comparison-result a:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
 }

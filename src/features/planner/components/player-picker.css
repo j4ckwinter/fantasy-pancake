@@ -2,55 +2,82 @@
   position: relative;
   min-width: 0;
 }
+.player-picker [data-slot="input"] {
+  height: var(--touch-target);
+  font-size: var(--text-16);
+}
 .player-picker__popup {
   position: absolute;
   top: calc(100% + var(--space-6));
   inset-inline: 0;
   z-index: var(--z-popover);
-  background: var(--color-white);
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius-8);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-10);
+  background: var(--color-surface);
+  color: var(--color-ink);
   box-shadow: var(--shadow-popover);
   overflow: hidden;
 }
 .player-picker__popup ul {
-  list-style: none;
-  padding: var(--space-4);
-  margin: 0;
+  display: grid;
+  gap: var(--space-2);
   max-height: 240px;
+  margin: 0;
+  padding: var(--space-4);
+  list-style: none;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+.player-picker__popup ul:empty {
+  padding: 0;
 }
 .player-picker__popup li {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-12);
-  padding: var(--space-12);
-  border-radius: var(--radius-5);
-  font-size: var(--text-13);
+  min-height: var(--touch-target);
+  padding: var(--space-8) var(--space-10);
+  border-radius: var(--radius-8);
+  font-size: var(--text-14);
   cursor: pointer;
 }
 .player-picker__popup li strong {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  font-weight: 600;
   overflow-wrap: anywhere;
+}
+.player-picker__popup li strong svg {
+  color: var(--color-text-positive);
 }
 .player-picker__popup li span {
   color: var(--color-text-muted);
-  white-space: nowrap;
   font-size: var(--text-12);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
-.player-picker__popup li.is-active,
 .player-picker__popup li:hover {
-  background: var(--color-surface-selected);
+  background: var(--color-surface-tint);
 }
-.player-picker__popup li[aria-selected="true"] {
+.player-picker__popup li.is-active {
+  background: var(--color-surface-selected);
   box-shadow: var(--shadow-selected-edge-positive);
 }
 .player-picker__popup p {
-  padding: var(--space-12);
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
   margin: 0;
-  font-size: var(--text-13);
+  padding: var(--space-12);
   color: var(--color-text-muted);
+  font-size: var(--text-13);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .player-picker__popup li {
+    transition: background-color 150ms ease;
+  }
 }
 
 @media (max-width: 780px) {

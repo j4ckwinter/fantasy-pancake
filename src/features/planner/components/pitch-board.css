@@ -2,10 +2,9 @@
   min-width: 0;
   overflow: hidden;
   position: relative;
-  padding: var(--space-24) var(--space-18) var(--space-16);
+  padding: var(--space-18) var(--space-16) var(--space-14);
   border: 1px solid var(--color-night-border);
-  border-top: 5px solid var(--color-accent);
-  border-radius: var(--radius-10);
+  border-radius: var(--radius-14);
   background: var(--color-night);
   color: var(--color-on-night);
   box-shadow: var(--shadow-pitch-board);
@@ -15,55 +14,59 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-10);
-  padding: 0 var(--space-2) var(--space-20);
+  padding: 0 var(--space-2) var(--space-16);
 }
 .pitch-board__eyebrow {
   display: flex;
   align-items: center;
   gap: var(--space-6);
-  color: var(--color-on-pitch-eyebrow);
-  font: 700 var(--text-9)/1.5 var(--font-pancake);
-  letter-spacing: 1.3px;
+  color: var(--color-brand);
+  font: 600 var(--text-11)/1.5 var(--font-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .pitch-board__signal {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   flex: none;
-  background: var(--color-accent);
+  border-radius: var(--radius-999);
+  background: var(--color-brand);
 }
 .pitch-board__header h2 {
   color: var(--color-on-night);
   font-size: var(--text-pitch-title);
-  letter-spacing: -1px;
+  letter-spacing: -0.6px;
   line-height: 1.1;
-  font-weight: 750;
-  margin: var(--space-8) 0 0;
+  font-weight: 700;
+  margin: var(--space-6) 0 0;
 }
 .pitch-board__formation {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  align-items: flex-end;
+  gap: var(--space-2);
   white-space: nowrap;
-  color: var(--color-night);
-  background: var(--color-accent);
-  border-radius: var(--radius-3);
-  padding: var(--space-8) var(--space-10);
-  font-size: var(--text-16);
-  font-weight: 750;
-  line-height: 1.2;
+  color: var(--color-on-brand);
+  background: var(--color-brand);
+  border-radius: var(--radius-8);
+  padding: var(--space-6) var(--space-10);
+  font-size: var(--text-17);
+  font-weight: 700;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.7px;
-  transform: rotate(3deg);
+  letter-spacing: -0.3px;
 }
 .pitch-board__formation small {
-  font: 700 var(--text-7)/1.2 var(--font-pancake);
-  letter-spacing: 1.3px;
+  font: 600 var(--text-8)/1.2 var(--font-ui);
+  letter-spacing: 0.12em;
 }
 .pitch-board__field {
   position: relative;
   isolation: isolate;
-  margin: 0 0 var(--space-14);
-  border-radius: var(--radius-4);
+  margin: 0 0 var(--space-12);
+  border: 1px solid var(--color-pitch-rule);
+  border-radius: var(--radius-10);
+  overflow: hidden;
   background-color: var(--color-pitch-field);
   background-image:
     linear-gradient(var(--color-pitch-stripe) 1px, transparent 1px),
@@ -100,8 +103,8 @@
   top: var(--space-9);
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font: 600 var(--text-7)/1 monospace;
-  letter-spacing: 1px;
+  font: 600 var(--text-8)/1 var(--font-ui);
+  letter-spacing: 0.12em;
   color: var(--color-pitch-row-label);
 }
 .pitch-board__player {
@@ -120,7 +123,7 @@
   display: block;
   width: 35px;
   height: 33px;
-  color: var(--color-accent);
+  color: var(--color-brand);
   filter: var(--shadow-shirt);
 }
 .pitch-board__shirt--keeper {
@@ -133,21 +136,25 @@
   fill: var(--color-night);
 }
 .pitch-board__name {
-  margin-top: var(--space-7);
+  margin-top: var(--space-6);
   max-width: 100%;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-2);
+  padding: var(--space-2) var(--space-6);
+  border: 1px solid var(--color-night-border);
+  border-radius: var(--radius-4);
   background: var(--color-night);
   color: var(--color-on-night);
-  font-size: var(--text-10);
-  font-weight: 700;
+  font-size: var(--text-11);
+  font-weight: 600;
+  letter-spacing: -0.1px;
   overflow-wrap: anywhere;
 }
 .pitch-board__club {
-  margin-top: var(--space-4);
+  margin-top: var(--space-3);
   color: var(--color-on-night-muted);
-  font-size: var(--text-8);
-  letter-spacing: 1px;
+  font-size: var(--text-9);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
 }
 .pitch-board__captain {
   position: absolute;
@@ -158,11 +165,11 @@
   width: 18px;
   height: 18px;
   border: 2px solid var(--color-night);
-  border-radius: 50%;
+  border-radius: var(--radius-999);
   color: var(--color-night);
   background: var(--color-captain);
   font-size: var(--text-10);
-  font-weight: 800;
+  font-weight: 700;
 }
 .pitch-board__player--illustration .pitch-board__shirt {
   width: 43px;
@@ -173,36 +180,37 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-12);
-  padding: var(--space-11) var(--space-2) 0;
-  border-top: 1px solid var(--color-pitch-rule);
+  padding: 0 var(--space-2);
 }
 .pitch-board__caption {
   margin: 0;
   color: var(--color-on-night-muted);
-  font-size: var(--text-10);
+  font-size: var(--text-11);
   line-height: 1.5;
+  font-variant-numeric: tabular-nums;
 }
 .pitch-board__legend {
   display: inline-flex;
   gap: var(--space-5);
   align-items: center;
   color: var(--color-on-night-muted);
-  font-size: var(--text-9);
+  font-size: var(--text-11);
   white-space: nowrap;
 }
 .pitch-board__legend b {
   display: grid;
   place-items: center;
-  width: 14px;
-  height: 14px;
-  font-size: var(--text-8);
+  width: 16px;
+  height: 16px;
+  font-size: var(--text-9);
+  font-weight: 700;
   background: var(--color-captain);
   color: var(--color-night);
-  border-radius: 50%;
+  border-radius: var(--radius-999);
 }
 @media (max-width: 420px) {
   .pitch-board {
-    padding: var(--space-20) var(--space-12) var(--space-14);
+    padding: var(--space-16) var(--space-12) var(--space-12);
   }
   .pitch-board__players {
     min-height: 320px;
@@ -213,15 +221,14 @@
     height: 28px;
   }
   .pitch-board__name {
-    font-size: var(--text-9);
-    padding: var(--space-3) var(--space-2);
+    font-size: var(--text-10);
+    padding: var(--space-2) var(--space-4);
   }
   .pitch-board__header h2 {
     font-size: var(--text-23);
   }
   .pitch-board__eyebrow {
-    font-size: var(--text-8);
-    letter-spacing: 1px;
+    font-size: var(--text-10);
   }
 }
 
@@ -235,20 +242,33 @@ button.pitch-board__player {
 }
 button.pitch-board__player:hover .pitch-board__name,
 button.pitch-board__player:focus-visible .pitch-board__name {
-  background: var(--color-accent);
-  color: var(--color-ink);
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-on-brand);
 }
 button.pitch-board__player:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
 .pitch-board__player--entered .pitch-board__name {
-  background: var(--color-accent);
-  color: var(--color-ink);
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-on-brand);
   box-shadow: var(--shadow-entered-name);
+}
+.pitch-board__player--entered .pitch-board__club {
+  color: var(--color-brand);
 }
 .pitch-board__player--entered .pitch-board__club::after {
   content: " · NEW XI";
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pitch-board__name {
+    transition:
+      background-color 150ms ease,
+      color 150ms ease,
+      border-color 150ms ease;
+  }
 }
 @media (prefers-reduced-motion: no-preference) {
   .pitch-board {

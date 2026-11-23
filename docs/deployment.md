@@ -6,7 +6,7 @@ Use the exact Node version in `.nvmrc` locally and in CI. `package.json` permits
 
 The application needs a Node server for its API routes. Vercel is the deployment target, using its Next.js integration and Node 22 runtime. The API routes need outbound HTTPS to `fantasy.premierleague.com`. A static file host alone cannot run the application. No API keys, account credentials or application secrets are required.
 
-From a clean checkout (Pancake UI installs from npm through the lockfile):
+From a clean checkout:
 
 ```sh
 nvm install
@@ -63,4 +63,4 @@ Keep the previous verified revision and its matching build/dependencies availabl
 
 On 2026-10-31, `npm audit --omit=dev` reported no vulnerabilities. The full audit reported 16 moderate findings propagated from [minimatch glob amplification](https://github.com/advisories/GHSA-g3hv-75wg-m249) through the lint tooling. Installed minimatch 3.1.5 and 10.2.6 are the latest versions in their respective major lines at review time; the advisory requires 11.0.1 or later. A global cross-major override is not an established compatible fix. npm proposes downgrading ESLint to 4.0.0 and eslint-config-next to 12.0.4, which is unsuitable for this application. Leave the existing tree intact until a compatible upstream fix is verified. Run lint only on trusted project inputs and recheck the full audit before each release. CI gates production advisories; this documented development-tool finding remains open.
 
-Fantasy Pancake is proprietary software owned by Jack Winter; keep its repository private and deploy the application without publishing its source repository. The root LICENSE reserves rights to the application code and documentation. The `@jack.winter/pancake-ui` dependency remains MIT licensed. Its npm package includes `LICENSE` and the Inter font notice at `dist/fonts/OFL.txt`; preserve these notices with distributions. See the root application license and dependency license files. Repeat the live-host smoke checks above after deployment.
+Fantasy Pancake is proprietary software owned by Jack Winter; keep its repository private and deploy the application without publishing its source repository. The root LICENSE reserves rights to the application code and documentation. The vendored shadcn/ui components are MIT licensed, and the Geist font in `@fontsource-variable/geist` carries its SIL Open Font License; preserve these notices with distributions. See the root application license and dependency license files. Repeat the live-host smoke checks above after deployment.

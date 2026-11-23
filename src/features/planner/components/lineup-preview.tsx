@@ -1,6 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ChevronRightIcon,
+  XIcon,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Toggle } from "@/components/ui/toggle";
 import { mobileLayoutQuery } from "@/app/breakpoints";
 import type { Lineup } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
@@ -89,12 +97,19 @@ export function LineupPreview({
                 onBackToOptions();
               }}
             >
-              ← Back to options
+              <ArrowLeftIcon aria-hidden="true" className="size-4" />
+              Back to options
             </a>
           )}
-          <button type="button" onClick={onClearSelection}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lineup-preview__clear"
+            onClick={onClearSelection}
+          >
+            <XIcon aria-hidden="true" className="size-4" />
             Clear preview
-          </button>
+          </Button>
         </div>
       )}
       <div
@@ -103,15 +118,15 @@ export function LineupPreview({
         aria-label="Lineup gameweek"
       >
         {weeks.map((week, index) => (
-          <button
-            type="button"
+          <Toggle
             key={week}
+            className="lineup-switcher__option"
             aria-label={`Show lineup GW${week}`}
-            aria-pressed={lineupIndex === index}
+            pressed={lineupIndex === index}
             onClick={() => onLineupChange(index)}
           >
             GW{week}
-          </button>
+          </Toggle>
         ))}
       </div>
       {changed && (
@@ -120,20 +135,20 @@ export function LineupPreview({
           role="group"
           aria-label="Before or after transfers"
         >
-          <button
-            type="button"
-            aria-pressed={!after}
+          <Toggle
+            className="lineup-switcher__option"
+            pressed={!after}
             onClick={() => setMode("before")}
           >
             Before
-          </button>
-          <button
-            type="button"
-            aria-pressed={after}
+          </Toggle>
+          <Toggle
+            className="lineup-switcher__option"
+            pressed={after}
             onClick={() => setMode("after")}
           >
             After
-          </button>
+          </Toggle>
         </div>
       )}
       <PitchBoard
@@ -163,9 +178,10 @@ export function LineupPreview({
       <details className="lineup-preview__details">
         <summary>
           <span>Bench and XI changes</span>
-          <span className="lineup-preview__chevron" aria-hidden="true">
-            +
-          </span>
+          <ChevronRightIcon
+            aria-hidden="true"
+            className="lineup-preview__chevron size-4"
+          />
         </summary>
         <div className="lineup-preview__changes">
           {changed && (
@@ -183,9 +199,16 @@ export function LineupPreview({
               )}
               <p>
                 <strong>Captain</strong>{" "}
-                {baseline.captain === changed.captain
-                  ? `${name(changed.captain)} stays captain`
-                  : `${name(baseline.captain)} → ${name(changed.captain)}`}
+                {baseline.captain === changed.captain ? (
+                  `${name(changed.captain)} stays captain`
+                ) : (
+                  <span className="lineup-preview__captain-change">
+                    {name(baseline.captain)}
+                    <ArrowRightIcon aria-hidden="true" className="size-4" />
+                    <span className="sr-only">to</span>
+                    {name(changed.captain)}
+                  </span>
+                )}
               </p>
             </>
           )}

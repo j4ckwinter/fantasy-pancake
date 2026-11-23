@@ -1,11 +1,36 @@
 .player-locks {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-0-5rem);
-  padding: var(--space-0-5rem) 0;
+  gap: var(--space-6);
+  padding: var(--space-4) 0;
+}
+.player-locks button {
+  height: auto;
+  min-height: var(--space-32);
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-12) var(--space-4) var(--space-10);
+  border-radius: var(--radius-999);
+  color: var(--color-ink);
+  font-size: var(--text-12);
+  font-weight: 500;
+  box-shadow: none;
+}
+.player-locks button svg {
+  color: var(--color-text-muted);
 }
 .player-locks button[aria-pressed="true"] {
-  background: var(--color-ink);
-  color: var(--color-accent);
-  border-color: var(--color-ink);
+  border-color: transparent;
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+  font-weight: 600;
+}
+.player-locks button[aria-pressed="true"] svg {
+  color: var(--color-on-brand);
+}
+.player-locks button[aria-pressed="true"]:hover {
+  background: var(--color-brand-strong);
+}
+.player-locks button:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
 }

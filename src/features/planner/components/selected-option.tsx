@@ -1,5 +1,7 @@
 import { useEffect, type RefObject } from "react";
-import { Disclosure, StatusChip } from "@jack.winter/pancake-ui";
+import { ChevronRightIcon } from "lucide-react";
+import { StatusBadge } from "@/components/status-badge";
+import { Disclosure } from "@/components/disclosure";
 import type { Lineup } from "@/lib/model";
 import { WeeklyBreakdown } from "./weekly-breakdown";
 import { PlayerComparison } from "./player-comparison";
@@ -48,24 +50,30 @@ export function SelectedOption({
   const checked = pricesChecked(selection.actions, confirmedPrices);
   return (
     <details id="selected-option" className="transfer-details" ref={detailsRef}>
-      <summary>Transfer details</summary>
+      <summary>
+        Transfer details
+        <ChevronRightIcon
+          aria-hidden="true"
+          className="transfer-details__chevron size-4"
+        />
+      </summary>
       <article
         className="selected-option"
         aria-label="Selected transfer option"
       >
-        <StatusChip tone={checked ? "success" : "warning"}>
+        <StatusBadge tone={checked ? "success" : "warning"}>
           {checked ? "Prices checked" : "Provisional prices"}
-        </StatusChip>
+        </StatusBadge>
         {previewError ? (
           <p role="alert">{previewError}</p>
         ) : (
           option && (
             <>
               {option.gain <= threshold && (
-                <p className="muted">
-                  <StatusChip tone="neutral">
+                <p className="muted selected-option__threshold">
+                  <StatusBadge tone="neutral">
                     Below shortlist threshold
-                  </StatusChip>{" "}
+                  </StatusBadge>{" "}
                   This option does not clear the {threshold.toFixed(1)}{" "}
                   score-unit margin for making a transfer.
                 </p>
@@ -93,14 +101,14 @@ export function SelectedOption({
                 ))}
               </Disclosure>
               <Disclosure summary="Why this option · risks and assumptions">
-                <ul>
+                <ul className="selected-option__list">
                   {option.reasons.map((reason) => (
                     <li key={reason}>{reason}</li>
                   ))}
                 </ul>
                 {selection.kind === "move" && (
                   <>
-                    <ul>
+                    <ul className="selected-option__list">
                       {selection.move.risks.map((risk) => (
                         <li key={risk}>{risk}</li>
                       ))}

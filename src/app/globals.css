@@ -1,3 +1,72 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@import "./tokens.css";
+
+@custom-variant dark (@media (prefers-color-scheme: dark));
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: bold;
+  }
+  a {
+    text-decoration-line: underline;
+  }
+  ul {
+    list-style: disc;
+  }
+  ol {
+    list-style: decimal;
+  }
+  ul,
+  ol {
+    margin-block: var(--space-list-gap);
+    padding-inline-start: var(--space-list-indent);
+  }
+  button,
+  input,
+  select,
+  textarea {
+    letter-spacing: normal;
+  }
+  button {
+    padding-block: var(--space-1);
+    padding-inline: var(--space-6);
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p,
+  li {
+    text-wrap: pretty;
+  }
+  ::selection {
+    background: color-mix(in oklch, var(--color-brand) 45%, transparent);
+  }
+  body {
+    -webkit-font-smoothing: antialiased;
+    font-synthesis: none;
+  }
+}
+
+@media (pointer: coarse) {
+  [data-slot="button"]:not([data-variant="link"]) {
+    min-height: var(--touch-target);
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -5,7 +74,7 @@ body {
   margin: 0;
   background: var(--color-page);
   color: var(--color-ink);
-  font-family: var(--font-pancake);
+  font-family: var(--font-ui);
   font-size: var(--text-14);
   line-height: 1.6;
 }
