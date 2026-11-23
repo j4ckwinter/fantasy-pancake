@@ -1,0 +1,26 @@
+.card {
+  padding: var(--space-26);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-10);
+  background: var(--color-white);
+}
+.notice {
+  margin: var(--space-18) 0;
+}
+.option-number {
+  font-size: var(--text-31);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -2px;
+  color: var(--color-text-option-number);
+}
+@media (max-width: 780px) {
+  .card {
+    padding: var(--space-20);
+  }
+}
+@media (max-width: 380px) {
+  .card {
+    padding: var(--space-16);
+  }
+}

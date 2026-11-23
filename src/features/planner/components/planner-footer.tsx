@@ -1,4 +1,5 @@
 import type { Data } from "@/lib/schemas";
+import "./planner-footer.css";
 export function PlannerFooter({
   data,
   landing = false,

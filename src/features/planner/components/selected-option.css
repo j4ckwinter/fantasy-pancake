@@ -1,0 +1,11 @@
+.selling-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-20);
+  margin-top: var(--space-20);
+}
+.price-notice {
+  padding: var(--space-16);
+  background: var(--color-accent);
+  border-radius: var(--radius-12);
+}

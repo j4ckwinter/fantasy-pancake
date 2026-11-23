@@ -8,6 +8,7 @@ import { PreviewMetrics } from "./preview-metrics";
 import { PitchBoard } from "./pitch-board";
 import { PlayerLink } from "./player-link";
 import { findPlayer } from "../players";
+import "./lineup-preview.css";
 
 export function LineupPreview({
   transferDetails,

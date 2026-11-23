@@ -1,0 +1,19 @@
+footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-16);
+  flex-wrap: wrap;
+  margin-top: var(--space-28);
+  padding-top: var(--space-20);
+  border-top: 1px solid var(--color-border-rule);
+  font-size: var(--text-10);
+  color: var(--color-text-secondary);
+}
+footer a {
+  text-underline-offset: 4px;
+}
+@media (max-width: 780px) {
+  footer {
+    font-size: var(--text-9);
+  }
+}

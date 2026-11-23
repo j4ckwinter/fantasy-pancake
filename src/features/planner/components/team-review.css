@@ -1,3 +1,31 @@
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-20);
+  margin-bottom: var(--space-22);
+}
+.section-title h2 {
+  margin-top: var(--space-6);
+  font-size: var(--text-28);
+  font-weight: 750;
+}
+.section-title p {
+  margin: 0;
+}
+@media (max-width: 780px) {
+  .section-title {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-12);
+  }
+  .section-title h2 {
+    font-size: var(--text-25);
+  }
+}
+.squad-summary-heading {
+  margin-top: var(--space-28);
+}
 .team-settings {
   max-width: 720px;
   margin: 0 auto var(--space-36);

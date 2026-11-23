@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Data } from "@/lib/schemas";
+import "./planner-header.css";
 export function PlannerHeader({ data }: { data: Data | null }) {
   const nextEvent = data?.bootstrap.events.find((event) => event.is_next);
   const deadline = nextEvent

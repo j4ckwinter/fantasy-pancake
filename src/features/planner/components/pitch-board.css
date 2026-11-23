@@ -383,3 +383,16 @@ button.pitch-board__player:focus-visible {
   outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
+@media (prefers-reduced-motion: no-preference) {
+  .pitch-board {
+    animation: reveal 0.25s ease-out;
+  }
+  @keyframes reveal {
+    from {
+      transform: translateY(5px);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+}

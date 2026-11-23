@@ -1,3 +1,104 @@
+.workspace-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-28);
+  border-top: 1px solid var(--color-border-rule);
+  padding: var(--space-29) 0 var(--space-23);
+}
+.workspace-heading h1 {
+  font-size: var(--text-36);
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: -1.4px;
+  margin: var(--space-10) 0;
+}
+.workspace-heading p {
+  font-size: var(--text-13);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+.workspace-figures {
+  display: flex;
+  gap: var(--space-28);
+  margin: 0;
+}
+.workspace-figures > div {
+  padding-left: var(--space-24);
+  border-left: 1px solid var(--color-border-strong);
+}
+.workspace-figures dt {
+  font-size: var(--text-10);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-5);
+}
+.workspace-figures dd {
+  margin: 0;
+  font-size: var(--text-27);
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 1050px) {
+  .workspace-figures {
+    gap: var(--space-16);
+  }
+  .workspace-figures > div {
+    padding-left: var(--space-16);
+  }
+  .workspace-heading h1 {
+    font-size: var(--text-31);
+  }
+  .workspace-figures dd {
+    font-size: var(--text-23);
+  }
+}
+@media (max-width: 780px) {
+  .workspace-heading {
+    display: block;
+    padding: var(--space-23) 0 var(--space-16);
+  }
+  .workspace-heading h1 {
+    font-size: var(--text-32);
+  }
+  .workspace-figures {
+    margin-top: var(--space-22);
+    gap: 0;
+    justify-content: flex-start;
+  }
+  .workspace-figures > div {
+    padding: 0 var(--space-20);
+    border-left: 1px solid var(--color-border-strong);
+  }
+  .workspace-figures > div:first-child {
+    padding-left: 0;
+    border: 0;
+  }
+  .workspace-figures dd {
+    font-size: var(--text-24);
+  }
+  .workspace-figures dt {
+    font-size: var(--text-9);
+  }
+}
+@media (max-width: 380px) {
+  .workspace-heading h1 {
+    font-size: var(--text-29);
+  }
+  .workspace-figures > div {
+    padding-inline: var(--space-14);
+  }
+  .workspace-figures dd {
+    font-size: var(--text-21);
+  }
+}
+.workspace-heading h1 {
+  scroll-margin-top: var(--space-24);
+}
+.workspace-heading h1:focus {
+  outline: none;
+}
 .workspace-heading--results.workspace-heading {
   display: flex;
   align-items: center;

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, TextField } from "@jack.winter/pancake-ui";
 import type { Player } from "@/lib/schemas";
 import { fromMillions, toMillions } from "../format";
+import "./selling-price-check.css";
 
 export function SellingPriceCheck({
   player,

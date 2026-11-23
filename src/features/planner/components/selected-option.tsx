@@ -9,6 +9,7 @@ import { findPlayer } from "../players";
 import { signed } from "../format";
 import { SellingPriceCheck } from "./selling-price-check";
 import { priceConfirmed as priceConfirmedMessage } from "../messages";
+import "./selected-option.css";
 
 export function SelectedOption({
   detailsRef,

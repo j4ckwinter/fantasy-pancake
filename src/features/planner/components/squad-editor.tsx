@@ -5,6 +5,7 @@ import { money } from "../format";
 import { PlayerPicker } from "./player-picker";
 import { findClub, findPlayer } from "../players";
 import type { Data, Settings } from "@/lib/schemas";
+import "./squad-editor.css";
 
 export function SquadEditor({
   data,

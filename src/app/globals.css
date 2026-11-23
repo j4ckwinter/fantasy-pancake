@@ -59,3 +59,14 @@ h3 {
   text-transform: uppercase;
   color: var(--color-text-label);
 }
+
+@media (max-width: 1150px) {
+  main {
+    width: calc(100% - 40px);
+  }
+}
+@media (max-width: 780px) {
+  main {
+    width: calc(100% - 28px);
+  }
+}
