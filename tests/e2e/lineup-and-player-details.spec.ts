@@ -1,7 +1,16 @@
-import { expect, fixtureData, routeData, test } from "./support/fixtures";
+import type { Locator, Page } from "@playwright/test";
+import {
+  expect,
+  fixtureData,
+  NEW_STAR_INDEX,
+  routeData,
+  test,
+  withPlayer,
+} from "./support/fixtures";
 import {
   bottomOf,
   compareTransfer,
+  confirmTeamDetails,
   expectNoHorizontalOverflow,
   heightOf,
   importTeam,
@@ -11,9 +20,7 @@ import {
   topOf,
 } from "./support/planner";
 
-test("recent histories and availability scenario are connected", async ({
-  page,
-}) => {
+async function routeRecentFormWithInjuredPlayer8(page: Page) {
   const data = fixtureData();
   data.bootstrap.events.forEach((event) => {
     event.deadline_time = "2030-11-01T12:00:00Z";
@@ -41,13 +48,21 @@ test("recent histories and availability scenario are connected", async ({
       },
     });
   });
-  await importTeam(page);
+}
+
+async function chooseRecoveryNextWeek(page: Page) {
   await page.getByRole("button", { name: "Edit team details" }).click();
   await page.getByText("Advanced options", { exact: true }).click();
   await page
     .getByLabel("Availability assumption")
     .selectOption("recover-next-week");
   await saveAndViewShortlist(page);
+}
+
+test("player details list recent completed matches", async ({ page }) => {
+  await routeRecentFormWithInjuredPlayer8(page);
+  await importTeam(page);
+  await chooseRecoveryNextWeek(page);
   await page
     .locator(".transfer-group")
     .getByRole("button", { name: "New Star", exact: true })
@@ -56,7 +71,14 @@ test("recent histories and availability scenario are connected", async ({
   await expect(
     page.getByRole("dialog").locator("tbody tr").first(),
   ).toContainText("90");
-  await page.keyboard.press("Escape");
+});
+
+test("the availability assumption shapes comparisons and survives a reload", async ({
+  page,
+}) => {
+  await routeRecentFormWithInjuredPlayer8(page);
+  await importTeam(page);
+  await chooseRecoveryNextWeek(page);
   await compareTransfer(page, "8", "New Star");
   await page.locator("#selected-option > summary").click();
   await page
@@ -81,6 +103,53 @@ test("recent histories and availability scenario are connected", async ({
   await expect(page.getByLabel("Availability assumption")).toHaveValue(
     "recover-next-week",
   );
+});
+
+test("a preview without free transfers shows the hit and each lineup week", async ({
+  page,
+}) => {
+  await importTeam(page);
+  await confirmTeamDetails(page, { bank: "0.4", freeTransfers: "0" });
+  await expect(
+    page.getByText("Roll the transfer", { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("New Star", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Heuristic score improvements", { exact: false }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: /Preview Player .* to New Star/ })
+    .first()
+    .click();
+  await expect(
+    page.locator(".transfer-alternative .alternative-hit").first(),
+  ).toHaveText("−4 hit");
+  const summary = page.locator(".lineup-preview__summary");
+  await expect(summary.getByText("4 pts", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Clear preview", exact: true }),
+  ).toHaveCount(1);
+  await page.getByRole("button", { name: "Before", exact: true }).click();
+  await expect(page.getByLabel("Baseline starting lineup")).toBeVisible();
+  await expect(
+    page.getByLabel("Baseline starting lineup").locator(".pitch-board__player"),
+  ).toHaveCount(11);
+  await page
+    .getByRole("button", { name: "Show lineup GW10", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Show lineup GW10", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByLabel("Baseline starting lineup")).toContainText(
+    "GW10 · Baseline, before a transfer",
+  );
+  await page
+    .getByRole("button", { name: "Show lineup GW9", exact: true })
+    .click();
+  await expect(page.locator(".fixture-strip").first()).toContainText("GW9");
+  await expect(page.locator(".fixture-strip").first()).toContainText("T16 (H)");
 });
 
 test("pitch players open details and Escape returns keyboard focus", async ({
@@ -121,24 +190,18 @@ test("pitch players open details and Escape returns keyboard focus", async ({
   await expect(player).toBeFocused();
 });
 
-test("preview preserves desktop position and takes mobile users to the new XI", async ({
-  page,
-}) => {
+async function previewFirstOfThreeGroups(page: Page) {
   const data = fixtureData();
-  data.bootstrap.elements.push(
-    {
-      ...data.bootstrap.elements[15],
-      id: 17,
-      web_name: "Alternative One",
-      team: 6,
-    },
-    {
-      ...data.bootstrap.elements[15],
-      id: 18,
-      web_name: "Alternative Two",
-      team: 6,
-    },
-  );
+  withPlayer(data, NEW_STAR_INDEX, {
+    id: 17,
+    web_name: "Alternative One",
+    team: 6,
+  });
+  withPlayer(data, NEW_STAR_INDEX, {
+    id: 18,
+    web_name: "Alternative Two",
+    team: 6,
+  });
   await routeData(page, data);
   await importTeam(page);
   await expect(page.locator(".transfer-group")).toHaveCount(3);
@@ -150,48 +213,10 @@ test("preview preserves desktop position and takes mobile users to the new XI", 
   const scrollBefore = await scrollY(page);
   await first.click();
   await expect(page.getByLabel("Preview starting lineup")).toBeVisible();
-  if (!test.info().project.use.isMobile) {
-    await expect(first).toBeFocused();
-    await expect
-      .poll(async () => Math.abs((await scrollY(page)) - scrollBefore))
-      .toBeLessThan(3);
-    await page.mouse.move(400, 350);
-    await page.mouse.wheel(0, 350);
-    const preview = page.getByLabel("Preview starting lineup");
-    await expect
-      .poll(() => bottomOf(preview))
-      .toBeLessThanOrEqual(page.viewportSize()!.height);
-    await expect.poll(() => topOf(preview)).toBeGreaterThanOrEqual(0);
-  } else {
-    await expect(page.locator("#lineup-comparison")).toBeFocused();
-    await expect(
-      page
-        .getByRole("navigation", { name: "Planner sections" })
-        .getByRole("link", { name: "Squad", exact: true }),
-    ).toHaveAttribute("aria-current", "location");
-    await expect(
-      page.getByRole("link", { name: "Back to options" }),
-    ).toBeInViewport();
-    await expect(page.locator(".lineup-preview__selection")).toContainText(
-      "Your FPL team is unchanged",
-    );
-    await expect(
-      page.getByRole("button", { name: "After", exact: true }),
-    ).toBeInViewport();
-  }
-  await page.getByRole("button", { name: "Before", exact: true }).click();
-  if (test.info().project.use.isMobile) {
-    await page.getByRole("link", { name: "Back to options" }).click();
-    await expect(first).toBeFocused();
-    await expect
-      .poll(async () => Math.abs((await scrollY(page)) - scrollBefore))
-      .toBeLessThan(3);
-    await expect(
-      page
-        .getByRole("navigation", { name: "Planner sections" })
-        .getByRole("link", { name: "Options", exact: true }),
-    ).toHaveAttribute("aria-current", "location");
-  }
+  return { choices, first, scrollBefore };
+}
+
+async function expectSecondChoicePreviews(page: Page, choices: Locator) {
   await choices.nth(1).click();
   await expect(
     page.getByRole("button", { name: "After", exact: true }),
@@ -199,6 +224,61 @@ test("preview preserves desktop position and takes mobile users to the new XI", 
   await expect(page.getByLabel("Preview starting lineup")).toContainText(
     "New Star",
   );
+}
+
+test("previewing on desktop keeps the page position and fits the new XI on screen", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, "mobile layouts move to the new XI instead");
+  const { choices, first, scrollBefore } =
+    await previewFirstOfThreeGroups(page);
+  await expect(first).toBeFocused();
+  await expect
+    .poll(async () => Math.abs((await scrollY(page)) - scrollBefore))
+    .toBeLessThan(3);
+  await page.mouse.move(400, 350);
+  await page.mouse.wheel(0, 350);
+  const preview = page.getByLabel("Preview starting lineup");
+  await expect
+    .poll(() => bottomOf(preview))
+    .toBeLessThanOrEqual(page.viewportSize()!.height);
+  await expect.poll(() => topOf(preview)).toBeGreaterThanOrEqual(0);
+  await page.getByRole("button", { name: "Before", exact: true }).click();
+  await expectSecondChoicePreviews(page, choices);
+});
+
+test("previewing on mobile moves to the new XI and returns to the chosen option", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "desktop layouts keep the page position instead");
+  const { choices, first, scrollBefore } =
+    await previewFirstOfThreeGroups(page);
+  const nav = page.getByRole("navigation", { name: "Planner sections" });
+  await expect(page.locator("#lineup-comparison")).toBeFocused();
+  await expect(
+    nav.getByRole("link", { name: "Squad", exact: true }),
+  ).toHaveAttribute("aria-current", "location");
+  await expect(
+    page.getByRole("link", { name: "Back to options" }),
+  ).toBeInViewport();
+  await expect(page.locator(".lineup-preview__selection")).toContainText(
+    "Your FPL team is unchanged",
+  );
+  await expect(
+    page.getByRole("button", { name: "After", exact: true }),
+  ).toBeInViewport();
+  await page.getByRole("button", { name: "Before", exact: true }).click();
+  await page.getByRole("link", { name: "Back to options" }).click();
+  await expect(first).toBeFocused();
+  await expect
+    .poll(async () => Math.abs((await scrollY(page)) - scrollBefore))
+    .toBeLessThan(3);
+  await expect(
+    nav.getByRole("link", { name: "Options", exact: true }),
+  ).toHaveAttribute("aria-current", "location");
+  await expectSecondChoicePreviews(page, choices);
 });
 
 test("the XI panel uses the page scroll rather than a nested scrollbar", async ({
@@ -289,16 +369,26 @@ test("returning starters distinguish expected minutes from recent starting minut
   );
 });
 
+test("desktop layouts hide the planner section navigation", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, "mobile layouts show the section navigation");
+  await importTeam(page);
+  await expect(page.locator(".transfer-group")).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Planner sections" }),
+  ).toBeHidden();
+});
+
 test("mobile navigation reaches each section and opens comparison", async ({
   page,
+  isMobile,
 }) => {
+  test.skip(!isMobile, "desktop layouts hide the section navigation");
   await importTeam(page);
   await expect(page.locator(".transfer-group")).toBeVisible();
   const nav = page.getByRole("navigation", { name: "Planner sections" });
-  if (!test.info().project.use.isMobile) {
-    await expect(nav).toBeHidden();
-    return;
-  }
   await expect(nav).toBeInViewport();
   for (const [name, id] of [
     ["Squad", "planner-squad"],

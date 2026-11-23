@@ -27,6 +27,18 @@ export async function saveAndViewShortlist(page: Page) {
   await saveShortlistButton(page).click();
 }
 
+export async function confirmTeamDetails(
+  page: Page,
+  details: { bank: string; freeTransfers: string },
+) {
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await page.getByLabel("Bank balance (£m)").fill(details.bank);
+  await page
+    .getByLabel("Free transfers remaining")
+    .selectOption(details.freeTransfers);
+  await saveAndViewShortlist(page);
+}
+
 export async function openCustomComparison(page: Page) {
   if (!(await page.getByLabel("Player to sell").isVisible())) {
     await page.locator("#planner-compare > summary").click();

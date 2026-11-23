@@ -69,8 +69,19 @@ test("displays import errors and allows retry", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Import team" })).toBeEnabled();
 });
 
-test("empty horizon and invalid stored settings are safe", async ({ page }) => {
+test("outdated saved settings ask for a fresh import", async ({ page }) => {
   await seedSavedSettings(page, '{"version":99}');
+  await page.goto("/");
+  await expect(
+    page.getByText(
+      "Saved settings are outdated or invalid. Import your team again.",
+    ),
+  ).toBeVisible();
+});
+
+test("an import with no remaining gameweeks reports an empty horizon", async ({
+  page,
+}) => {
   const data = fixtureData();
   data.bootstrap.events.forEach((e) => {
     e.is_next = false;
@@ -78,18 +89,11 @@ test("empty horizon and invalid stored settings are safe", async ({ page }) => {
     e.finished = true;
   });
   await routeData(page, data);
-  await page.goto("/");
-  await expect(
-    page.getByText(
-      "Saved settings are outdated or invalid. Import your team again.",
-    ),
-  ).toBeVisible();
-  await page.getByLabel("FPL team ID").fill("123");
-  await page.getByRole("button", { name: "Import team" }).click();
+  await importTeam(page);
   await expect(page.getByText("The horizon is empty")).toBeVisible();
 });
 
-test("import controls align without overflow", async ({ page }) => {
+test("the landing page carries the Fantasy Pancake brand", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveTitle("Fantasy Pancake");
   await expect(
@@ -103,6 +107,14 @@ test("import controls align without overflow", async ({ page }) => {
     "naturalWidth",
     64,
   );
+  await expect(page.locator("footer")).toContainText("Public FPL data");
+  await expect(page.locator("footer")).not.toContainText("Data fetched");
+});
+
+test("the landing import form stays compact and aligned without overflow", async ({
+  page,
+}) => {
+  await page.goto("/");
   const input = page.getByLabel("FPL team ID");
   const button = page.getByRole("button", { name: "Import team" });
   await expect(input).toBeVisible();
@@ -113,8 +125,6 @@ test("import controls align without overflow", async ({ page }) => {
   await expect(
     page.getByText("Where’s my team ID?", { exact: true }),
   ).toHaveCount(0);
-  await expect(page.locator("footer")).toContainText("Public FPL data");
-  await expect(page.locator("footer")).not.toContainText("Data fetched");
   await expect(page.locator(".landing-steps li")).toHaveCount(3);
   if (test.info().project.use.isMobile) {
     await expect

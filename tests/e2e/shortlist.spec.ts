@@ -9,6 +9,7 @@ import {
 } from "./support/fixtures";
 import {
   bottomOf,
+  confirmTeamDetails,
   expectNoHorizontalOverflow,
   gapBetween,
   heightOf,
@@ -348,4 +349,23 @@ test("shortlist and saved-plan controls fit a 320px viewport", async ({
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
     .toBe(320);
+});
+
+test("the selected option explains its risks and assumptions", async ({
+  page,
+}) => {
+  await importTeam(page);
+  await confirmTeamDetails(page, { bank: "0.4", freeTransfers: "0" });
+  await page
+    .getByRole("button", { name: /Preview Player .* to New Star/ })
+    .first()
+    .click();
+  await page.locator("#selected-option > summary").click();
+  await page
+    .getByText("Why this option · risks and assumptions", { exact: true })
+    .click();
+  await expect(
+    page.getByRole("article", { name: "Selected transfer option" }),
+  ).toContainText("season averages can miss recent changes");
+  await expectNoHorizontalOverflow(page);
 });
