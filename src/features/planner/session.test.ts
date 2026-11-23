@@ -85,4 +85,16 @@ describe("planner session", () => {
     for (const action of moves)
       expect(sessionReducer(confirmed, action).priceConfirmed).toBe(false);
   });
+
+  it("clears the unsaved-settings warning after a later save works", () => {
+    const warned = session({ notice: "settings-not-saved" });
+    expect(sessionReducer(warned, { type: "saved" }).notice).toBeNull();
+  });
+
+  it("keeps other notices when settings save", () => {
+    const caveat = session({ notice: "import-caveat" });
+    expect(sessionReducer(caveat, { type: "saved" }).notice).toBe(
+      "import-caveat",
+    );
+  });
 });

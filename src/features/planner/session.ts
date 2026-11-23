@@ -34,6 +34,7 @@ export type Session = {
 export type SessionAction =
   | { type: "team-id-changed"; teamId: string }
   | { type: "noticed"; notice: Notice }
+  | { type: "saved" }
   | { type: "failed"; error: string }
   | { type: "restored"; settings: Settings }
   | { type: "restore-compared"; result: Analysis }
@@ -110,6 +111,10 @@ export function sessionReducer(
       return { ...session, teamId: action.teamId };
     case "noticed":
       return { ...session, notice: action.notice };
+    case "saved":
+      return session.notice === "settings-not-saved"
+        ? { ...session, notice: null }
+        : session;
     case "failed":
       return { ...session, error: action.error };
     case "restored":

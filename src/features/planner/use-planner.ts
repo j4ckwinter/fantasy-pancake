@@ -47,6 +47,7 @@ export function usePlanner() {
   function persist(next: Settings) {
     try {
       saveSettings(localStorage, next);
+      dispatch({ type: "saved" });
     } catch {
       dispatch({ type: "noticed", notice: "settings-not-saved" });
     }
