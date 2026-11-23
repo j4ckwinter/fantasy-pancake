@@ -4,7 +4,8 @@ import { checkTransfers } from "./model/transfer-legality";
 import { planTransfers } from "./model/planning";
 import {
   transferContext,
-  evaluatePreparedTransfer,
+  describeTransfer,
+  scorePreparedTransfer,
   withAvailabilitySensitivity,
 } from "./model/transfer-preview";
 import { freeTransferCap } from "./model/transfer-rules";
@@ -106,14 +107,12 @@ function worthwhileMoves(
   const moves: Move[] = [];
   for (const outgoing of squad) {
     for (const incoming of data.bootstrap.elements) {
+      if (incoming.element_type !== outgoing.element_type) continue;
       const swap = { outId: outgoing.id, inId: incoming.id };
       if (!checkTransfers(rules, start, [swap]).legal) continue;
-      const { move } = evaluatePreparedTransfer(
-        context,
-        outgoing.id,
-        incoming.id,
-      );
-      if (move.gain > threshold) moves.push(move);
+      const scored = scorePreparedTransfer(context, outgoing.id, incoming.id);
+      if (scored.gain > threshold)
+        moves.push(describeTransfer(context, scored).move);
     }
   }
   return moves.sort(

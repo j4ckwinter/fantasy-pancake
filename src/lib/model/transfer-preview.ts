@@ -82,32 +82,59 @@ function totalScore(lineups: Lineup[]): number {
   return lineups.reduce((sum, lineup) => sum + lineup.score, 0);
 }
 
-export function evaluatePreparedTransfer(
+type ScoredTransfer = {
+  outId: number;
+  inId: number;
+  remainingBank: number;
+  lineups: Lineup[];
+  grossGain: number;
+  hit: number;
+  gain: number;
+};
+
+export function scorePreparedTransfer(
   context: TransferContext,
   outId: number,
   inId: number,
-): { move: Move; lineups: Lineup[] } {
-  const { data, settings, weeks, byId, scores, baseline } = context;
+): ScoredTransfer {
+  const { data, settings, weeks, scores, baseline } = context;
   if (!weeks.length) throw new Error("No upcoming gameweeks are available.");
   const { squad: changed, bank: remainingBank } = applyTransfers(
     context.rules,
     context.start,
     [{ outId, inId }],
   );
-  const outgoing = byId.get(outId)!;
-  const incoming = byId.get(inId)!;
   const lineups = scores.map((values) => bestLineup(data, changed, values));
   const grossGain = totalScore(lineups) - totalScore(baseline);
   const hit = transferHit(1, settings.freeTransfers);
+  return {
+    outId,
+    inId,
+    remainingBank,
+    lineups,
+    grossGain,
+    hit,
+    gain: roundScore(grossGain - hit),
+  };
+}
+
+export function describeTransfer(
+  context: TransferContext,
+  scored: ScoredTransfer,
+): { move: Move; lineups: Lineup[] } {
+  const { data, settings, weeks, byId, baseline } = context;
+  const { outId, inId, lineups, grossGain, hit } = scored;
+  const outgoing = byId.get(outId)!;
+  const incoming = byId.get(inId)!;
   const scenario =
     settings.availabilityScenario ?? DEFAULT_AVAILABILITY_SCENARIO;
   const move: Move = {
     outId,
     inId,
     cost: incoming.now_cost,
-    remainingBank,
+    remainingBank: scored.remainingBank,
     hit,
-    gain: roundScore(grossGain - hit),
+    gain: scored.gain,
     immediateGain: roundScore(lineups[0].score - baseline[0].score - hit),
     grossGain: roundScore(grossGain),
     reasons: transferReasons(
@@ -128,6 +155,14 @@ export function evaluatePreparedTransfer(
       score: roundScore(lineup.score),
     })),
   };
+}
+
+export function evaluatePreparedTransfer(
+  context: TransferContext,
+  outId: number,
+  inId: number,
+): { move: Move; lineups: Lineup[] } {
+  return describeTransfer(context, scorePreparedTransfer(context, outId, inId));
 }
 
 export function withAvailabilitySensitivity(
