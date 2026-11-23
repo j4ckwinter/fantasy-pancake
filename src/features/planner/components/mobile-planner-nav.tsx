@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import { mobileLayoutQuery } from "@/app/breakpoints";
 import "./mobile-planner-nav.css";
 
 export function MobilePlannerNav({ onCompare }: { onCompare: () => void }) {
   const [activeSection, setActiveSection] = useState("planner-options");
   useEffect(() => {
-    const mobile = window.matchMedia("(max-width: 780px)");
+    const mobile = window.matchMedia(mobileLayoutQuery);
     let frame = 0;
     const update = () => {
       frame = 0;

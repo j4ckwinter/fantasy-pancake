@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { mobileLayoutQuery } from "@/app/breakpoints";
 import type { Lineup } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
 import { PreviewMetrics } from "./preview-metrics";
@@ -47,7 +48,7 @@ export function LineupPreview({
   const previewPanel = useRef<HTMLElement>(null);
   const hasPreview = !!preview;
   useEffect(() => {
-    if (hasPreview && window.matchMedia("(max-width: 780px)").matches) {
+    if (hasPreview && window.matchMedia(mobileLayoutQuery).matches) {
       previewPanel.current?.focus({ preventScroll: true });
       previewPanel.current?.scrollIntoView({
         block: "start",
