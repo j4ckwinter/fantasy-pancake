@@ -42,7 +42,8 @@ export function TransferPlans({
           .map((action) => `${action.week}-${action.outId}-${action.inId}`)
           .join("/");
         const selected =
-          selection?.plan?.kind === plan.kind &&
+          selection?.kind === "plan" &&
+          selection.plan.kind === plan.kind &&
           selection.actions
             .map((action) => `${action.week}-${action.outId}-${action.inId}`)
             .join("/") === key;

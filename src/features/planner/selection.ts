@@ -9,14 +9,19 @@ import {
 } from "@/lib/model";
 import type { Data, Player, Settings } from "@/lib/schemas";
 
-export type Selection = {
+type SelectionBase = {
   key: string;
-  custom?: boolean;
   label: string;
   actions: TransferPlan["actions"];
-  move?: Move;
-  plan?: TransferPlan;
 };
+
+export type Selection =
+  | (SelectionBase & { kind: "move"; move: Move; custom: boolean })
+  | (SelectionBase & { kind: "plan"; plan: TransferPlan });
+
+export function selectedOption(selection: Selection): Move | TransferPlan {
+  return selection.kind === "move" ? selection.move : selection.plan;
+}
 
 export type PlanCategory = "singles" | TransferPlan["kind"];
 
@@ -53,6 +58,7 @@ export function transferSelection(
 ): Selection {
   const name = (id: number) => findPlayer(players, id)?.web_name ?? String(id);
   return {
+    kind: "move",
     key: `${move.outId}-${move.inId}`,
     custom,
     label: `${name(move.outId)} → ${name(move.inId)}`,
@@ -63,6 +69,7 @@ export function transferSelection(
 
 export function planSelection(plan: TransferPlan): Selection {
   return {
+    kind: "plan",
     key: plan.kind,
     label: planLabels[plan.kind],
     actions: plan.actions,
@@ -79,14 +86,15 @@ export function selectedPreview(
 ) {
   if (!selection) return emptyPreview;
   try {
-    const evaluated = selection.move
-      ? evaluateTransfer(
-          data,
-          settings,
-          selection.move.outId,
-          selection.move.inId,
-        )
-      : null;
+    const evaluated =
+      selection.kind === "move"
+        ? evaluateTransfer(
+            data,
+            settings,
+            selection.move.outId,
+            selection.move.inId,
+          )
+        : null;
     const preview =
       evaluated?.lineups ?? previewTransfers(data, settings, selection.actions);
     const previewSquadIdsByWeek = weeks.map((week) => {
@@ -97,34 +105,34 @@ export function selectedPreview(
       }
       return ids;
     });
-    const plan = selection.plan
-      ? {
-          ...selection.plan,
-          gain:
-            Math.round(
-              (preview.reduce((sum, lineup) => sum + lineup.score, 0) -
-                baseline.reduce((sum, lineup) => sum + lineup.score, 0) -
-                selection.plan.hit) *
-                100,
-            ) / 100,
-          remainingBank: selection.actions.reduce(
-            (bank, action) =>
-              bank +
-              (settings.squad.find((pick) => pick.id === action.outId)
-                ?.sellingPrice ?? 0) -
-              (data.bootstrap.elements.find(
-                (player) => player.id === action.inId,
-              )?.now_cost ?? 0),
-            settings.bank,
-          ),
-        }
-      : undefined;
+    const plan =
+      selection.kind === "plan"
+        ? {
+            ...selection.plan,
+            gain:
+              Math.round(
+                (preview.reduce((sum, lineup) => sum + lineup.score, 0) -
+                  baseline.reduce((sum, lineup) => sum + lineup.score, 0) -
+                  selection.plan.hit) *
+                  100,
+              ) / 100,
+            remainingBank: selection.actions.reduce(
+              (bank, action) =>
+                bank +
+                (settings.squad.find((pick) => pick.id === action.outId)
+                  ?.sellingPrice ?? 0) -
+                (data.bootstrap.elements.find(
+                  (player) => player.id === action.inId,
+                )?.now_cost ?? 0),
+              settings.bank,
+            ),
+          }
+        : undefined;
     return {
-      selection: {
-        ...selection,
-        ...(evaluated ? { move: evaluated.move } : {}),
-        ...(plan ? { plan } : {}),
-      },
+      selection:
+        selection.kind === "move"
+          ? { ...selection, move: evaluated?.move ?? selection.move }
+          : { ...selection, plan: plan ?? selection.plan },
       preview,
       previewError: "",
       previewSquadIdsByWeek,

@@ -5,6 +5,7 @@ import type { Analysis, Lineup, Move, TransferPlan } from "@/lib/model";
 import {
   planCategoryLabels,
   pricesChecked,
+  selectedOption,
   type PlanCategory,
   type Selection,
 } from "../selection";
@@ -303,7 +304,7 @@ export function TransferResults({
             preview={preview}
             selectedLabel={selection?.label ?? "Your current squad"}
             onBackToOptions={returnToOptions}
-            option={selection?.move ?? selection?.plan ?? null}
+            option={selection ? selectedOption(selection) : null}
             pricesChecked={
               !!selection && pricesChecked(selection.actions, confirmedPrices)
             }

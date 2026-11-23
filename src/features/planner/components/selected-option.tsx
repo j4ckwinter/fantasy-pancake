@@ -4,7 +4,7 @@ import type { Lineup } from "@/lib/model";
 import { WeeklyBreakdown } from "./weekly-breakdown";
 import { PlayerComparison } from "./player-comparison";
 import type { Data, Settings } from "@/lib/schemas";
-import { pricesChecked, type Selection } from "../selection";
+import { pricesChecked, selectedOption, type Selection } from "../selection";
 import { findPlayer } from "../players";
 import { signed } from "../format";
 import { SellingPriceCheck } from "./selling-price-check";
@@ -39,7 +39,7 @@ export function SelectedOption({
   useEffect(() => {
     if (previewError && detailsRef.current) detailsRef.current.open = true;
   }, [previewError, detailsRef]);
-  const option = selection.move ?? selection.plan;
+  const option = selectedOption(selection);
   const outgoingIds = [
     ...new Set(selection.actions.map((action) => action.outId)),
   ];
@@ -96,7 +96,7 @@ export function SelectedOption({
                     <li key={reason}>{reason}</li>
                   ))}
                 </ul>
-                {selection.move && (
+                {selection.kind === "move" && (
                   <>
                     <ul>
                       {selection.move.risks.map((risk) => (
@@ -117,7 +117,7 @@ export function SelectedOption({
                       )}
                   </>
                 )}
-                {selection.plan && (
+                {selection.kind === "plan" && (
                   <p className="muted">
                     Future prices are held at today’s values. The plan uses your
                     selected availability scenario and a bounded search of

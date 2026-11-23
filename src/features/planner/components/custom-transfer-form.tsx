@@ -53,9 +53,10 @@ export function CustomTransferForm({
   const draftKey = `${outgoing?.id}-${incoming?.id}`;
   const currentError = submittedKey === draftKey ? error : "";
   const compared =
-    selection?.custom &&
-    selection.move?.outId === outgoing?.id &&
-    selection.move?.inId === incoming?.id
+    selection?.kind === "move" &&
+    selection.custom &&
+    selection.move.outId === outgoing?.id &&
+    selection.move.inId === incoming?.id
       ? selection.move
       : null;
   return (
