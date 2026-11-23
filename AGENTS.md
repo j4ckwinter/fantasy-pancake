@@ -45,6 +45,8 @@ Snapshot capture and outcome accounting belong in `src/lib/evaluation.ts`, and t
 
 Use the relevant checks documented in [README.md](README.md#verification). For refactors, establish a baseline and repeat the affected checks afterwards. Exercise changed user flows on desktop and mobile when layout or interaction is affected. Report checks actually run and any gaps. Before finishing, check that new code follows the ownership rules above.
 
+Build model and evaluation test data from `src/lib/model/test-fixtures.ts` and test behaviour through the public exports of `src/lib/model.ts`, `src/lib/evaluation.ts` and `createFplClient`. Test a model internal directly only when no public export can observe it, as with the separate opponent attack and conceded factors. Give the FPL client a fake `fetch` and clock rather than stubbing globals or waiting on real time.
+
 Keep project guidance outside the generated Next.js block below.
 
 <!-- BEGIN:nextjs-agent-rules -->
