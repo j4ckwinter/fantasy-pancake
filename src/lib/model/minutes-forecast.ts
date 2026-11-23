@@ -1,5 +1,7 @@
 import type { Data, History, Player } from "../schemas";
 import { upcomingWeeks } from "./schedule";
+import { FULL_MATCH_MINUTES, LONG_APPEARANCE_MINUTES } from "./match-minutes";
+import { recencyWeight } from "./recency";
 
 export type MinuteOutcome = { minutes: number; probability: number };
 export type MinutesForecast = {
@@ -15,6 +17,12 @@ export type MinutesForecast = {
 };
 const clamp = (value: number, min = 0, max = 1) =>
   Math.max(min, Math.min(max, value));
+const MAX_SUBSTITUTE_MINUTES = LONG_APPEARANCE_MINUTES - 1;
+const TYPICAL_SUBSTITUTE_MINUTES = 20;
+const RECENT_ROLE_MATCHES = 4;
+const OLDER_USAGE_WEIGHT_IN_RECENT_ROLE = 0.25;
+const SEASON_MINUTES_PRIOR_MATCHES = 2;
+const RECENT_ROLE_SEASON_MINUTES_PRIOR_MATCHES = 0.5;
 
 /** Rows must be eligible completed matches, newest first (see usableHistory). */
 export function forecastMinutes(
@@ -30,19 +38,37 @@ export function forecastMinutes(
         (fixture.team_h === player.team || fixture.team_a === player.team),
     ).length,
   );
-  const seasonMinutes = clamp(player.minutes / completed, 0, 90);
+  const seasonMinutes = clamp(
+    player.minutes / completed,
+    0,
+    FULL_MATCH_MINUTES,
+  );
   const startProbability = clamp(
-    Math.min(player.starts / completed, seasonMinutes / 60),
+    Math.min(
+      player.starts / completed,
+      seasonMinutes / LONG_APPEARANCE_MINUTES,
+    ),
   );
   const startMinutes =
-    startProbability > 0 ? clamp(seasonMinutes / startProbability, 60, 90) : 0;
+    startProbability > 0
+      ? clamp(
+          seasonMinutes / startProbability,
+          LONG_APPEARANCE_MINUTES,
+          FULL_MATCH_MINUTES,
+        )
+      : 0;
   const residualMinutes = Math.max(
     0,
     seasonMinutes - startProbability * startMinutes,
   );
-  const subProbability = Math.min(1 - startProbability, residualMinutes / 20);
+  const subProbability = Math.min(
+    1 - startProbability,
+    residualMinutes / TYPICAL_SUBSTITUTE_MINUTES,
+  );
   const subMinutes =
-    subProbability > 0 ? Math.min(59, residualMinutes / subProbability) : 0;
+    subProbability > 0
+      ? Math.min(MAX_SUBSTITUTE_MINUTES, residualMinutes / subProbability)
+      : 0;
   const fallback: MinuteOutcome[] = [
     { minutes: startMinutes, probability: startProbability },
     { minutes: subMinutes, probability: subProbability },
@@ -52,7 +78,7 @@ export function forecastMinutes(
     },
   ];
   const recentStarts = rows
-    .slice(0, 4)
+    .slice(0, RECENT_ROLE_MATCHES)
     .filter((row) => row.starts >= 1 && row.minutes > 0);
   // Four consecutive starts provide evidence of a current role. Older absences
   // still contribute; a new absence or cameo restores the conservative blend.
@@ -74,20 +100,25 @@ export function forecastMinutes(
         Date.parse(b.kickoff_time!) - Date.parse(a.kickoff_time!) ||
         b.id - a.id,
     )
-    .slice(0, 4);
+    .slice(0, RECENT_ROLE_MATCHES);
   const establishedRecentRole =
-    recentStarts.length === 4 &&
-    recentTeamFixtures.length === 4 &&
+    recentStarts.length === RECENT_ROLE_MATCHES &&
+    recentTeamFixtures.length === RECENT_ROLE_MATCHES &&
     recentTeamFixtures.every(
       (fixture, index) => fixture.id === rows[index].fixture,
     );
   const weighted = rows.map((row, index) => ({
     row,
     weight:
-      2 ** (-index / 3) * (establishedRecentRole && index >= 4 ? 0.25 : 1),
+      recencyWeight(index) *
+      (establishedRecentRole && index >= RECENT_ROLE_MATCHES
+        ? OLDER_USAGE_WEIGHT_IN_RECENT_ROLE
+        : 1),
   }));
   const weight = weighted.reduce((sum, sample) => sum + sample.weight, 0);
-  const priorWeight = establishedRecentRole ? 0.5 : 2;
+  const priorWeight = establishedRecentRole
+    ? RECENT_ROLE_SEASON_MINUTES_PRIOR_MATCHES
+    : SEASON_MINUTES_PRIOR_MATCHES;
   const outcomes = rows.length
     ? [
         ...fallback.map((outcome) => ({
@@ -96,7 +127,7 @@ export function forecastMinutes(
             (outcome.probability * priorWeight) / (weight + priorWeight),
         })),
         ...weighted.map(({ row, weight: sampleWeight }) => ({
-          minutes: clamp(row.minutes, 0, 90),
+          minutes: clamp(row.minutes, 0, FULL_MATCH_MINUTES),
           probability: sampleWeight / (weight + priorWeight),
         })),
       ]
@@ -111,7 +142,9 @@ export function forecastMinutes(
       0,
     ),
     sixtyProbability: outcomes.reduce(
-      (sum, outcome) => sum + (outcome.minutes >= 60 ? outcome.probability : 0),
+      (sum, outcome) =>
+        sum +
+        (outcome.minutes >= LONG_APPEARANCE_MINUTES ? outcome.probability : 0),
       0,
     ),
     startProbability: rows.length
@@ -125,8 +158,10 @@ export function forecastMinutes(
       : startProbability,
     outcomes,
     recentStartMinutes: recentStarts.length
-      ? recentStarts.reduce((sum, row) => sum + clamp(row.minutes, 0, 90), 0) /
-        recentStarts.length
+      ? recentStarts.reduce(
+          (sum, row) => sum + clamp(row.minutes, 0, FULL_MATCH_MINUTES),
+          0,
+        ) / recentStarts.length
       : null,
     recentStartCount: recentStarts.length,
     minutesBasis: establishedRecentRole

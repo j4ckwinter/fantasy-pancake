@@ -1,14 +1,13 @@
 import type { Data, Player } from "../schemas";
 import type { Lineup } from "./types";
-
-const positions = [1, 2, 3, 4];
+import { POSITIONS } from "./position";
 
 export function bestLineup(
   data: Data,
   squad: Player[],
   scores: ReadonlyMap<number, number>,
 ): Lineup {
-  const groups = positions.map((position) =>
+  const groups = POSITIONS.map((position) =>
     squad
       .filter((player) => player.element_type === position)
       .sort(
@@ -17,11 +16,11 @@ export function bestLineup(
       ),
   );
   let best: Lineup = { score: -Infinity, ids: [], captain: null };
-  const limits = positions.map((id) =>
+  const limits = POSITIONS.map((id) =>
     data.bootstrap.element_types.find((position) => position.id === id),
   );
   const choose = (index: number, chosen: Player[]) => {
-    if (index === positions.length) {
+    if (index === POSITIONS.length) {
       if (chosen.length !== data.bootstrap.game_settings.squad_squadplay)
         return;
       const ranked = [...chosen].sort(

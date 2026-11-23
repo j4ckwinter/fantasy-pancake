@@ -10,6 +10,7 @@ import {
   transferHit,
 } from "./transfer-rules";
 import { DEFAULT_AVAILABILITY_SCENARIO } from "./scoring";
+import { POSITIONS } from "./position";
 
 const SCENARIO_ASSUMPTION: Record<AvailabilityScenario, string> = {
   persistent:
@@ -32,7 +33,7 @@ export function planTransfers(
   const horizonScore = (player: Player) =>
     scores.reduce((sum, week) => sum + (week.get(player.id) ?? 0), 0);
   const candidates = new Map<number, Player[]>();
-  for (const position of [1, 2, 3, 4]) {
+  for (const position of POSITIONS) {
     const eligible = data.bootstrap.elements.filter(
       (player) =>
         player.element_type === position &&

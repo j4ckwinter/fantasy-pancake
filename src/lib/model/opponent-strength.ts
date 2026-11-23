@@ -1,6 +1,18 @@
 import type { Data, Fixture, Player } from "../schemas";
 
-export function opponentFactors(data: Data, player: Player, fixture: Fixture) {
+export type OpponentFactors = { attack: number; conceded: number };
+
+const MIN_STRENGTH_FACTOR = 0.65;
+const MAX_STRENGTH_FACTOR = 1.45;
+const NEUTRAL_DIFFICULTY = 3;
+const ATTACK_CHANGE_PER_DIFFICULTY = 0.12;
+const CONCEDED_CHANGE_PER_DIFFICULTY = 0.15;
+
+export function opponentFactors(
+  data: Data,
+  player: Player,
+  fixture: Fixture,
+): OpponentFactors {
   const home = fixture.team_h === player.team;
   const opponent = data.bootstrap.teams.find(
     (team) => team.id === (home ? fixture.team_a : fixture.team_h),
@@ -25,12 +37,23 @@ export function opponentFactors(data: Data, player: Player, fixture: Fixture) {
     const average =
       values.reduce((sum, current) => sum + current, 0) / values.length;
     return Math.max(
-      0.65,
-      Math.min(1.45, inverse ? average / value : value / average),
+      MIN_STRENGTH_FACTOR,
+      Math.min(
+        MAX_STRENGTH_FACTOR,
+        inverse ? average / value : value / average,
+      ),
     );
   };
   return {
-    attack: ratio(defenceKey, true, 1 + (3 - difficulty) * 0.12),
-    conceded: ratio(attackKey, false, 1 + (difficulty - 3) * 0.15),
+    attack: ratio(
+      defenceKey,
+      true,
+      1 + (NEUTRAL_DIFFICULTY - difficulty) * ATTACK_CHANGE_PER_DIFFICULTY,
+    ),
+    conceded: ratio(
+      attackKey,
+      false,
+      1 + (difficulty - NEUTRAL_DIFFICULTY) * CONCEDED_CHANGE_PER_DIFFICULTY,
+    ),
   };
 }
