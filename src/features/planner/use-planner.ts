@@ -381,7 +381,12 @@ export function usePlanner() {
     operation.invalidate();
     dispatch({ type: "edit-cancelled" });
     if (planner.expired())
-      void evaluate(snapshot.settings, snapshot.confirmedPrices);
+      void refresh({
+        next: snapshot.settings,
+        checkedPrices: snapshot.confirmedPrices,
+        choose: (fresh, freshData, freshSettings) =>
+          reselect(snapshot.selection, fresh, freshData, freshSettings),
+      });
   }
 
   function editTeam() {

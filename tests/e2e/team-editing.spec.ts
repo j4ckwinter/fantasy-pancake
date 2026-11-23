@@ -9,6 +9,7 @@ import {
 import {
   bottomOf,
   expectNoHorizontalOverflow,
+  expireData,
   gate,
   importTeam,
   replaceSquadPlayer,
@@ -236,4 +237,26 @@ test("replacing an unavailable player keeps focus on the replaced row", async ({
   await expect(
     page.getByRole("button", { name: "Replace New Star", exact: true }),
   ).toBeFocused();
+});
+
+test("returning from team editing on expired data keeps the plan category and selected plan", async ({
+  page,
+}) => {
+  await importTeam(page);
+  await page
+    .getByRole("button", { name: "Roll then move", exact: true })
+    .click();
+  await page.locator(".transfer-plan .preview-toggle").first().click();
+  await page.getByRole("button", { name: "Edit team details" }).click();
+  await expireData(page);
+  await page.getByRole("button", { name: "View shortlist" }).click();
+  await expect(page.locator(".workspace-heading .eyebrow")).toContainText(
+    "THE NEXT MOVE",
+  );
+  await expect(
+    page.getByRole("button", { name: "Roll then move", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.locator('.transfer-plan .preview-toggle[aria-pressed="true"]'),
+  ).toHaveCount(1);
 });
