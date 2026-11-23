@@ -36,12 +36,10 @@ export function seasonMinutesPerMatch(data: Data, player: Player): number {
   );
 }
 
-/** Rows must be eligible completed matches, newest first (see usableHistory). */
-export function forecastMinutes(
+function seasonMinuteOutcomes(
   data: Data,
   player: Player,
-  rows: History,
-): MinutesForecast {
+): { outcomes: MinuteOutcome[]; startProbability: number } {
   const completed = completedMatches(data, player);
   const seasonMinutes = seasonMinutesPerMatch(data, player);
   const startProbability = clamp(
@@ -70,7 +68,7 @@ export function forecastMinutes(
     subProbability > 0
       ? Math.min(MAX_SUBSTITUTE_MINUTES, residualMinutes / subProbability)
       : 0;
-  const fallback: MinuteOutcome[] = [
+  const outcomes: MinuteOutcome[] = [
     { minutes: startMinutes, probability: startProbability },
     { minutes: subMinutes, probability: subProbability },
     {
@@ -78,12 +76,23 @@ export function forecastMinutes(
       probability: Math.max(0, 1 - startProbability - subProbability),
     },
   ];
-  const recentStarts = rows
+  return { outcomes, startProbability };
+}
+
+function recentStarts(rows: History): History {
+  return rows
     .slice(0, RECENT_ROLE_MATCHES)
     .filter((row) => row.starts >= 1 && row.minutes > 0);
-  // Four consecutive starts provide evidence of a current role. Older absences
-  // still contribute; a new absence or cameo restores the conservative blend.
-  // Zero minutes alone cannot tell us whether a player was injured or dropped.
+}
+
+// Four consecutive starts provide evidence of a current role. Older absences
+// still contribute; a new absence or cameo restores the conservative blend.
+// Zero minutes alone cannot tell us whether a player was injured or dropped.
+function hasEstablishedRecentRole(
+  data: Data,
+  player: Player,
+  rows: History,
+): boolean {
   const cutoff = Date.parse(data.fetchedAt);
   const nextWeek = upcomingWeeks(data)[0] ?? Infinity;
   const recentTeamFixtures = finishedTeamFixtures(data.fixtures, player.team)
@@ -100,12 +109,27 @@ export function forecastMinutes(
         b.id - a.id,
     )
     .slice(0, RECENT_ROLE_MATCHES);
-  const establishedRecentRole =
-    recentStarts.length === RECENT_ROLE_MATCHES &&
+  return (
+    recentStarts(rows).length === RECENT_ROLE_MATCHES &&
     recentTeamFixtures.length === RECENT_ROLE_MATCHES &&
     recentTeamFixtures.every(
       (fixture, index) => fixture.id === rows[index].fixture,
-    );
+    )
+  );
+}
+
+/** Rows must be eligible completed matches, newest first (see usableHistory). */
+export function forecastMinutes(
+  data: Data,
+  player: Player,
+  rows: History,
+): MinutesForecast {
+  const { outcomes: fallback, startProbability } = seasonMinuteOutcomes(
+    data,
+    player,
+  );
+  const starts = recentStarts(rows);
+  const establishedRecentRole = hasEstablishedRecentRole(data, player, rows);
   const weighted = rows.map((row, index) => ({
     row,
     weight:
@@ -156,13 +180,13 @@ export function forecastMinutes(
         (weight + priorWeight)
       : startProbability,
     outcomes,
-    recentStartMinutes: recentStarts.length
-      ? recentStarts.reduce(
+    recentStartMinutes: starts.length
+      ? starts.reduce(
           (sum, row) => sum + clamp(row.minutes, 0, FULL_MATCH_MINUTES),
           0,
-        ) / recentStarts.length
+        ) / starts.length
       : null,
-    recentStartCount: recentStarts.length,
+    recentStartCount: starts.length,
     minutesBasis: establishedRecentRole
       ? "recent-starts"
       : rows.length

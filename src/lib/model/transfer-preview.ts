@@ -7,15 +7,12 @@ import {
   transferRules,
 } from "./transfer-legality";
 import { fixturesFor, upcomingWeeks } from "./schedule";
-import {
-  DEFAULT_AVAILABILITY_SCENARIO,
-  playerRisks,
-  weeklyScores,
-} from "./scoring";
+import { DEFAULT_AVAILABILITY_SCENARIO, weeklyScores } from "./scoring";
 import { bestLineup } from "./lineup";
 import { roundScore } from "./round-score";
 import { transferHit } from "./transfer-rules";
 import { transferReasons } from "./transfer-reasons";
+import { playerRisks } from "./player-risks";
 
 const AVAILABILITY_SENSITIVE_GAIN_DIFFERENCE = 1;
 const ALTERNATE_SCENARIO: Record<AvailabilityScenario, AvailabilityScenario> = {
