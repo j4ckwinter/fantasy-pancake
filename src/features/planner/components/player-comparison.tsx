@@ -1,3 +1,4 @@
+import { ChevronRightIcon } from "lucide-react";
 import { playerForecast } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
 import { money } from "../format";
@@ -78,7 +79,13 @@ export function PlayerComparison({
         Fixtures and availability also affect the final score.
       </p>
       <details className="player-comparison__context">
-        <summary>Recent usage and forecast context</summary>
+        <summary>
+          <ChevronRightIcon
+            aria-hidden="true"
+            className="player-comparison__chevron size-4"
+          />
+          Recent usage and forecast context
+        </summary>
         {players.map(({ player, role, forecast }) => (
           <p key={role}>
             <strong>{player.web_name}:</strong>{" "}

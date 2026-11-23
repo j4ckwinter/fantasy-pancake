@@ -2,7 +2,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-6);
-  margin: var(--space-18) 0;
+  margin: var(--space-14) 0;
 }
 .fixture-strip__week {
   min-width: 0;
@@ -13,31 +13,35 @@
 .fixture-strip__label {
   font-size: var(--text-10);
   color: var(--color-fixture-label);
-  font-weight: 750;
-  letter-spacing: 0.7px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
 }
 .fixture-strip__match {
-  border-radius: var(--radius-5);
-  padding: var(--space-9) var(--space-6);
+  border: 1px solid var(--color-fixture-medium-border);
+  border-bottom-width: 3px;
+  border-radius: var(--radius-8);
+  padding: var(--space-7) var(--space-8);
   background: var(--color-fixture-medium);
-  border-bottom: 3px solid var(--color-fixture-medium-border);
   color: var(--color-fixture-medium-text);
 }
 .fixture-strip__match strong {
   display: block;
   font-size: var(--text-12);
   white-space: nowrap;
+  font-weight: 600;
   line-height: 1.3;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.1px;
 }
 .fixture-strip__match strong span {
-  font-size: var(--text-9);
+  font-size: var(--text-10);
   font-weight: 500;
 }
 .fixture-strip__difficulty {
   display: block;
-  font-size: var(--text-9);
-  margin-top: var(--space-4);
+  font-size: var(--text-10);
+  margin-top: var(--space-2);
+  font-variant-numeric: tabular-nums;
 }
 .fixture-strip__match--1,
 .fixture-strip__match--2 {
@@ -58,7 +62,7 @@
 .fixture-strip__match--blank {
   background: var(--color-fixture-blank);
   border-color: var(--color-fixture-blank-border);
-  border-bottom-style: dashed;
+  border-style: dashed;
   color: var(--color-text-quiet);
 }
 @media (max-width: 420px) {
@@ -66,12 +70,12 @@
     gap: var(--space-4);
   }
   .fixture-strip__match {
-    padding: var(--space-8) var(--space-4);
+    padding: var(--space-6) var(--space-5);
   }
   .fixture-strip__match strong {
     font-size: var(--text-11);
   }
   .fixture-strip__difficulty {
-    font-size: var(--text-8);
+    font-size: var(--text-9);
   }
 }

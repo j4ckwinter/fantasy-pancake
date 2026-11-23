@@ -1,26 +1,33 @@
+.player-comparison + .player-comparison {
+  margin-top: var(--space-16);
+  padding-top: var(--space-16);
+  border-top: 1px solid var(--color-line);
+}
 .player-comparison__table {
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
-  font-size: var(--text-0-85rem);
+  font-size: var(--text-13);
 }
 .player-comparison__table caption {
+  caption-side: top;
   text-align: left;
-  padding: var(--space-1rem) 0;
-  font-weight: 750;
+  padding: var(--space-4) 0 var(--space-12);
+  font-size: var(--text-14);
+  font-weight: 600;
 }
 .player-comparison__table caption span,
 .player-comparison__table small,
 .player-comparison__price {
   display: block;
   color: var(--color-text-muted);
-  font-size: var(--text-0-72rem);
+  font-size: var(--text-11);
   font-weight: 400;
-  margin-top: var(--space-0-25rem);
+  margin-top: var(--space-2);
 }
 .player-comparison__table th,
 .player-comparison__table td {
-  padding: var(--space-0-75rem) var(--space-0-5rem);
+  padding: var(--space-10) var(--space-8);
   border-bottom: 1px solid var(--color-line);
   text-align: center;
   overflow-wrap: anywhere;
@@ -29,37 +36,78 @@
   text-align: left;
   width: 40%;
 }
-.player-comparison__table thead {
+.player-comparison__table tbody th {
+  font-weight: 500;
+}
+.player-comparison__table thead th {
+  vertical-align: bottom;
   background: var(--color-surface-subtle);
+  font-weight: 600;
+}
+.player-comparison__table thead th:first-child {
+  color: var(--color-text-muted);
+  font-size: var(--text-11);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .player-comparison__table thead strong {
   display: block;
-  margin-top: var(--space-0-35rem);
+  margin-top: var(--space-4);
+  font-size: var(--text-14);
+}
+.player-comparison__price {
+  font-variant-numeric: tabular-nums;
 }
 .player-comparison__table td {
-  font-size: var(--text-1-2rem);
-  font-weight: 750;
+  font-size: var(--text-18);
+  font-weight: 650;
+  letter-spacing: -0.3px;
   font-variant-numeric: tabular-nums;
 }
 .player-comparison__context {
-  font-size: var(--text-0-8rem);
+  font-size: var(--text-12);
   color: var(--color-text-muted);
   line-height: 1.6;
 }
 .player-comparison__context summary {
-  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: var(--space-32);
+  padding-inline-end: var(--space-6);
+  border-radius: var(--radius-8);
   color: var(--color-ink);
-  padding-block: var(--space-0-5rem);
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+.player-comparison__context summary::-webkit-details-marker {
+  display: none;
+}
+.player-comparison__context summary:hover {
+  color: var(--color-link-hover);
 }
 .player-comparison__context summary:focus-visible {
-  outline: 2px solid var(--color-ink);
-  outline-offset: 3px;
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+.player-comparison__chevron {
+  flex: none;
+  color: var(--color-text-muted);
+}
+.player-comparison__context[open] .player-comparison__chevron {
+  transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .player-comparison__chevron {
+    transition: transform 150ms ease;
+  }
 }
 .player-comparison__fixtures {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-1rem);
-  margin-top: var(--space-1rem);
+  gap: var(--space-16);
+  margin-top: var(--space-12);
 }
 .player-comparison__fixtures section {
   display: grid;
@@ -68,23 +116,25 @@
   min-width: 0;
 }
 .player-comparison__fixtures h4 {
-  font-size: var(--text-0-8rem);
-  margin: 0 0 var(--space-0-5rem);
+  font-size: var(--text-12);
+  font-weight: 600;
+  margin: 0 0 var(--space-8);
   overflow-wrap: anywhere;
 }
 .player-comparison__fixtures .fixture-strip {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
 }
 @media (max-width: 480px) {
   .player-comparison__table th,
   .player-comparison__table td {
-    padding: var(--space-0-65rem) var(--space-0-3rem);
+    padding: var(--space-10) var(--space-5);
   }
   .player-comparison__table .eyebrow {
-    font-size: var(--text-0-6rem);
-    letter-spacing: 0.03em;
+    font-size: var(--text-9);
+    letter-spacing: 0.06em;
   }
   .player-comparison__fixtures {
-    gap: var(--space-0-5rem);
+    gap: var(--space-8);
   }
 }

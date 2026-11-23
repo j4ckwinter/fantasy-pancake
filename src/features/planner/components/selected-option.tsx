@@ -1,4 +1,5 @@
 import { useEffect, type RefObject } from "react";
+import { ChevronRightIcon } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import { Disclosure } from "@/components/disclosure";
 import type { Lineup } from "@/lib/model";
@@ -49,7 +50,13 @@ export function SelectedOption({
   const checked = pricesChecked(selection.actions, confirmedPrices);
   return (
     <details id="selected-option" className="transfer-details" ref={detailsRef}>
-      <summary>Transfer details</summary>
+      <summary>
+        Transfer details
+        <ChevronRightIcon
+          aria-hidden="true"
+          className="transfer-details__chevron size-4"
+        />
+      </summary>
       <article
         className="selected-option"
         aria-label="Selected transfer option"
@@ -63,7 +70,7 @@ export function SelectedOption({
           option && (
             <>
               {option.gain <= threshold && (
-                <p className="muted">
+                <p className="muted selected-option__threshold">
                   <StatusBadge tone="neutral">
                     Below shortlist threshold
                   </StatusBadge>{" "}
@@ -94,14 +101,14 @@ export function SelectedOption({
                 ))}
               </Disclosure>
               <Disclosure summary="Why this option · risks and assumptions">
-                <ul>
+                <ul className="selected-option__list">
                   {option.reasons.map((reason) => (
                     <li key={reason}>{reason}</li>
                   ))}
                 </ul>
                 {selection.kind === "move" && (
                   <>
-                    <ul>
+                    <ul className="selected-option__list">
                       {selection.move.risks.map((risk) => (
                         <li key={risk}>{risk}</li>
                       ))}

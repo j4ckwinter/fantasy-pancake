@@ -10,3 +10,6 @@
 .selling-price-check > button {
   flex-shrink: 0;
 }
+.selling-price-check input {
+  font-variant-numeric: tabular-nums;
+}
