@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { ArrowUpRightIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import type { Data } from "@/lib/schemas";
 import "./planner-header.css";
@@ -26,25 +28,27 @@ export function PlannerHeader({ data }: { data: Data | null }) {
           alt=""
           unoptimized
         />
-        <span>
+        <span className="brand-name__text">
           Fantasy Pancake<small>Your next move, planned.</small>
         </span>
       </Link>
       <div className="header-tools">
         {nextEvent && deadline && (
           <div className="deadline">
-            <span>GW{nextEvent.id} DEADLINE</span>
+            <span className="deadline__label">GW{nextEvent.id} deadline</span>
             <time dateTime={nextEvent.deadline_time}>{deadline}</time>
           </div>
         )}
-        <a
-          className="header-fpl"
-          href="https://fantasy.premierleague.com/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Open FPL <span aria-hidden="true">↗</span>
-        </a>
+        <Button asChild variant="outline" className="header-fpl">
+          <a
+            href="https://fantasy.premierleague.com/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open FPL
+            <ArrowUpRightIcon data-icon="inline-end" aria-hidden="true" />
+          </a>
+        </Button>
       </div>
     </header>
   );
