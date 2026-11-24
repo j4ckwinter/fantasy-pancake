@@ -409,6 +409,34 @@ describe("chip valuation", () => {
     expect(wildcard.best.week).toBe(11);
   });
 
+  it("values a later Wildcard against the plan's own weeks from that week on", () => {
+    const { data, settings } = withChips();
+    strongClubSix(data);
+    for (const [id, position] of [
+      [271, 3],
+      [272, 4],
+    ])
+      data.bootstrap.elements.push(
+        player(id, position, 1, { expected_goals: 7, expected_assists: 6 }),
+      );
+    const result = analyze(data, settings);
+    const plan = result.plans.find(
+      (candidate) =>
+        candidate.kind === "plan-ahead" && candidate.variant === "best",
+    )!;
+    const movesIn = (week: number) =>
+      plan.weeks.find((planned) => planned.week === week)!.actions.length;
+    expect(movesIn(11)).toBeGreaterThan(0);
+    expect(movesIn(13)).toBeGreaterThan(0);
+    const option = valued(rowsFor(result.chips, "wildcard")[0]).options.find(
+      (candidate) => candidate.week === 12,
+    )!;
+    const planned = plan.weeks
+      .filter((planned) => planned.week >= 12)
+      .reduce((sum, planned) => sum + planned.score - planned.hit, 0);
+    expect(option.gain).toBeCloseTo(3 * option.lineup.score - planned, 1);
+  });
+
   it("values a Wildcard against the recommended plan, not against holding", () => {
     const { data, settings } = withChips();
     strongClubSix(data);
