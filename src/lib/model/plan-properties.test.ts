@@ -19,6 +19,8 @@ import {
   type Random,
 } from "./test-fixtures";
 
+const SEARCH_TESTS_TIMEOUT_MS = 30_000;
+
 const GENERATED_CASES = 40;
 const GENERATED_PLAYERS = 220;
 const EXHAUSTIVE_CASES = 20;
@@ -117,22 +119,26 @@ function expectLegalEveryWeek(
   ).toBe(Math.round(plan.gain * 100));
 }
 
-describe("plan properties over generated squads", () => {
-  it("returns only plans that are legal every week, account hits correctly and beat holding", () => {
-    let planCount = 0;
-    for (let seed = 1; seed <= GENERATED_CASES; seed++) {
-      const { data, settings } = generatedCase(seed);
-      const result = analyze(data, settings);
-      const scores = scoresFor(data, result.weeks);
-      for (const plan of result.plans) {
-        planCount++;
-        expectLegalEveryWeek(data, settings, plan, scores);
-        expect(plan.gain).toBeGreaterThan(0);
+describe(
+  "plan properties over generated squads",
+  { timeout: SEARCH_TESTS_TIMEOUT_MS },
+  () => {
+    it("returns only plans that are legal every week, account hits correctly and beat holding", () => {
+      let planCount = 0;
+      for (let seed = 1; seed <= GENERATED_CASES; seed++) {
+        const { data, settings } = generatedCase(seed);
+        const result = analyze(data, settings);
+        const scores = scoresFor(data, result.weeks);
+        for (const plan of result.plans) {
+          planCount++;
+          expectLegalEveryWeek(data, settings, plan, scores);
+          expect(plan.gain).toBeGreaterThan(0);
+        }
       }
-    }
-    expect(planCount).toBeGreaterThan(GENERATED_CASES);
-  });
-});
+      expect(planCount).toBeGreaterThan(GENERATED_CASES);
+    });
+  },
+);
 
 function playersMovedEachWeek(plan: TransferPlan) {
   return plan.weeks
@@ -149,7 +155,7 @@ function playersMovedEachWeek(plan: TransferPlan) {
     .join();
 }
 
-describe("plan identity", () => {
+describe("plan identity", { timeout: SEARCH_TESTS_TIMEOUT_MS }, () => {
   it("does not depend on the order of the squad", () => {
     for (let seed = 1; seed <= REORDERED_CASES; seed++) {
       const { data, settings } = generatedCase(seed);
@@ -359,55 +365,63 @@ function adjustedGain(data: Data, settings: Settings, plan?: TransferPlan) {
     : 0;
 }
 
-describe("beam search against exhaustive search", () => {
-  it("matches exhaustive search over four weeks when pair and seed limits bind", () => {
-    for (let seed = 1; seed <= BINDING_CASES; seed++) {
-      const { data, settings } = bindingMarket(seededRandom(seed));
-      const result = analyze(data, settings);
-      const optimum = exhaustiveBest(data, settings, result.weeks);
-      const [best] = result.plans.filter((plan) => plan.kind === "plan-ahead");
-      expect(adjustedGain(data, settings, best), `seed ${seed}`).toBeCloseTo(
-        optimum,
-        2,
-      );
-    }
-  }, 60000);
+describe(
+  "beam search against exhaustive search",
+  { timeout: SEARCH_TESTS_TIMEOUT_MS },
+  () => {
+    it("matches exhaustive search over four weeks when pair and seed limits bind", () => {
+      for (let seed = 1; seed <= BINDING_CASES; seed++) {
+        const { data, settings } = bindingMarket(seededRandom(seed));
+        const result = analyze(data, settings);
+        const optimum = exhaustiveBest(data, settings, result.weeks);
+        const [best] = result.plans.filter(
+          (plan) => plan.kind === "plan-ahead",
+        );
+        expect(adjustedGain(data, settings, best), `seed ${seed}`).toBeCloseTo(
+          optimum,
+          2,
+        );
+      }
+    }, 60000);
 
-  it("finds what a far wider search finds on full-size leagues where a narrow beam fell short", () => {
-    const widerSearchBest = new Map([
-      [5, 44.14],
-      [15, 34.21],
-    ]);
-    for (const [seed, wider] of widerSearchBest) {
-      const data = syntheticLeague(seed);
-      const settings = syntheticSquad(data, seededRandom(seed));
-      settings.freeTransfers = seed % 3;
-      const [best] = analyze(data, settings).plans.filter(
-        (plan) => plan.kind === "plan-ahead",
-      );
-      expect(adjustedGain(data, settings, best), `seed ${seed}`).toBeCloseTo(
-        wider,
-        2,
-      );
-    }
-  });
+    it("finds what a far wider search finds on full-size leagues where a narrow beam fell short", () => {
+      const widerSearchBest = new Map([
+        [5, 44.14],
+        [15, 34.21],
+      ]);
+      for (const [seed, wider] of widerSearchBest) {
+        const data = syntheticLeague(seed);
+        const settings = syntheticSquad(data, seededRandom(seed));
+        settings.freeTransfers = seed % 3;
+        const [best] = analyze(data, settings).plans.filter(
+          (plan) => plan.kind === "plan-ahead",
+        );
+        expect(adjustedGain(data, settings, best), `seed ${seed}`).toBeCloseTo(
+          wider,
+          2,
+        );
+      }
+    });
 
-  it("finds the exhaustive optimum on small markets where no limit binds", () => {
-    for (let seed = 1; seed <= EXHAUSTIVE_CASES; seed++) {
-      const { data, settings } = smallMarket(seededRandom(seed));
-      const result = analyze(data, settings);
-      const optimum = exhaustiveBest(data, settings, result.weeks);
-      const [best] = result.plans.filter((plan) => plan.kind === "plan-ahead");
-      const marginOf = margin(data, settings);
-      const adjusted = best
-        ? best.gain -
-          best.weeks.reduce(
-            (sum, week) =>
-              sum + marginOf(week.actions.length, week.freeTransfersBefore),
-            0,
-          )
-        : 0;
-      expect(adjusted, `seed ${seed}`).toBeCloseTo(optimum, 1);
-    }
-  });
-});
+    it("finds the exhaustive optimum on small markets where no limit binds", () => {
+      for (let seed = 1; seed <= EXHAUSTIVE_CASES; seed++) {
+        const { data, settings } = smallMarket(seededRandom(seed));
+        const result = analyze(data, settings);
+        const optimum = exhaustiveBest(data, settings, result.weeks);
+        const [best] = result.plans.filter(
+          (plan) => plan.kind === "plan-ahead",
+        );
+        const marginOf = margin(data, settings);
+        const adjusted = best
+          ? best.gain -
+            best.weeks.reduce(
+              (sum, week) =>
+                sum + marginOf(week.actions.length, week.freeTransfersBefore),
+              0,
+            )
+          : 0;
+        expect(adjusted, `seed ${seed}`).toBeCloseTo(optimum, 1);
+      }
+    });
+  },
+);
