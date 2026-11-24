@@ -84,7 +84,7 @@ export function ChipPanel({
                 <li
                   key={summary.key}
                   className={`chip-row${active ? " chip-row--active" : ""}`}
-                  data-testid={`chip-${summary.chip}`}
+                  data-testid={`chip-${summary.key}`}
                 >
                   <span className="chip-row__icon" aria-hidden="true">
                     <Icon className="size-4" />

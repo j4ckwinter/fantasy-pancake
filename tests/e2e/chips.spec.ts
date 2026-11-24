@@ -21,7 +21,7 @@ function chipsPanel(page: Page) {
 }
 
 function chipRow(page: Page, chip: string) {
-  return chipsPanel(page).getByTestId(`chip-${chip}`);
+  return chipsPanel(page).locator(`[data-testid^="chip-${chip}"]`).first();
 }
 
 function lineupHeading(page: Page) {
@@ -100,6 +100,22 @@ test("a chip that expires inside the horizon is played in its best remaining wee
     "Expires after GW10, so holding is worth nothing.",
   );
   await expect(chipRow(page, "wildcard")).toContainText("Expires after GW10.");
+});
+
+test("both halves of a chip are listed and labelled by their windows", async ({
+  page,
+}) => {
+  await importWithChips(page, [], null, [
+    ["3xc", 1, 10],
+    ["3xc", 11, 38],
+  ]);
+  const rows = chipsPanel(page).getByRole("heading", { level: 3 });
+  await expect(rows).toHaveText([
+    "Triple Captain · GW1–10",
+    "Triple Captain · GW11–38",
+  ]);
+  await expect(chipsPanel(page).getByTestId("chip-3xc-1")).toBeVisible();
+  await expect(chipsPanel(page).getByTestId("chip-3xc-11")).toBeVisible();
 });
 
 test("previewing Bench Boost puts the whole bench on the pitch", async ({

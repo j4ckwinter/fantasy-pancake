@@ -144,7 +144,17 @@ function summaryOf(row: ChipStatus): ChipSummary {
 export function chipSummaries(
   advice: Extract<ChipAdvice, { status: "known" }>,
 ): ChipSummary[] {
-  return advice.chips.map(summaryOf);
+  const shared = (chip: ChipName) =>
+    advice.chips.filter((row) => row.chip === chip).length > 1;
+  return advice.chips.map((row) => {
+    const summary = summaryOf(row);
+    return row.status === "available" && shared(row.chip)
+      ? {
+          ...summary,
+          label: `${summary.label} · ${windowText(row.window.firstWeek, row.window.lastWeek)}`,
+        }
+      : summary;
+  });
 }
 
 export function chipsUnknownText(
