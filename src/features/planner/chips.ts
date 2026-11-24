@@ -208,6 +208,8 @@ export const chipsStatusText: Record<
     "Chip status is from when this plan was saved, because FPL didn’t send your chip history. Refresh from FPL to try again.",
   unapplied:
     "Chip status is from when this plan was saved: FPL’s answer arrived after you changed the plan. Refresh from FPL to update it.",
+  uncompared:
+    "Chip status is from when this plan was saved: FPL sent your played chips, but the plan couldn’t be rechecked with them. Refresh from FPL to update it.",
 };
 
 export const chipHorizonNote = (weeks: number[]) =>

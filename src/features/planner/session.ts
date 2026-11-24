@@ -14,7 +14,12 @@ type ReviewSnapshot = {
 };
 
 export type ChipsStatus =
-  "current" | "checking" | "unreachable" | "no-history" | "unapplied";
+  | "current"
+  | "checking"
+  | "unreachable"
+  | "no-history"
+  | "unapplied"
+  | "uncompared";
 
 export type Session = {
   settings: Settings | null;
@@ -157,17 +162,19 @@ export function sessionReducer(
         notice: "restored",
       };
     case "chips-checked": {
+      if (session.chipsStatus !== "checking") return session;
       const untouched =
         JSON.stringify(session.settings) === JSON.stringify(action.from);
       const changed =
         JSON.stringify(action.settings) !== JSON.stringify(action.from);
       const resultCurrent = !changed || !session.result || !!action.result;
-      if (!untouched || !resultCurrent)
+      if (!untouched)
         return {
           ...session,
           chipsStatus:
             action.chipsStatus === "current" ? "unapplied" : action.chipsStatus,
         };
+      if (!resultCurrent) return { ...session, chipsStatus: "uncompared" };
       return {
         ...session,
         settings: action.settings,

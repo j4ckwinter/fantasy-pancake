@@ -209,7 +209,21 @@ describe("planner session", () => {
     });
     expect(
       sessionReducer(restored, { ...checked, result: undefined }),
-    ).toMatchObject({ settings, chipsStatus: "unapplied" });
+    ).toMatchObject({ settings, chipsStatus: "uncompared" });
+  });
+
+  it("ignores a chip check that arrives after a fresh import", () => {
+    const imported = session({ chipsStatus: "current" });
+    for (const chipsStatus of ["current", "unreachable", "no-history"] as const)
+      expect(
+        sessionReducer(imported, {
+          type: "chips-checked",
+          from: settings,
+          settings: { ...settings, bank: 7 },
+          chipsStatus,
+          result: analysis([9, 10, 11, 12]),
+        }),
+      ).toBe(imported);
   });
 
   it("clears the unsaved-settings warning after a later save works", () => {
