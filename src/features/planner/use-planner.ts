@@ -306,7 +306,21 @@ export function usePlanner() {
     const index = result?.weeks.indexOf(week) ?? -1;
     if (index < 0) return;
     operation.invalidate();
-    dispatch({ type: "chip-previewed", key, index });
+    dispatch(
+      session.chipPreview === key
+        ? { type: "selection-cleared" }
+        : { type: "chip-previewed", key, index },
+    );
+  }
+
+  function selectLineup(index: number) {
+    if (
+      result &&
+      session.chipPreview &&
+      !previewedChip(result, session.chipPreview, index)
+    )
+      dispatch({ type: "selection-cleared" });
+    dispatch({ type: "lineup-selected", index });
   }
 
   function selectPlan(plan: TransferPlan) {
@@ -469,8 +483,7 @@ export function usePlanner() {
       operation.invalidate();
       dispatch({ type: "category-changed", category });
     },
-    selectLineup: (index: number) =>
-      dispatch({ type: "lineup-selected", index }),
+    selectLineup,
     toggleEditing: () => dispatch({ type: "editing-toggled" }),
     clearSelection: () => {
       operation.invalidate();

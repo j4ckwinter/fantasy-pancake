@@ -193,6 +193,39 @@ test("comparing your own transfer replaces a chip preview", async ({
   await expect(chip).toHaveAttribute("aria-pressed", "false");
 });
 
+test("pressing a chip preview again turns it off", async ({ page }) => {
+  await importWithChips(page);
+  const chip = page.getByRole("button", {
+    name: /Preview Triple Captain in GW/,
+  });
+  await chip.click();
+  await expect(chip).toHaveAttribute("aria-pressed", "true");
+  await chip.click();
+  await expect(chip).toHaveAttribute("aria-pressed", "false");
+  await expect(
+    page.getByRole("complementary", { name: "Baseline starting lineup" }),
+  ).toBeVisible();
+});
+
+test("a chip preview ends when you show a week outside the chip's window", async ({
+  page,
+}) => {
+  await importWithChips(page, [], null, [
+    ["bboost", 1, 10],
+    ["bboost", 20, 38],
+  ]);
+  const chip = page.getByRole("button", { name: /Preview Bench Boost in GW/ });
+  await chip.click();
+  await page.getByRole("button", { name: "Show lineup GW11" }).click();
+  await expect(chip).toHaveAttribute("aria-pressed", "false");
+  await expect(
+    page.getByRole("complementary", { name: "Baseline starting lineup" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Clear preview" })).toHaveCount(
+    0,
+  );
+});
+
 test("an import without played chips offers to load them from FPL", async ({
   page,
 }) => {
