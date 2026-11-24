@@ -10,7 +10,7 @@ type SquadRules = {
   bootstrap: Pick<Data["bootstrap"], "element_types" | "game_settings">;
 };
 
-export type FreeHitMarket = {
+export type SquadMarket = {
   players: readonly Player[];
   prices: ReadonlyMap<number, number>;
   budget: number;
@@ -39,12 +39,17 @@ const byValue = (a: Candidate, b: Candidate) =>
 const byPrice = (a: Candidate, b: Candidate) =>
   a.price - b.price || byPoints(a, b);
 
-function pools(market: FreeHitMarket, scores: ReadonlyMap<number, number>) {
+type WeeklyScores = readonly ReadonlyMap<number, number>[];
+
+const pointsOver = (weeks: WeeklyScores, id: number) =>
+  weeks.reduce((sum, week) => sum + (week.get(id) ?? 0), 0);
+
+function pools(market: SquadMarket, weeks: WeeklyScores) {
   const candidates = market.players.flatMap((player): Candidate[] => {
     const price = market.prices.get(player.id);
     return price === undefined
       ? []
-      : [{ player, price, points: scores.get(player.id) ?? 0 }];
+      : [{ player, price, points: pointsOver(weeks, player.id) }];
   });
   const forPosition = (position: Position) => {
     const eligible = candidates.filter(
@@ -215,12 +220,12 @@ function withBench(
   return [...state.picks.map((pick) => pick.player), ...bench];
 }
 
-export function bestFreeHitSquad(
+export function bestAffordableSquad(
   rules: SquadRules,
-  market: FreeHitMarket,
-  scores: ReadonlyMap<number, number>,
+  market: SquadMarket,
+  weeks: WeeklyScores,
 ): Player[] | null {
-  const pool = pools(market, scores);
+  const pool = pools(market, weeks);
   const clubLimit = rules.bootstrap.game_settings.squad_team_limit;
   let best: { squad: Player[]; score: number } | null = null;
   for (const formation of formations(rules)) {
@@ -238,7 +243,10 @@ export function bestFreeHitSquad(
     for (const state of finalists) {
       const squad = withBench(rules, formation, pool, state, market.budget);
       if (!squad) continue;
-      const score = bestLineup(rules, squad, scores).score;
+      const score = weeks.reduce(
+        (sum, week) => sum + bestLineup(rules, squad, week).score,
+        0,
+      );
       if (!best || score > best.score) best = { squad, score };
     }
   }

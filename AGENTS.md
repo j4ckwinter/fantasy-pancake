@@ -46,7 +46,7 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Which chips remain and the weeks each can be played               | `src/lib/model/chip-availability.ts`                             |
 | Chip values, best weeks and hold thresholds                       | `src/lib/model/chip-advice.ts`                                   |
 | One chip per gameweek: which chip plays which week                | `src/lib/model/chip-weeks.ts`                                    |
-| Best affordable one-week Free Hit squad                           | `src/lib/model/free-hit-squad.ts`                                |
+| Best affordable squad rebuilt for one or more weeks               | `src/lib/model/affordable-squad.ts`                              |
 | Position ids; per-position scoring weights and attacking priors   | `src/lib/model/position.ts`; `scoring.ts`, `forecast-history.ts` |
 | Match length, 60-minute appearances and recency half-life         | `src/lib/model/match-minutes.ts`, `recency.ts`                   |
 | Fitted forecast parameters and their uncalibrated reference       | `src/lib/model/calibrated-parameters.ts`                         |

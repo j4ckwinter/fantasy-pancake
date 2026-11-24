@@ -6,7 +6,7 @@ import {
   type ChipWindow,
 } from "./chip-availability";
 import { captaincyByWeek } from "./captaincy-preview";
-import { bestFreeHitSquad, type FreeHitMarket } from "./free-hit-squad";
+import { bestAffordableSquad, type SquadMarket } from "./affordable-squad";
 import { bestLineup } from "./lineup";
 import { roundScore } from "./round-score";
 import { isTransferable } from "./transfer-legality";
@@ -110,7 +110,7 @@ function benchBoostWeeks(
   });
 }
 
-function freeHitMarket(context: TransferContext): FreeHitMarket {
+function freeHitMarket(context: TransferContext): SquadMarket {
   const { data, settings } = context;
   const selling = new Map(
     settings.squad.map((pick) => [pick.id, pick.sellingPrice]),
@@ -134,7 +134,7 @@ function freeHitWeeks(context: TransferContext, weeks: number[]): ChipWeek[] {
     const index = weekIndex(context, week);
     const scores = context.scores[index];
     const yours = context.baseline[index];
-    const squad = bestFreeHitSquad(context.data, market, scores);
+    const squad = bestAffordableSquad(context.data, market, [scores]);
     if (!squad) return [];
     const lineup = bestLineup(context.data, squad, scores);
     if (lineup.score <= yours.score)

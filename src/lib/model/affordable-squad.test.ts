@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Player } from "../schemas";
 import { bestLineup } from "./lineup";
-import { bestFreeHitSquad } from "./free-hit-squad";
+import { bestAffordableSquad } from "./affordable-squad";
 import { gameSettings, player, positionRules } from "./test-fixtures";
 
 const rules = {
@@ -21,7 +21,7 @@ function market(specs: Spec[]) {
   };
 }
 
-describe("Free Hit squad search", () => {
+describe("affordable squad search", () => {
   it("fills the bench from other clubs when the cheapest players share a club with the XI", () => {
     const specs: Spec[] = [
       [1, 15, 40, 3],
@@ -34,11 +34,9 @@ describe("Free Hit squad search", () => {
       ...Array.from({ length: 6 }, (_, i): Spec => [4, 15 + i, 40, 0]),
     ];
     const { players, prices, scores } = market(specs);
-    const squad = bestFreeHitSquad(
-      rules,
-      { players, prices, budget: 800 },
+    const squad = bestAffordableSquad(rules, { players, prices, budget: 800 }, [
       scores,
-    );
+    ]);
     expect(squad).not.toBeNull();
     expect(bestLineup(rules, squad!, scores).score).toBe(70);
   });
