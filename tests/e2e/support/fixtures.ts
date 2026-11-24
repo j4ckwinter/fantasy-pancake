@@ -121,8 +121,11 @@ const CHIP_WINDOWS = [
   ["3xc", 20, 38],
 ] as const;
 
-export function withChipRules(data: Data): Data {
-  data.bootstrap.chips = CHIP_WINDOWS.map(([name, start, stop], index) => ({
+export function withChipRules(
+  data: Data,
+  windows: readonly (readonly [string, number, number])[] = CHIP_WINDOWS,
+): Data {
+  data.bootstrap.chips = windows.map(([name, start, stop], index) => ({
     id: index + 1,
     name,
     number: 1,

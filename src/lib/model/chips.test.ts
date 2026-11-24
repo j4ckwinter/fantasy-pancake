@@ -189,7 +189,11 @@ describe("chip valuation", () => {
     expect(valuation.best.lineup.captain).toBe(13);
     expect(valuation.threshold).toBe(CHIP_PLAY_THRESHOLD_POINTS["3xc"]);
     expect(valuation.best.gain).toBeGreaterThan(valuation.threshold);
-    expect(valuation.recommendation).toEqual({ kind: "play", week: 13 });
+    expect(valuation.recommendation).toEqual({
+      kind: "play",
+      week: 13,
+      reason: "clears-bar",
+    });
   });
 
   it("values Bench Boost as the bench's expected points that week", () => {
@@ -269,12 +273,38 @@ describe("chip valuation", () => {
     expect(captain.best.week).toBe(13);
     expect(boost.best.week).toBe(13);
     expect(boost.best.gain).toBeGreaterThan(captain.best.gain);
-    expect(boost.recommendation).toEqual({ kind: "play", week: 13 });
+    expect(boost.recommendation).toEqual({
+      kind: "play",
+      week: 13,
+      reason: "clears-bar",
+    });
     expect(captain.recommendation).toEqual({
       kind: "hold",
       reason: "week-taken",
       takenBy: "bboost",
     });
+  });
+
+  it("plays a chip that expires inside the horizon in its best remaining week, whatever the bar", () => {
+    const { data, settings } = withChips([
+      { name: "3xc", start_event: 1, stop_event: 12 },
+      { name: "3xc", start_event: 13, stop_event: 38 },
+      { name: "wildcard", start_event: 2, stop_event: 12 },
+    ]);
+    setPlayer(data, 13, { status: "d", chance_of_playing_next_round: 50 });
+    const chips = analyze(data, settings).chips;
+    const [expiring, later] = rowsFor(chips, "3xc");
+    expect(available(expiring).expires).toBe(true);
+    expect(available(later).expires).toBe(false);
+    const valuation = valued(expiring);
+    expect(valuation.best.gain).toBeLessThanOrEqual(valuation.threshold);
+    expect(valuation.recommendation).toEqual({
+      kind: "play",
+      week: valuation.best.week,
+      reason: "expires",
+    });
+    expect(valued(later).recommendation).toMatchObject({ kind: "hold" });
+    expect(available(rowsFor(chips, "wildcard")[0]).expires).toBe(true);
   });
 
   it("lists the Wildcard with its window while its valuation is pending", () => {

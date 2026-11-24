@@ -48,12 +48,13 @@ function availableSummary(
 ): Omit<ChipSummary, "key" | "chip" | "label"> {
   const usable = `Usable ${gameweekRange(row.weeks)}, window ${windowText(row.window.firstWeek, row.window.lastWeek)}`;
   const { valuation } = row;
+  const expiry = row.expires ? ` Expires after GW${row.window.lastWeek}.` : "";
   switch (valuation.kind) {
     case "pending":
       return {
         badge: "Available",
         tone: "neutral",
-        detail: `${usable}. Its value needs multi-week planning, which is coming.`,
+        detail: `${usable}.${expiry} Its value needs multi-week planning, which is coming.`,
         previewWeek: null,
       };
     case "valued": {
@@ -67,7 +68,10 @@ function availableSummary(
           return {
             badge: `Play GW${played.week}`,
             tone: "success",
-            detail: `${signedPoints(played.gain)} in GW${played.week}, clearing ${bar}.`,
+            detail:
+              recommendation.reason === "expires"
+                ? `Expires after GW${row.window.lastWeek}, so holding is worth nothing. Best remaining week: ${signedPoints(played.gain)} in GW${played.week}.`
+                : `${signedPoints(played.gain)} in GW${played.week}, clearing ${bar}.${expiry}`,
             previewWeek: played.week,
           };
         }
@@ -78,7 +82,7 @@ function availableSummary(
             detail:
               recommendation.reason === "week-taken"
                 ? `Best GW${best.week} ${signedPoints(best.gain)}, but ${chipLabels[recommendation.takenBy]} gains more that week. One chip per gameweek.`
-                : `Best GW${best.week} ${signedPoints(best.gain)}, under ${bar}.`,
+                : `Best GW${best.week} ${signedPoints(best.gain)}, under ${bar}.${expiry}`,
             previewWeek: best.week,
           };
       }

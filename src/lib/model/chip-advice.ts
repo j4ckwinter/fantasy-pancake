@@ -28,7 +28,7 @@ export type ChipWeek = {
 };
 
 export type ChipRecommendation =
-  | { kind: "play"; week: number }
+  | { kind: "play"; week: number; reason: "clears-bar" | "expires" }
   | { kind: "hold"; reason: "below-threshold" }
   | { kind: "hold"; reason: "week-taken"; takenBy: ChipName };
 
@@ -49,6 +49,7 @@ export type ChipStatus =
       chip: ChipName;
       window: ChipWindow;
       weeks: number[];
+      expires: boolean;
       valuation: ChipValuation;
     };
 
@@ -165,13 +166,21 @@ function bestOption(options: ChipWeek[]): ChipWeek {
 
 type Claim = { row: number; chip: ChipName; option: ChipWeek };
 
-function assignWeeks(
-  rows: { chip: ChipName; options: ChipWeek[]; threshold: number }[],
-): Map<number, ChipRecommendation> {
+type ValuedRow = {
+  chip: ChipName;
+  options: ChipWeek[];
+  threshold: number;
+  expires: boolean;
+};
+
+const qualifies = (row: ValuedRow, option: ChipWeek) =>
+  row.expires ? option.gain > 0 : option.gain > row.threshold;
+
+function assignWeeks(rows: ValuedRow[]): Map<number, ChipRecommendation> {
   const claims: Claim[] = rows
     .flatMap((row, index) =>
       row.options
-        .filter((option) => option.gain > row.threshold)
+        .filter((option) => qualifies(row, option))
         .map((option) => ({ row: index, chip: row.chip, option })),
     )
     .sort(
@@ -185,12 +194,19 @@ function assignWeeks(
   for (const claim of claims) {
     if (decided.has(claim.row) || weekOwner.has(claim.option.week)) continue;
     weekOwner.set(claim.option.week, claim.chip);
-    decided.set(claim.row, { kind: "play", week: claim.option.week });
+    decided.set(claim.row, {
+      kind: "play",
+      week: claim.option.week,
+      reason:
+        claim.option.gain > rows[claim.row].threshold
+          ? "clears-bar"
+          : "expires",
+    });
   }
   rows.forEach((row, index) => {
     if (decided.has(index)) return;
     const takenBy = row.options
-      .filter((option) => option.gain > row.threshold)
+      .filter((option) => qualifies(row, option))
       .map((option) => weekOwner.get(option.week))
       .find((owner) => owner !== undefined);
     decided.set(
@@ -213,6 +229,7 @@ function valueChips(
           chip: row.chip,
           options: VALUE_WEEKS[row.chip](context, row.weeks),
           threshold: CHIP_PLAY_THRESHOLD_POINTS[row.chip],
+          expires: row.expires,
         }
       : null,
   );

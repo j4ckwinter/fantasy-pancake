@@ -8,7 +8,13 @@ import {
 export type ChipWindow = { firstWeek: number; lastWeek: number };
 
 export type ChipAvailability =
-  | { status: "available"; chip: ChipName; window: ChipWindow; weeks: number[] }
+  | {
+      status: "available";
+      chip: ChipName;
+      window: ChipWindow;
+      weeks: number[];
+      expires: boolean;
+    }
   | {
       status: "used";
       chip: ChipName;
@@ -72,6 +78,7 @@ function statusOf(
       weeks: weeks.filter(
         (week) => week >= instance.firstWeek && week <= instance.lastWeek,
       ),
+      expires: instance.lastWeek <= last,
     }));
   const upcoming = instances.find(
     (instance) => remains(instance) && instance.firstWeek > last,

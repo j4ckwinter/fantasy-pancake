@@ -31,8 +31,9 @@ async function importWithChips(
   page: Page,
   chipsPlayed: { name: string; event: number }[] = [],
   doubleWeek: number | null = null,
+  windows?: Parameters<typeof withChipRules>[1],
 ) {
-  const data = withChipRules(fixtureData());
+  const data = withChipRules(fixtureData(), windows);
   if (doubleWeek !== null) withDoubleGameweek(data, doubleWeek);
   await routeData(page, data);
   await routeImport(page, importResponse({ chipsPlayed }));
@@ -83,6 +84,21 @@ test("a double gameweek earns Bench Boost a play, and Triple Captain gives way",
   await expect(
     chipRow(page, "wildcard").getByRole("button", { name: /Preview/ }),
   ).toHaveCount(0);
+});
+
+test("a chip that expires inside the horizon is played in its best remaining week", async ({
+  page,
+}) => {
+  await importWithChips(page, [], null, [
+    ["3xc", 1, 10],
+    ["3xc", 20, 38],
+    ["wildcard", 2, 10],
+  ]);
+  await expect(chipRow(page, "3xc")).toContainText(/Play GW(9|10)/);
+  await expect(chipRow(page, "3xc")).toContainText(
+    "Expires after GW10, so holding is worth nothing.",
+  );
+  await expect(chipRow(page, "wildcard")).toContainText("Expires after GW10.");
 });
 
 test("previewing Bench Boost puts the whole bench on the pitch", async ({
