@@ -39,18 +39,18 @@ export function PreviewMetrics({
 
 export function ChipMetrics({
   gain,
-  week,
+  weeks,
   threshold,
 }: {
   gain: number;
-  week: number;
+  weeks: number[];
   threshold: number;
 }) {
   return (
     <div className="metrics metrics--pair">
       <div className="metric">
         <strong>{signedPoints(gain)}</strong>
-        <span>{expectedGainLabel([week])}</span>
+        <span>{expectedGainLabel(weeks)}</span>
       </div>
       <div className="metric">
         <strong>{expectedPoints(threshold)}</strong>

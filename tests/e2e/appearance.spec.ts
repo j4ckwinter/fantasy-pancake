@@ -17,7 +17,7 @@ async function routeChips(page: Page) {
   await routeData(page, withDoubleGameweek(withChipRules(fixtureData()), 11));
   await routeImport(
     page,
-    importResponse({ chipsPlayed: [{ name: "wildcard", event: 3 }] }),
+    importResponse({ chipsPlayed: [{ name: "freehit", event: 3 }] }),
   );
 }
 
@@ -154,7 +154,7 @@ for (const scheme of ["light", "dark"] as const) {
       .click();
     await page.getByText("How this plan was found · limits").click();
     expect(await lowContrastText(page)).toEqual([]);
-    for (const chip of ["Bench Boost", "Triple Captain", "Free Hit"]) {
+    for (const chip of ["Bench Boost", "Triple Captain", "Wildcard"]) {
       await page
         .getByRole("button", { name: new RegExp(`Preview ${chip} in GW`) })
         .click();

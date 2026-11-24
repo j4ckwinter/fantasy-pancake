@@ -154,7 +154,9 @@ function frameText(variant: "before" | "after", chip: ChipName | null) {
           ? "All 15 play"
           : chip === "freehit"
             ? "Your Free Hit XI"
-            : "Your starting XI",
+            : chip === "wildcard"
+              ? "Your Wildcard XI"
+              : "Your starting XI",
       caption: `${chipLabels[chip]} preview`,
     };
   return variant === "after"

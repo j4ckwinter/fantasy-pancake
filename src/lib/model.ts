@@ -31,7 +31,6 @@ export { overLimitClubs, validateSquad } from "./model/squad-rules";
 export { PLANNING_HORIZON_WEEKS, upcomingWeeks } from "./model/schedule";
 import { adviseChips } from "./model/chip-advice";
 export {
-  CHIP_PLAY_THRESHOLD_POINTS,
   type ChipAdvice,
   type ChipRecommendation,
   type ChipStatus,
@@ -84,7 +83,7 @@ export function analyze(data: Data, settings: Settings): Analysis {
       threshold,
       rollReason:
         "No upcoming gameweeks are available. Recheck when the next season or schedule is published.",
-      chips: adviseChips(context),
+      chips: adviseChips(context, []),
     };
   const moves = worthwhileMoves(context, threshold);
   const plans = planTransfers(context);
@@ -102,7 +101,7 @@ export function analyze(data: Data, settings: Settings): Analysis {
     plans,
     threshold,
     rollReason: rollReason(threshold, atCap, moves.length, plans.length),
-    chips: adviseChips(context),
+    chips: adviseChips(context, plans),
   };
 }
 

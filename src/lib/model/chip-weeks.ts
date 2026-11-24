@@ -10,8 +10,12 @@ export type ValuedRow = {
 
 type Assignment = { total: number; weeks: (ChipWeek | null)[] };
 
+const EXPIRING_MIN_GAIN_POINTS = 0.1;
+
 const qualifies = (row: ValuedRow, option: ChipWeek) =>
-  row.expires ? option.gain > 0 : option.gain > row.threshold;
+  row.expires
+    ? option.gain >= EXPIRING_MIN_GAIN_POINTS
+    : option.gain > row.threshold;
 
 function nextToFreeHit(
   rows: ValuedRow[],

@@ -66,6 +66,17 @@ function setPlayer(data: Data, id: number, overrides: Partial<Player>) {
   );
 }
 
+function strongClubSix(data: Data) {
+  for (const [id, position] of [
+    [261, 2],
+    [262, 3],
+    [263, 4],
+  ])
+    data.bootstrap.elements.push(
+      player(id, position, 6, { expected_goals: 9, expected_assists: 6 }),
+    );
+}
+
 function addDouble(data: Data, team: number, week: number) {
   data.fixtures.push({
     id: 1000 + team * 50 + week,
@@ -359,12 +370,62 @@ describe("chip valuation", () => {
     expect(available(rowsFor(chips, "wildcard")[0]).expires).toBe(true);
   });
 
-  it("lists the Wildcard with its window while its valuation is pending", () => {
+  it("values a Wildcard at nothing when no better squad exists", () => {
     const { data, settings } = withChips();
-    const wildcard = available(
+    const wildcard = valued(
       rowsFor(analyze(data, settings).chips, "wildcard")[0],
     );
-    expect(wildcard.weeks).toEqual([11, 12, 13, 14]);
-    expect(wildcard.valuation).toEqual({ kind: "pending" });
+    expect(wildcard.options.map((option) => option.gain)).toEqual([0, 0, 0, 0]);
+    expect(wildcard.recommendation).toEqual({
+      kind: "hold",
+      reason: "below-threshold",
+    });
+  });
+
+  it("values a Wildcard as the rebuilt squad kept to the end of the horizon", () => {
+    const { data, settings } = withChips();
+    strongClubSix(data);
+    const locked = {
+      ...settings,
+      lockedPlayerIds: settings.squad.map((pick) => pick.id),
+    };
+    const result = analyze(data, locked);
+    expect(result.plans).toEqual([]);
+    const freeHit = valued(rowsFor(result.chips, "freehit")[0]);
+    const wildcard = valued(rowsFor(result.chips, "wildcard")[0]);
+    const gain = (options: typeof wildcard.options, week: number) =>
+      options.find((option) => option.week === week)!.gain;
+    expect(gain(freeHit.options, 11)).toBeGreaterThan(0);
+    for (const [week, weeksKept] of [
+      [11, 4],
+      [12, 3],
+      [14, 1],
+    ])
+      expect(gain(wildcard.options, week)).toBeCloseTo(
+        weeksKept * gain(freeHit.options, week),
+        1,
+      );
+    expect(wildcard.options[0].coveredWeeks).toEqual([11, 12, 13, 14]);
+    expect(wildcard.best.week).toBe(11);
+  });
+
+  it("values a Wildcard against the recommended plan, not against holding", () => {
+    const { data, settings } = withChips();
+    strongClubSix(data);
+    const lockedResult = analyze(data, {
+      ...settings,
+      lockedPlayerIds: settings.squad.map((pick) => pick.id),
+    });
+    const result = analyze(data, settings);
+    const plan = result.plans.find(
+      (candidate) =>
+        candidate.kind === "plan-ahead" && candidate.variant === "best",
+    )!;
+    expect(plan.gain).toBeGreaterThan(0);
+    const holdingGain = valued(rowsFor(lockedResult.chips, "wildcard")[0])
+      .options[0].gain;
+    const planGain = valued(rowsFor(result.chips, "wildcard")[0]).options[0]
+      .gain;
+    expect(planGain).toBeCloseTo(holdingGain - plan.gain, 1);
   });
 });

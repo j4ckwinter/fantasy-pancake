@@ -82,7 +82,7 @@ export function LineupPreview({
     (id) => changed && !changed.ids.includes(id),
   );
   const picks =
-    chipPreview?.chip === "freehit"
+    chipPreview?.chip === "freehit" || chipPreview?.chip === "wildcard"
       ? undefined
       : after
         ? previewCaptaincy?.[lineupIndex]
@@ -190,7 +190,7 @@ export function LineupPreview({
         <div className="lineup-preview__summary">
           <ChipMetrics
             gain={chipPreview.option.gain}
-            week={chipPreview.option.week}
+            weeks={chipPreview.option.coveredWeeks}
             threshold={chipPreview.threshold}
           />
         </div>
@@ -307,6 +307,7 @@ function chipLineup(preview: ChipPreview, baseline: Lineup) {
         highlightIds: option.bench,
       };
     case "freehit":
+    case "wildcard":
       return {
         lineup: option.lineup,
         highlightIds: option.lineup.ids.filter(
@@ -314,7 +315,6 @@ function chipLineup(preview: ChipPreview, baseline: Lineup) {
         ),
       };
     case "3xc":
-    case "wildcard":
       return { lineup: option.lineup, highlightIds: [] };
   }
 }

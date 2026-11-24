@@ -1,5 +1,5 @@
 import type { ChipName, Player } from "../schemas";
-import type { Lineup } from "./types";
+import type { Lineup, TransferPlan } from "./types";
 import {
   chipAvailability,
   type ChipAvailability,
@@ -13,9 +13,8 @@ import { isTransferable } from "./transfer-legality";
 import type { TransferContext } from "./transfer-preview";
 import { bestOption, recommendWeeks } from "./chip-weeks";
 
-export type ValuedChip = Exclude<ChipName, "wildcard">;
-
-export const CHIP_PLAY_THRESHOLD_POINTS: Record<ValuedChip, number> = {
+export const CHIP_PLAY_THRESHOLD_POINTS: Record<ChipName, number> = {
+  wildcard: 20,
   freehit: 20,
   bboost: 15,
   "3xc": 8,
@@ -23,6 +22,7 @@ export const CHIP_PLAY_THRESHOLD_POINTS: Record<ValuedChip, number> = {
 
 export type ChipWeek = {
   week: number;
+  coveredWeeks: number[];
   gain: number;
   lineup: Lineup;
   bench: number[];
@@ -35,7 +35,6 @@ export type ChipRecommendation =
   | { kind: "hold"; reason: "next-to-free-hit"; freeHitWeek: number };
 
 export type ChipValuation =
-  | { kind: "pending" }
   | { kind: "no-squad" }
   | {
       kind: "valued";
@@ -62,7 +61,7 @@ export type ChipAdvice =
 
 type Valued = Extract<ChipValuation, { kind: "valued" }>;
 
-const isValued = (chip: ChipName): chip is ValuedChip => chip !== "wildcard";
+type ChipInputs = { context: TransferContext; plans: TransferPlan[] };
 
 function weekIndex(context: TransferContext, week: number) {
   return context.weeks.indexOf(week);
@@ -75,7 +74,7 @@ function benchOf(squad: Player[], lineup: Lineup) {
 }
 
 function tripleCaptainWeeks(
-  context: TransferContext,
+  { context }: ChipInputs,
   weeks: number[],
 ): ChipWeek[] {
   const captaincy = captaincyByWeek(
@@ -87,6 +86,7 @@ function tripleCaptainWeeks(
     const lineup = context.baseline[index];
     return {
       week,
+      coveredWeeks: [week],
       gain: captaincy[index].captain.expectedPoints,
       lineup,
       bench: benchOf(context.squad, lineup),
@@ -94,10 +94,7 @@ function tripleCaptainWeeks(
   });
 }
 
-function benchBoostWeeks(
-  context: TransferContext,
-  weeks: number[],
-): ChipWeek[] {
+function benchBoostWeeks({ context }: ChipInputs, weeks: number[]): ChipWeek[] {
   return weeks.map((week) => {
     const index = weekIndex(context, week);
     const lineup = context.baseline[index];
@@ -106,11 +103,17 @@ function benchBoostWeeks(
       (sum, id) => sum + (context.scores[index].get(id) ?? 0),
       0,
     );
-    return { week, gain: roundScore(gain), lineup, bench };
+    return {
+      week,
+      coveredWeeks: [week],
+      gain: roundScore(gain),
+      lineup,
+      bench,
+    };
   });
 }
 
-function freeHitMarket(context: TransferContext): SquadMarket {
+function rebuildMarket(context: TransferContext): SquadMarket {
   const { data, settings } = context;
   const selling = new Map(
     settings.squad.map((pick) => [pick.id, pick.sellingPrice]),
@@ -128,8 +131,8 @@ function freeHitMarket(context: TransferContext): SquadMarket {
   return { players: data.bootstrap.elements, prices, budget };
 }
 
-function freeHitWeeks(context: TransferContext, weeks: number[]): ChipWeek[] {
-  const market = freeHitMarket(context);
+function freeHitWeeks({ context }: ChipInputs, weeks: number[]): ChipWeek[] {
+  const market = rebuildMarket(context);
   return weeks.flatMap((week): ChipWeek[] => {
     const index = weekIndex(context, week);
     const scores = context.scores[index];
@@ -139,11 +142,18 @@ function freeHitWeeks(context: TransferContext, weeks: number[]): ChipWeek[] {
     const lineup = bestLineup(context.data, squad, scores);
     if (lineup.score <= yours.score)
       return [
-        { week, gain: 0, lineup: yours, bench: benchOf(context.squad, yours) },
+        {
+          week,
+          coveredWeeks: [week],
+          gain: 0,
+          lineup: yours,
+          bench: benchOf(context.squad, yours),
+        },
       ];
     return [
       {
         week,
+        coveredWeeks: [week],
         gain: roundScore(lineup.score - yours.score),
         lineup,
         bench: benchOf(squad, lineup),
@@ -152,24 +162,66 @@ function freeHitWeeks(context: TransferContext, weeks: number[]): ChipWeek[] {
   });
 }
 
+function plannedPoints({ context, plans }: ChipInputs, from: number) {
+  const plan = plans.find(
+    (candidate) =>
+      candidate.kind === "plan-ahead" && candidate.variant === "best",
+  );
+  return context.weeks
+    .slice(from)
+    .reduce(
+      (sum, _, offset) =>
+        sum +
+        (plan
+          ? plan.weeks[from + offset].score - plan.weeks[from + offset].hit
+          : context.baseline[from + offset].score),
+      0,
+    );
+}
+
+function wildcardWeeks(inputs: ChipInputs, weeks: number[]): ChipWeek[] {
+  const { context } = inputs;
+  const market = rebuildMarket(context);
+  return weeks.flatMap((week): ChipWeek[] => {
+    const index = weekIndex(context, week);
+    const kept = context.scores.slice(index);
+    const squad = bestAffordableSquad(context.data, market, kept);
+    if (!squad) return [];
+    const lineups = kept.map((scores) =>
+      bestLineup(context.data, squad, scores),
+    );
+    const rebuilt = lineups.reduce((sum, lineup) => sum + lineup.score, 0);
+    return [
+      {
+        week,
+        coveredWeeks: context.weeks.slice(index),
+        gain: roundScore(rebuilt - plannedPoints(inputs, index)),
+        lineup: lineups[0],
+        bench: benchOf(squad, lineups[0]),
+      },
+    ];
+  });
+}
+
 const VALUE_WEEKS: Record<
-  ValuedChip,
-  (context: TransferContext, weeks: number[]) => ChipWeek[]
+  ChipName,
+  (inputs: ChipInputs, weeks: number[]) => ChipWeek[]
 > = {
+  wildcard: wildcardWeeks,
   "3xc": tripleCaptainWeeks,
   bboost: benchBoostWeeks,
   freehit: freeHitWeeks,
 };
 
 function valueChips(
-  context: TransferContext,
+  inputs: ChipInputs,
   availability: ChipAvailability[],
 ): ChipStatus[] {
   const valued = availability.map((row) =>
-    row.status === "available" && isValued(row.chip)
+    row.status === "available"
       ? {
           chip: row.chip,
-          options: VALUE_WEEKS[row.chip](context, row.weeks),
+          options: VALUE_WEEKS[row.chip](inputs, row.weeks),
           threshold: CHIP_PLAY_THRESHOLD_POINTS[row.chip],
           expires: row.expires,
         }
@@ -180,8 +232,7 @@ function valueChips(
   return availability.map((row, index): ChipStatus => {
     if (row.status !== "available") return row;
     const entry = valued[index];
-    if (!entry) return { ...row, valuation: { kind: "pending" } };
-    if (!entry.options.length)
+    if (!entry?.options.length)
       return { ...row, valuation: { kind: "no-squad" } };
     const valuation: Valued = {
       kind: "valued",
@@ -194,7 +245,10 @@ function valueChips(
   });
 }
 
-export function adviseChips(context: TransferContext): ChipAdvice {
+export function adviseChips(
+  context: TransferContext,
+  plans: TransferPlan[],
+): ChipAdvice {
   const { data, settings } = context;
   if (!data.bootstrap.chips)
     return { status: "unknown", missing: "chip-rules" };
@@ -208,6 +262,6 @@ export function adviseChips(context: TransferContext): ChipAdvice {
   return {
     status: "known",
     weeks: context.weeks,
-    chips: valueChips(context, availability),
+    chips: valueChips({ context, plans }, availability),
   };
 }

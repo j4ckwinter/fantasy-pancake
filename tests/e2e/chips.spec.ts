@@ -79,12 +79,6 @@ test("a double gameweek earns Bench Boost a play, and Triple Captain gives way",
   await expect(chipRow(page, "3xc")).toContainText(
     "Bench Boost gains more that week. One chip per gameweek.",
   );
-  await expect(chipRow(page, "wildcard")).toContainText(
-    "Usable GW9–12, window GW2–19",
-  );
-  await expect(
-    chipRow(page, "wildcard").getByRole("button", { name: /Preview/ }),
-  ).toHaveCount(0);
 });
 
 test("a chip that expires inside the horizon is played in its best remaining week", async ({
@@ -99,7 +93,10 @@ test("a chip that expires inside the horizon is played in its best remaining wee
   await expect(chipRow(page, "3xc")).toContainText(
     "Expires after GW10, so holding is worth nothing.",
   );
-  await expect(chipRow(page, "wildcard")).toContainText("Expires after GW10.");
+  await expect(chipRow(page, "wildcard")).toContainText("Expires after GW10");
+  await expect(chipRow(page, "wildcard")).toContainText(
+    "keeps scoring after GW12",
+  );
 });
 
 test("both halves of a chip are listed and labelled by their windows", async ({
@@ -116,6 +113,28 @@ test("both halves of a chip are listed and labelled by their windows", async ({
   ]);
   await expect(chipsPanel(page).getByTestId("chip-3xc-1")).toBeVisible();
   await expect(chipsPanel(page).getByTestId("chip-3xc-11")).toBeVisible();
+});
+
+test("the Wildcard is valued against your plan and previews its rebuilt XI", async ({
+  page,
+}) => {
+  await importWithChips(page);
+  await expect(chipRow(page, "wildcard")).toContainText(
+    "Measured against your recommended plan, or holding if none.",
+  );
+  await expect(chipRow(page, "wildcard")).toContainText(
+    "A Wildcard squad keeps scoring after GW12, but that value is unknown",
+  );
+  await expect(chipRow(page, "wildcard")).toContainText(/over GW\d+–12/);
+  await page.getByRole("button", { name: /Preview Wildcard in GW/ }).click();
+  const pitch = page.getByRole("complementary", {
+    name: "Wildcard preview lineup",
+  });
+  await expect(pitch).toContainText("Your Wildcard XI");
+  await expect(pitch.getByRole("button", { name: /New Star/ })).toBeVisible();
+  await expect(page.locator(".lineup-preview .metric").first()).toContainText(
+    /Expected gain · GW\d+–12/,
+  );
 });
 
 test("previewing Bench Boost puts the whole bench on the pitch", async ({

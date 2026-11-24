@@ -19,6 +19,7 @@ function row(
     expires,
     options: Object.entries(gains).map(([week, gain]) => ({
       week: Number(week),
+      coveredWeeks: [Number(week)],
       gain,
       lineup: { score: 0, ids: [], captain: 0 },
       bench: [],
@@ -70,6 +71,15 @@ describe("one chip per gameweek", () => {
     ).toEqual([
       { kind: "hold", reason: "next-to-free-hit", freeHitWeek: 20 },
       { kind: "play", week: 20, reason: "clears-bar" },
+    ]);
+  });
+
+  it("does not play an expiring chip for a gain too small to show", () => {
+    expect(
+      recommendWeeks([row("bboost", { 11: 0.04, 12: 0.3 }, true)]),
+    ).toEqual([{ kind: "play", week: 12, reason: "expires" }]);
+    expect(recommendWeeks([row("bboost", { 11: 0.04 }, true)])).toEqual([
+      { kind: "hold", reason: "below-threshold" },
     ]);
   });
 });

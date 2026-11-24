@@ -47,7 +47,7 @@ export function chipKey(row: ChipStatus): string {
 type Hold = Extract<ChipRecommendation, { kind: "hold" }>;
 
 function holdReason(hold: Hold, best: ChipWeek, bar: string): string {
-  const quoted = `Best GW${best.week} ${signedPoints(best.gain)}`;
+  const quoted = `Best GW${best.week} ${signedPoints(best.gain)}${keptThrough(best)}`;
   switch (hold.reason) {
     case "below-threshold":
       return `${quoted}, under ${bar}.`;
@@ -58,6 +58,18 @@ function holdReason(hold: Hold, best: ChipWeek, bar: string): string {
   }
 }
 
+function keptThrough(option: ChipWeek): string {
+  const last = option.coveredWeeks.at(-1);
+  return option.coveredWeeks.length > 1 ? ` over GW${option.week}–${last}` : "";
+}
+
+function wildcardNote(chip: ChipName, best: ChipWeek) {
+  const last = best.coveredWeeks.at(-1);
+  return chip === "wildcard"
+    ? ` Measured against your recommended plan, or holding if none. A Wildcard squad keeps scoring after GW${last}, but that value is unknown, so later weeks look worse than they are.`
+    : "";
+}
+
 function availableSummary(
   row: Extract<ChipStatus, { status: "available" }>,
 ): Omit<ChipSummary, "key" | "chip" | "label"> {
@@ -65,18 +77,11 @@ function availableSummary(
   const { valuation } = row;
   const expiry = row.expires ? ` Expires after GW${row.window.lastWeek}.` : "";
   switch (valuation.kind) {
-    case "pending":
-      return {
-        badge: "Available",
-        tone: "neutral",
-        detail: `${usable}.${expiry} Its value needs multi-week planning, which is coming.`,
-        previewWeek: null,
-      };
     case "no-squad":
       return {
         badge: "Not valued",
         tone: "warning",
-        detail: `${usable}.${expiry} The Free Hit search found no legal squad within your budget and the club limit, so it can’t value this chip.`,
+        detail: `${usable}.${expiry} The squad search found no legal squad within your budget and the club limit, so it can’t value this chip.`,
         previewWeek: null,
       };
     case "valued": {
@@ -92,8 +97,8 @@ function availableSummary(
             tone: "success",
             detail:
               recommendation.reason === "expires"
-                ? `Expires after GW${row.window.lastWeek}, so holding is worth nothing. Best remaining week: ${signedPoints(played.gain)} in GW${played.week}.`
-                : `${signedPoints(played.gain)} in GW${played.week}, clearing ${bar}.${expiry}`,
+                ? `Expires after GW${row.window.lastWeek}, so holding is worth nothing. Best remaining week: ${signedPoints(played.gain)} in GW${played.week}${keptThrough(played)}.${wildcardNote(row.chip, best)}`
+                : `${signedPoints(played.gain)} in GW${played.week}${keptThrough(played)}, clearing ${bar}.${expiry}${wildcardNote(row.chip, best)}`,
             previewWeek: played.week,
           };
         }
@@ -101,7 +106,7 @@ function availableSummary(
           return {
             badge: "Hold",
             tone: "neutral",
-            detail: `${holdReason(recommendation, best, bar)}${expiry}`,
+            detail: `${holdReason(recommendation, best, bar)}${expiry}${wildcardNote(row.chip, best)}`,
             previewWeek: best.week,
           };
       }
