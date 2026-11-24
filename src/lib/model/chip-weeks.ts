@@ -35,6 +35,12 @@ function bestAssignment(rows: ValuedRow[]): (ChipWeek | null)[] {
   return best.weeks;
 }
 
+export function bestOption(options: ChipWeek[]): ChipWeek {
+  return options.reduce((best, option) =>
+    option.gain > best.gain ? option : best,
+  );
+}
+
 export function recommendWeeks(rows: ValuedRow[]): ChipRecommendation[] {
   const assigned = bestAssignment(rows);
   const weekOwner = new Map(
@@ -50,10 +56,8 @@ export function recommendWeeks(rows: ValuedRow[]): ChipRecommendation[] {
         week: option.week,
         reason: option.gain > row.threshold ? "clears-bar" : "expires",
       };
-    const takenBy = row.options
-      .filter((candidate) => qualifies(row, candidate))
-      .map((candidate) => weekOwner.get(candidate.week))
-      .find((owner) => owner !== undefined);
+    const best = bestOption(row.options);
+    const takenBy = qualifies(row, best) ? weekOwner.get(best.week) : undefined;
     return takenBy
       ? { kind: "hold", reason: "week-taken", takenBy }
       : { kind: "hold", reason: "below-threshold" };

@@ -11,7 +11,7 @@ import { bestLineup } from "./lineup";
 import { roundScore } from "./round-score";
 import { isTransferable } from "./transfer-legality";
 import type { TransferContext } from "./transfer-preview";
-import { recommendWeeks } from "./chip-weeks";
+import { bestOption, recommendWeeks } from "./chip-weeks";
 
 export type ValuedChip = Exclude<ChipName, "wildcard">;
 
@@ -158,12 +158,6 @@ const VALUE_WEEKS: Record<
   bboost: benchBoostWeeks,
   freehit: freeHitWeeks,
 };
-
-function bestOption(options: ChipWeek[]): ChipWeek {
-  return options.reduce((best, option) =>
-    option.gain > best.gain ? option : best,
-  );
-}
 
 function valueChips(
   context: TransferContext,
