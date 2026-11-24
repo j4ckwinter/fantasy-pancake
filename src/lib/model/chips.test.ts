@@ -263,6 +263,15 @@ describe("chip valuation", () => {
     expect(option.gain).toBeGreaterThan(0);
   });
 
+  it("reports that no legal Free Hit squad was found instead of a zero gain", () => {
+    const { data, settings } = withChips();
+    setPlayer(data, 4, { team: 1 });
+    const freeHit = available(
+      rowsFor(analyze(data, settings).chips, "freehit")[0],
+    );
+    expect(freeHit.valuation).toEqual({ kind: "no-squad" });
+  });
+
   it("gives a shared best week to the chip that gains most and holds the other", () => {
     const { data, settings } = withChips();
     setPlayer(data, 13, { expected_goals: 12, expected_assists: 6 });

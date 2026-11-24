@@ -4,7 +4,6 @@ import { POSITIONS, positionOf, type Position } from "./position";
 
 const STARTERS_BY_POINTS = 8;
 const STARTERS_BY_VALUE = 4;
-const BENCH_CANDIDATES = 6;
 const BEAM_WIDTH = 40;
 
 type SquadRules = {
@@ -59,7 +58,7 @@ function pools(market: FreeHitMarket, scores: ReadonlyMap<number, number>) {
     );
     return {
       starters: [...starters.values()].sort(byPoints),
-      bench: [...eligible].sort(byPrice).slice(0, BENCH_CANDIDATES),
+      bench: [...eligible].sort(byPrice),
     };
   };
   return {

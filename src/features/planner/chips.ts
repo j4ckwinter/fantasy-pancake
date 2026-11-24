@@ -72,6 +72,13 @@ function availableSummary(
         detail: `${usable}.${expiry} Its value needs multi-week planning, which is coming.`,
         previewWeek: null,
       };
+    case "no-squad":
+      return {
+        badge: "Not valued",
+        tone: "warning",
+        detail: `${usable}.${expiry} The Free Hit search found no legal squad within your budget and the club limit, so it can’t value this chip.`,
+        previewWeek: null,
+      };
     case "valued": {
       const { best, threshold, recommendation } = valuation;
       const bar = `the ${expectedPoints(threshold)} bar`;

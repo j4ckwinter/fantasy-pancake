@@ -36,6 +36,7 @@ export type ChipRecommendation =
 
 export type ChipValuation =
   | { kind: "pending" }
+  | { kind: "no-squad" }
   | {
       kind: "valued";
       threshold: number;
@@ -129,25 +130,25 @@ function freeHitMarket(context: TransferContext): FreeHitMarket {
 
 function freeHitWeeks(context: TransferContext, weeks: number[]): ChipWeek[] {
   const market = freeHitMarket(context);
-  return weeks.map((week) => {
+  return weeks.flatMap((week): ChipWeek[] => {
     const index = weekIndex(context, week);
     const scores = context.scores[index];
     const yours = context.baseline[index];
     const squad = bestFreeHitSquad(context.data, market, scores);
-    const lineup = squad && bestLineup(context.data, squad, scores);
-    if (!squad || !lineup || lineup.score <= yours.score)
-      return {
+    if (!squad) return [];
+    const lineup = bestLineup(context.data, squad, scores);
+    if (lineup.score <= yours.score)
+      return [
+        { week, gain: 0, lineup: yours, bench: benchOf(context.squad, yours) },
+      ];
+    return [
+      {
         week,
-        gain: 0,
-        lineup: yours,
-        bench: benchOf(context.squad, yours),
-      };
-    return {
-      week,
-      gain: roundScore(lineup.score - yours.score),
-      lineup,
-      bench: benchOf(squad, lineup),
-    };
+        gain: roundScore(lineup.score - yours.score),
+        lineup,
+        bench: benchOf(squad, lineup),
+      },
+    ];
   });
 }
 
@@ -174,12 +175,14 @@ function valueChips(
         }
       : null,
   );
-  const rows = valued.flatMap((row) => (row ? [row] : []));
+  const rows = valued.flatMap((row) => (row?.options.length ? [row] : []));
   const recommendations = recommendWeeks(rows);
   return availability.map((row, index): ChipStatus => {
     if (row.status !== "available") return row;
     const entry = valued[index];
     if (!entry) return { ...row, valuation: { kind: "pending" } };
+    if (!entry.options.length)
+      return { ...row, valuation: { kind: "no-squad" } };
     const valuation: Valued = {
       kind: "valued",
       threshold: entry.threshold,
