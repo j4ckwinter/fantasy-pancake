@@ -58,7 +58,7 @@ test("the chips panel shows used chips and holds the rest below their bars", asy
     /Best GW\d+ \+\d+\.\d pts, under the 8\.0 pts bar\./,
   );
   await expect(chipRow(page, "freehit")).toContainText(
-    "under the 20.0 pts bar",
+    "Gains nothing worth playing in GW",
   );
   await expect(chipsPanel(page)).toContainText(
     "Chip advice looks 4 gameweeks ahead (GW9–12)",

@@ -46,11 +46,28 @@ export function chipKey(row: ChipStatus): string {
 
 type Hold = Extract<ChipRecommendation, { kind: "hold" }>;
 
-function holdReason(hold: Hold, best: ChipWeek, bar: string): string {
+const showsAsZero = (gain: number) => signedPoints(gain) === signedPoints(0);
+
+function nothingToGain(chip: ChipName, best: ChipWeek): string {
+  const span = gameweekRange(best.coveredWeeks);
+  return chip === "wildcard"
+    ? `Doesn’t beat your recommended plan over ${span}.`
+    : `Gains nothing worth playing in ${gameweekRange([best.week])}.`;
+}
+
+function holdReason(
+  hold: Hold,
+  row: Extract<ChipStatus, { status: "available" }>,
+  best: ChipWeek,
+  bar: string,
+): string {
   const quoted = `Best GW${best.week} ${signedPoints(best.gain)}${keptThrough(best)}`;
   switch (hold.reason) {
     case "below-threshold":
-      return `${quoted}, under ${bar}.`;
+      if (showsAsZero(best.gain)) return nothingToGain(row.chip, best);
+      return row.expires
+        ? `${quoted}, which gains nothing worth playing.`
+        : `${quoted}, under ${bar}.`;
     case "week-taken":
       return `${quoted}, but ${chipLabels[hold.takenBy]} gains more that week. One chip per gameweek.`;
     case "next-to-free-hit":
@@ -106,7 +123,7 @@ function availableSummary(
           return {
             badge: "Hold",
             tone: "neutral",
-            detail: `${holdReason(recommendation, best, bar)}${expiry}${wildcardNote(row.chip, best)}`,
+            detail: `${holdReason(recommendation, row, best, bar)}${expiry}${wildcardNote(row.chip, best)}`,
             previewWeek: best.week,
           };
       }
@@ -183,10 +200,10 @@ export const chipsFromSaveText =
   "Chip status is from when this plan was saved, because FPL couldn’t be reached. Refresh from FPL to update it.";
 
 export const chipHorizonNote = (weeks: number[]) =>
-  `Chip advice looks ${PLANNING_HORIZON_WEEKS} gameweeks ahead (${gameweekRange(weeks)}) using your current squad. A chip’s value outside that horizon is unknown, so “hold” means nothing here clears the bar.`;
+  `Chip advice looks ${PLANNING_HORIZON_WEEKS} gameweeks ahead (${gameweekRange(weeks)}) along your recommended plan, or your current squad if no plan qualifies. A chip’s value outside that horizon is unknown, so “hold” means nothing here clears the bar.`;
 
 export const chipOptimismNote = () =>
-  `Big forecast gains run optimistic. Replaying the GW${FORECAST_ACCURACY.firstReplayDeadline}–${FORECAST_ACCURACY.lastReplayDeadline} deadlines, top transfers forecast ${signedPoints(FORECAST_ACCURACY.replayedTopTransferForecastGain)} and realised ${signedPoints(FORECAST_ACCURACY.replayedTopTransferRealisedGain)}. Free Hit picks the best of many squads in the same way.`;
+  `Big forecast gains run optimistic. Replaying the GW${FORECAST_ACCURACY.firstReplayDeadline}–${FORECAST_ACCURACY.lastReplayDeadline} deadlines, top transfers forecast ${signedPoints(FORECAST_ACCURACY.replayedTopTransferForecastGain)} and realised ${signedPoints(FORECAST_ACCURACY.replayedTopTransferRealisedGain)}. Free Hit and Wildcard pick the best of many squads in the same way.`;
 
 export function previewedChip(
   result: Pick<Analysis, "chips" | "weeks">,
