@@ -32,6 +32,7 @@ type PlanActions = {
   onClearSelection: () => void;
   onPlayerSelect: (id: number) => void;
   onShowWeek: (index: number) => void;
+  shownWeek: number;
 };
 
 function transfersLabel(count: number) {
@@ -58,16 +59,17 @@ function PreviewToggle({
   onSelect: (plan: TransferPlan) => void;
   onClearSelection: () => void;
 }) {
+  const visibleLabel = selected ? "Selected" : "Preview plan";
   return (
     <Button
       variant="outline"
       className="preview-toggle"
       aria-pressed={selected}
-      aria-label={`Preview plan: ${planLabel(plan)}`}
+      aria-label={`${visibleLabel}: ${planLabel(plan)}`}
       onClick={() => (selected ? onClearSelection() : onSelect(plan))}
     >
       {selected && <CheckIcon aria-hidden="true" className="size-4" />}
-      {selected ? "Selected" : "Preview plan"}
+      {visibleLabel}
     </Button>
   );
 }
@@ -105,6 +107,7 @@ function RecommendedPlan({
         total={plan.gain}
         label={planLabel(plan)}
         onPlayerSelect={actions.onPlayerSelect}
+        shownWeek={selected ? actions.shownWeek : null}
         onShowWeek={(index) => {
           if (!selected) actions.onSelect(plan);
           actions.onShowWeek(index);

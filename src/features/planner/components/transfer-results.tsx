@@ -227,6 +227,7 @@ export function TransferResults({
                 onClearSelection={onClearSelection}
                 onPlayerSelect={onPlayerSelect}
                 onShowWeek={onLineupChange}
+                shownWeek={lineupIndex}
               />
             ) : (
               <TransferPlans

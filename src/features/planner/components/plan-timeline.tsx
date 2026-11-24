@@ -29,6 +29,7 @@ export function PlanTimeline({
   total,
   label,
   onPlayerSelect,
+  shownWeek,
   onShowWeek,
 }: {
   data: Data;
@@ -36,6 +37,7 @@ export function PlanTimeline({
   total: number;
   label: string;
   onPlayerSelect: (id: number) => void;
+  shownWeek: number | null;
   onShowWeek: (index: number) => void;
 }) {
   const cap = freeTransferCap(data.bootstrap.game_settings);
@@ -58,6 +60,7 @@ export function PlanTimeline({
               variant="outline"
               size="sm"
               className="plan-timeline__chip"
+              aria-pressed={shownWeek === index}
               aria-label={`Show GW${week.week} lineup with ${label.toLowerCase()}`}
               onClick={() => onShowWeek(index)}
             >

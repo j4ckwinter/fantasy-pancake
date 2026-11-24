@@ -29,6 +29,11 @@
   background: var(--color-night);
   color: var(--color-on-night);
 }
+.plan-timeline .plan-timeline__chip[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+}
 .plan-timeline .plan-timeline__chip:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);

@@ -127,7 +127,7 @@ for (const scheme of ["light", "dark"] as const) {
     expect(await lowContrastText(page)).toEqual([]);
     await page.getByRole("button", { name: "Plan ahead", exact: true }).click();
     await page
-      .getByRole("button", { name: "Preview plan: Recommended plan" })
+      .getByRole("button", { name: /^Preview plan: Recommended plan/ })
       .click();
     await page.getByText("How this plan was found · limits").click();
     expect(await lowContrastText(page)).toEqual([]);

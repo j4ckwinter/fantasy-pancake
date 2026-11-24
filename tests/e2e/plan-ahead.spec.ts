@@ -83,7 +83,7 @@ test("previewing a plan shows each week's XI through the gameweek switcher", asy
     .getByRole("button", { name: "Preview plan: Recommended plan" })
     .click();
   await expect(
-    plan.getByRole("button", { name: "Preview plan: Recommended plan" }),
+    plan.getByRole("button", { name: "Selected: Recommended plan" }),
   ).toHaveAttribute("aria-pressed", "true");
   const lineup = page.getByRole("complementary", { name: "Lineup comparison" });
   await expect(
@@ -91,10 +91,15 @@ test("previewing a plan shows each week's XI through the gameweek switcher", asy
   ).toHaveAttribute("aria-pressed", "true");
   const pitch = lineup.locator(".pitch-board");
   await expect(pitch).not.toContainText("Hot Striker");
-  await plan.getByRole("button", { name: /Show GW10 lineup/ }).click();
+  const chip = (week: number) =>
+    plan.getByRole("button", { name: new RegExp(`Show GW${week} lineup`) });
+  await expect(chip(9)).toHaveAttribute("aria-pressed", "true");
+  await chip(10).click();
   await expect(
     lineup.getByRole("button", { name: "Show lineup GW10" }),
   ).toHaveAttribute("aria-pressed", "true");
+  await expect(chip(10)).toHaveAttribute("aria-pressed", "true");
+  await expect(chip(9)).toHaveAttribute("aria-pressed", "false");
   await expect(pitch).toContainText("Hot Striker");
   await page.locator("#selected-option > summary").click();
   const selected = page.getByRole("article", {
@@ -118,15 +123,46 @@ test("choosing a week from an unselected plan previews that plan", async ({
   page,
 }) => {
   const plan = await openPlanAhead(page);
+  await expect(
+    plan.getByRole("button", { name: /Show GW11 lineup/ }),
+  ).toHaveAttribute("aria-pressed", "false");
   await plan.getByRole("button", { name: /Show GW11 lineup/ }).click();
   await expect(
-    plan.getByRole("button", { name: "Preview plan: Recommended plan" }),
+    plan.getByRole("button", { name: "Selected: Recommended plan" }),
   ).toHaveAttribute("aria-pressed", "true");
   await expect(
     page
       .getByRole("complementary", { name: "Lineup comparison" })
       .getByRole("button", { name: "Show lineup GW11" }),
   ).toHaveAttribute("aria-pressed", "true");
+});
+
+test("preview buttons keep their visible label in their accessible name", async ({
+  page,
+}) => {
+  await openPlanAhead(page);
+  for (const button of await page
+    .locator(".plan-ahead .preview-toggle")
+    .all()) {
+    const visible = (await button.innerText()).trim();
+    const name = await button.evaluate(
+      (element) =>
+        element.getAttribute("aria-label") ?? element.textContent ?? "",
+    );
+    expect(name.startsWith(visible)).toBe(true);
+  }
+  await page.locator(".plan-ahead .preview-toggle").first().click();
+  const selected = page.locator(
+    '.plan-ahead .preview-toggle[aria-pressed="true"]',
+  );
+  expect(
+    (
+      await selected.evaluate(
+        (element) =>
+          element.getAttribute("aria-label") ?? element.textContent ?? "",
+      )
+    ).startsWith((await selected.innerText()).trim()),
+  ).toBe(true);
 });
 
 test("plan ahead says when holding beats every plan", async ({ page }) => {
