@@ -164,8 +164,6 @@ function bestOption(options: ChipWeek[]): ChipWeek {
   );
 }
 
-type Claim = { row: number; chip: ChipName; option: ChipWeek };
-
 type ValuedRow = {
   chip: ChipName;
   options: ChipWeek[];
@@ -173,50 +171,64 @@ type ValuedRow = {
   expires: boolean;
 };
 
+type Assignment = { total: number; weeks: (ChipWeek | null)[] };
+
 const qualifies = (row: ValuedRow, option: ChipWeek) =>
   row.expires ? option.gain > 0 : option.gain > row.threshold;
 
+function bestAssignment(rows: ValuedRow[]): (ChipWeek | null)[] {
+  const best: Assignment = { total: -Infinity, weeks: [] };
+  const search = (
+    index: number,
+    chosen: (ChipWeek | null)[],
+    total: number,
+  ) => {
+    if (index === rows.length) {
+      if (total > best.total) Object.assign(best, { total, weeks: chosen });
+      return;
+    }
+    const row = rows[index];
+    const taken = new Set(chosen.map((option) => option?.week));
+    for (const option of row.options)
+      if (qualifies(row, option) && !taken.has(option.week))
+        search(index + 1, [...chosen, option], total + option.gain);
+    search(index + 1, [...chosen, null], total);
+  };
+  search(0, [], 0);
+  return best.weeks;
+}
+
 function assignWeeks(rows: ValuedRow[]): Map<number, ChipRecommendation> {
-  const claims: Claim[] = rows
-    .flatMap((row, index) =>
-      row.options
-        .filter((option) => qualifies(row, option))
-        .map((option) => ({ row: index, chip: row.chip, option })),
-    )
-    .sort(
-      (a, b) =>
-        b.option.gain - a.option.gain ||
-        a.row - b.row ||
-        a.option.week - b.option.week,
-    );
-  const weekOwner = new Map<number, ChipName>();
-  const decided = new Map<number, ChipRecommendation>();
-  for (const claim of claims) {
-    if (decided.has(claim.row) || weekOwner.has(claim.option.week)) continue;
-    weekOwner.set(claim.option.week, claim.chip);
-    decided.set(claim.row, {
-      kind: "play",
-      week: claim.option.week,
-      reason:
-        claim.option.gain > rows[claim.row].threshold
-          ? "clears-bar"
-          : "expires",
-    });
-  }
-  rows.forEach((row, index) => {
-    if (decided.has(index)) return;
-    const takenBy = row.options
-      .filter((option) => qualifies(row, option))
-      .map((option) => weekOwner.get(option.week))
-      .find((owner) => owner !== undefined);
-    decided.set(
-      index,
-      takenBy
-        ? { kind: "hold", reason: "week-taken", takenBy }
-        : { kind: "hold", reason: "below-threshold" },
-    );
-  });
-  return decided;
+  const assigned = bestAssignment(rows);
+  const weekOwner = new Map(
+    assigned.flatMap((option, index) =>
+      option ? [[option.week, rows[index].chip] as const] : [],
+    ),
+  );
+  return new Map(
+    rows.map((row, index): [number, ChipRecommendation] => {
+      const option = assigned[index];
+      if (option)
+        return [
+          index,
+          {
+            kind: "play",
+            week: option.week,
+            reason: option.gain > row.threshold ? "clears-bar" : "expires",
+          },
+        ];
+      const takenBy = row.options
+        .filter((candidate) => qualifies(row, candidate))
+        .map((candidate) => weekOwner.get(candidate.week))
+        .find((owner) => owner !== undefined);
+      return [
+        index,
+        takenBy
+          ? { kind: "hold", reason: "week-taken", takenBy }
+          : { kind: "hold", reason: "below-threshold" },
+      ];
+    }),
+  );
 }
 
 function valueChips(

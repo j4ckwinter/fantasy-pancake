@@ -285,6 +285,33 @@ describe("chip valuation", () => {
     });
   });
 
+  it("chooses chip weeks for the largest total gain, not the largest single gain", () => {
+    const { data, settings } = withChips();
+    setPlayer(data, 13, { expected_goals: 12, expected_assists: 6 });
+    for (const team of [1, 4, 5]) addDouble(data, team, 13);
+    for (const team of [1, 4]) addDouble(data, team, 14);
+    const chips = analyze(data, settings).chips;
+    const boost = valued(rowsFor(chips, "bboost")[0]);
+    const captain = valued(rowsFor(chips, "3xc")[0]);
+    const gain = (options: typeof boost.options, week: number) =>
+      options.find((option) => option.week === week)!.gain;
+    expect(boost.best.week).toBe(13);
+    expect(gain(boost.options, 13)).toBeGreaterThan(gain(captain.options, 13));
+    expect(gain(boost.options, 14) + gain(captain.options, 13)).toBeGreaterThan(
+      gain(boost.options, 13) + gain(captain.options, 14),
+    );
+    expect(boost.recommendation).toEqual({
+      kind: "play",
+      week: 14,
+      reason: "clears-bar",
+    });
+    expect(captain.recommendation).toEqual({
+      kind: "play",
+      week: 13,
+      reason: "clears-bar",
+    });
+  });
+
   it("plays a chip that expires inside the horizon in its best remaining week, whatever the bar", () => {
     const { data, settings } = withChips([
       { name: "3xc", start_event: 1, stop_event: 12 },
