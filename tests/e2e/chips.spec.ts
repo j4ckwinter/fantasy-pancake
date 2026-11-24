@@ -117,6 +117,11 @@ test("previewing Bench Boost puts the whole bench on the pitch", async ({
   await expect(pitch).toContainText("All 15 play");
   await expect(pitch.locator(".pitch-board__player")).toHaveCount(15);
   await expect(pitch.locator(".pitch-board__player--boosted")).toHaveCount(4);
+  await expect(pitch.locator(".pitch-board__formation")).toHaveText(
+    "SHAPEAll 15",
+  );
+  await page.getByText("Bench and XI changes", { exact: true }).click();
+  await expect(page.getByRole("list", { name: "Bench order" })).toHaveCount(0);
   await expect(lineupHeading(page)).toHaveText("Bench Boost · GW11");
   await expect(
     page.getByRole("group", { name: "Lineup gameweek" }).getByRole("button", {

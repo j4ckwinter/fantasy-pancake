@@ -242,7 +242,7 @@ export function LineupPreview({
               </p>
             </>
           )}
-          {picks && (
+          {picks && chipPreview?.chip !== "bboost" && (
             <div className="lineup-preview__bench">
               <strong id="bench-order-title">Bench order</strong>
               <div className="lineup-preview__bench-slots">

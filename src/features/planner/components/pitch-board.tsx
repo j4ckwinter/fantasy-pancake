@@ -207,10 +207,14 @@ export function PitchBoard({
       eyebrow={text.eyebrow}
       title={text.title}
       captainMark={captainMark}
-      formation={rows
-        .slice(1)
-        .map((row) => row.length)
-        .join("–")}
+      formation={
+        boosted
+          ? "All 15"
+          : rows
+              .slice(1)
+              .map((row) => row.length)
+              .join("–")
+      }
       rows={rows.map((row, index) =>
         row.map((player) => {
           const captain = lineup.captain === player.id;
