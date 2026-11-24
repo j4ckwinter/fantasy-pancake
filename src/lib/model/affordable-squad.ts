@@ -5,6 +5,8 @@ import { POSITIONS, positionOf, type Position } from "./position";
 const STARTERS_BY_POINTS = 8;
 const STARTERS_BY_VALUE = 4;
 const BEAM_WIDTH = 40;
+const BENCH_UPGRADES_PER_POSITION = 10;
+const BENCH_UPGRADE_PASSES = 3;
 
 type SquadRules = {
   bootstrap: Pick<Data["bootstrap"], "element_types" | "game_settings">;
@@ -18,7 +20,10 @@ export type SquadMarket = {
 
 type Candidate = { player: Player; points: number; price: number };
 
-type Pools = Record<Position, { starters: Candidate[]; bench: Candidate[] }>;
+type Pools = Record<
+  Position,
+  { starters: Candidate[]; bench: Candidate[]; upgrades: Candidate[] }
+>;
 
 type Partial = {
   picks: Candidate[];
@@ -64,6 +69,9 @@ function pools(market: SquadMarket, weeks: WeeklyScores) {
     return {
       starters: [...starters.values()].sort(byPoints),
       bench: [...eligible].sort(byPrice),
+      upgrades: [...eligible]
+        .sort(byPoints)
+        .slice(0, BENCH_UPGRADES_PER_POSITION),
     };
   };
   return {
@@ -195,7 +203,7 @@ function withBench(
   pool: Pools,
   state: Partial,
   budget: number,
-): Player[] | null {
+): Squad | null {
   const chosen = new Set(state.picks.map((pick) => pick.player.id));
   const clubs = new Map(state.clubs);
   const limit = rules.bootstrap.game_settings.squad_team_limit;
@@ -217,7 +225,57 @@ function withBench(
     if (needed) return null;
   }
   if (cost > budget) return null;
-  return [...state.picks.map((pick) => pick.player), ...bench];
+  return { starters: state.picks.map((pick) => pick.player), bench };
+}
+
+type Squad = { starters: Player[]; bench: Player[] };
+
+const membersOf = ({ starters, bench }: Squad) => [...starters, ...bench];
+
+function squadScore(rules: SquadRules, squad: Squad, weeks: WeeklyScores) {
+  const members = membersOf(squad);
+  return weeks.reduce(
+    (sum, week) => sum + bestLineup(rules, members, week).score,
+    0,
+  );
+}
+
+function upgradedBench(
+  rules: SquadRules,
+  pool: Pools,
+  market: SquadMarket,
+  squad: Squad,
+  weeks: WeeklyScores,
+): Squad {
+  const limit = rules.bootstrap.game_settings.squad_team_limit;
+  const priceOf = (player: Player) => market.prices.get(player.id) ?? 0;
+  let current = { squad, score: squadScore(rules, squad, weeks) };
+  for (let pass = 0; pass < BENCH_UPGRADE_PASSES; pass++) {
+    const members = membersOf(current.squad);
+    const ids = new Set(members.map((player) => player.id));
+    const spent = members.reduce((sum, player) => sum + priceOf(player), 0);
+    let improved = current;
+    for (const [slot, outgoing] of current.squad.bench.entries()) {
+      for (const { player: incoming, price } of pool[positionOf(outgoing)]
+        .upgrades) {
+        if (ids.has(incoming.id)) continue;
+        if (spent - priceOf(outgoing) + price > market.budget) continue;
+        const sameClub = members.filter(
+          (player) => player.team === incoming.team && player !== outgoing,
+        ).length;
+        if (sameClub >= limit) continue;
+        const bench = current.squad.bench.map((player, index) =>
+          index === slot ? incoming : player,
+        );
+        const candidate = { starters: current.squad.starters, bench };
+        const score = squadScore(rules, candidate, weeks);
+        if (score > improved.score) improved = { squad: candidate, score };
+      }
+    }
+    if (improved === current) break;
+    current = improved;
+  }
+  return current.squad;
 }
 
 export function bestAffordableSquad(
@@ -227,7 +285,7 @@ export function bestAffordableSquad(
 ): Player[] | null {
   const pool = pools(market, weeks);
   const clubLimit = rules.bootstrap.game_settings.squad_team_limit;
-  let best: { squad: Player[]; score: number } | null = null;
+  let best: { squad: Squad; score: number } | null = null;
   for (const formation of formations(rules)) {
     const benchFloor = benchNeeds(rules, formation).reduce(
       (sum, { position, count }) => sum + cheapest(pool[position].bench, count),
@@ -243,12 +301,14 @@ export function bestAffordableSquad(
     for (const state of finalists) {
       const squad = withBench(rules, formation, pool, state, market.budget);
       if (!squad) continue;
-      const score = weeks.reduce(
-        (sum, week) => sum + bestLineup(rules, squad, week).score,
-        0,
-      );
+      const score = squadScore(rules, squad, weeks);
       if (!best || score > best.score) best = { squad, score };
     }
   }
-  return best?.squad ?? null;
+  if (!best) return null;
+  return membersOf(
+    weeks.length > 1
+      ? upgradedBench(rules, pool, market, best.squad, weeks)
+      : best.squad,
+  );
 }

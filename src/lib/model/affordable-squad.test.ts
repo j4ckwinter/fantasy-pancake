@@ -40,4 +40,61 @@ describe("affordable squad search", () => {
     expect(squad).not.toBeNull();
     expect(bestLineup(rules, squad!, scores).score).toBe(70);
   });
+
+  it("spends spare budget on a backup who plays when a starter blanks", () => {
+    type WeeklySpec = [
+      position: number,
+      club: number,
+      price: number,
+      weeks: [number, number],
+    ];
+    const specs: WeeklySpec[] = [
+      [1, 15, 40, [3, 0]],
+      [1, 16, 35, [0, 0]],
+      [1, 14, 45, [0, 3]],
+      ...Array.from({ length: 5 }, (_, i): WeeklySpec => [
+        2,
+        8 + i,
+        50,
+        [5, 5],
+      ]),
+      ...Array.from({ length: 5 }, (_, i): WeeklySpec => [
+        3,
+        1 + i,
+        50,
+        [4, 4],
+      ]),
+      ...Array.from({ length: 3 }, (_, i): WeeklySpec => [
+        4,
+        17 + i,
+        50,
+        [6, 6],
+      ]),
+    ];
+    const players = specs.map(([position, club, price], index) =>
+      player(index + 1, position, club, { now_cost: price }),
+    );
+    const weeks = [0, 1].map(
+      (week) =>
+        new Map(players.map((p, index) => [p.id, specs[index][3][week]])),
+    );
+    const squad = bestAffordableSquad(
+      rules,
+      {
+        players,
+        prices: new Map(players.map((p) => [p.id, p.now_cost])),
+        budget: 740,
+      },
+      weeks,
+    );
+    expect(squad?.map((member) => member.id)).toEqual(
+      expect.arrayContaining([1, 3]),
+    );
+    expect(
+      weeks.reduce(
+        (sum, week) => sum + bestLineup(rules, squad!, week).score,
+        0,
+      ),
+    ).toBe(120);
+  });
 });
