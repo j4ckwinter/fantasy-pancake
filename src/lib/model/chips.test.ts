@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   analyze,
-  bestLineup,
-  CHIP_PLAY_THRESHOLD_POINTS,
   scorePlayer,
   type ChipAdvice,
   type ChipStatus,
@@ -176,19 +174,26 @@ describe("chip availability", () => {
 });
 
 describe("chip valuation", () => {
-  it("values Triple Captain as the captain's expected points, best in a double week", () => {
+  it("values Triple Captain as one more helping of the top scorer, doubled by a double gameweek", () => {
     const { data, settings } = withChips();
     setPlayer(data, 13, { expected_goals: 12, expected_assists: 6 });
-    addDouble(data, 5, 13);
-    const result = analyze(data, settings);
-    const valuation = valued(rowsFor(result.chips, "3xc")[0]);
-    expect(valuation.options.map((option) => option.gain)).toEqual(
-      result.captaincy.map((week) => week.captain.expectedPoints),
+    data.fixtures.push(
+      ...data.fixtures
+        .filter((fixture) => fixture.event === 12 && fixture.team_h === 5)
+        .map((fixture) => ({ ...fixture, id: 999, event: 13 })),
     );
+    const valuation = valued(rowsFor(analyze(data, settings).chips, "3xc")[0]);
+    const gain = (week: number) =>
+      valuation.options.find((option) => option.week === week)!.gain;
+    const star = data.bootstrap.elements.find((member) => member.id === 13)!;
+    const topScore = Math.max(
+      ...data.bootstrap.elements.map((member) => scorePlayer(data, member, 12)),
+    );
+    expect(gain(12)).toBeCloseTo(scorePlayer(data, star, 12), 2);
+    expect(gain(12)).toBeCloseTo(topScore, 2);
+    expect(gain(13)).toBeCloseTo(2 * gain(12), 1);
     expect(valuation.best.week).toBe(13);
     expect(valuation.best.lineup.captain).toBe(13);
-    expect(valuation.threshold).toBe(CHIP_PLAY_THRESHOLD_POINTS["3xc"]);
-    expect(valuation.best.gain).toBeGreaterThan(valuation.threshold);
     expect(valuation.recommendation).toEqual({
       kind: "play",
       week: 13,
@@ -196,25 +201,36 @@ describe("chip valuation", () => {
     });
   });
 
-  it("values Bench Boost as the bench's expected points that week", () => {
-    const { data, settings } = withChips();
-    const result = analyze(data, settings);
-    const valuation = valued(rowsFor(result.chips, "bboost")[0]);
-    const squad = data.bootstrap.elements.slice(0, 15);
-    result.weeks.forEach((week, index) => {
-      const option = valuation.options[index];
-      const scores = new Map(
-        squad.map((member) => [member.id, scorePlayer(data, member, week)]),
+  it("values Bench Boost at nothing when the bench cannot play, and at the bench's points when it can", () => {
+    const reserves = [2, 12, 14, 15];
+    const injured = withChips();
+    for (const id of reserves)
+      setPlayer(injured.data, id, {
+        status: "i",
+        chance_of_playing_next_round: 0,
+      });
+    const idle = valued(
+      rowsFor(analyze(injured.data, injured.settings).chips, "bboost")[0],
+    );
+    for (const option of idle.options) {
+      expect(option.gain).toBe(0);
+      expect([...option.bench].sort((a, b) => a - b)).toEqual(reserves);
+    }
+    const fit = withChips();
+    const boost = valued(
+      rowsFor(analyze(fit.data, fit.settings).chips, "bboost")[0],
+    );
+    const points = (id: number) =>
+      scorePlayer(
+        fit.data,
+        fit.data.bootstrap.elements.find((member) => member.id === id)!,
+        11,
       );
-      const lineup = bestLineup(data, squad, scores);
-      const bench = squad.filter((member) => !lineup.ids.includes(member.id));
-      expect(option.week).toBe(week);
-      expect(option.bench).toEqual(bench.map((member) => member.id));
-      expect(option.gain).toBeCloseTo(
-        bench.reduce((sum, member) => sum + scores.get(member.id)!, 0),
-        2,
-      );
-    });
+    expect([...boost.options[0].bench].sort((a, b) => a - b)).toEqual(reserves);
+    expect(boost.options[0].gain).toBeCloseTo(
+      points(1) + points(8) + 2 * points(13),
+      2,
+    );
   });
 
   it("holds a chip whose best week does not clear its threshold", () => {
