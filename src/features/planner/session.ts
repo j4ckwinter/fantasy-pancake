@@ -181,6 +181,7 @@ export function sessionReducer(
         confirmedPrices: action.confirmedPrices,
         result: action.result,
         selection: action.selection,
+        chipPreview: action.selection ? null : session.chipPreview,
         lineupIndex: lineupFor(session, action.result),
         priceConfirmed: session.priceConfirmed && action.selection !== null,
       };
@@ -215,6 +216,7 @@ export function sessionReducer(
         result: action.result,
         lineupIndex: lineupFor(session, action.result),
         selection: action.selection,
+        chipPreview: null,
       };
     case "custom-comparison-failed":
       return {

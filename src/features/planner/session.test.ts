@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { Analysis } from "@/lib/model";
 import type { Settings } from "@/lib/schemas";
-import { initialSession, sessionReducer, type Session } from "./session";
+import {
+  initialSession,
+  sessionReducer,
+  type Session,
+  type SessionAction,
+} from "./session";
 import { planSelection, transferSelection } from "./selection";
 
 const settings: Settings = {
@@ -120,6 +125,59 @@ describe("planner session", () => {
       { type: "team-switched" },
     ] as const)
       expect(sessionReducer(previewing, action).chipPreview).toBeNull();
+  });
+
+  it("gives way to any transfer preview that takes over from a chip preview", () => {
+    const previewing = session({ chipPreview: "bboost-1", lineupIndex: 2 });
+    const custom = transferSelection(
+      [],
+      9,
+      {
+        outId: 8,
+        inId: 16,
+        cost: 0,
+        remainingBank: 0,
+        hit: 0,
+        gain: 1,
+        immediateGain: 1,
+        grossGain: 1,
+        reasons: [],
+        risks: [],
+        fixtures: [],
+      },
+      true,
+    );
+    const result = analysis([9, 10, 11, 12]);
+    expect(
+      sessionReducer(previewing, {
+        type: "custom-compared",
+        settings,
+        result,
+        selection: custom,
+      }).chipPreview,
+    ).toBeNull();
+    expect(
+      sessionReducer(previewing, {
+        type: "refreshed",
+        settings,
+        confirmedPrices: [],
+        result,
+        selection: custom,
+      }).chipPreview,
+    ).toBeNull();
+    const keeping: SessionAction[] = [
+      {
+        type: "refreshed",
+        settings,
+        confirmedPrices: [],
+        result,
+        selection: null,
+      },
+      { type: "lock-toggled", settings, result },
+      { type: "price-confirmed", settings, id: 8, result },
+    ];
+    for (const action of keeping)
+      expect(sessionReducer(previewing, action).chipPreview).toBe("bboost-1");
   });
 
   it("clears the unsaved-settings warning after a later save works", () => {

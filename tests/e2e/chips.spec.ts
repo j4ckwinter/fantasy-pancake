@@ -10,6 +10,7 @@ import {
   withDoubleGameweek,
 } from "./support/fixtures";
 import {
+  compareTransfer,
   expectNoHorizontalOverflow,
   importTeam,
   shortlistHeading,
@@ -174,6 +175,22 @@ test("previewing Free Hit shows the one-week XI with its new players", async ({
   await expect(
     page.getByRole("button", { name: /Preview Free Hit in GW/ }),
   ).toHaveAttribute("aria-pressed", "false");
+});
+
+test("comparing your own transfer replaces a chip preview", async ({
+  page,
+}) => {
+  await importWithChips(page, [], 11);
+  const chip = page.getByRole("button", {
+    name: "Preview Bench Boost in GW11",
+  });
+  await chip.click();
+  await compareTransfer(page, "8", "New Star");
+  await expect(
+    page.getByRole("complementary", { name: "Preview starting lineup" }),
+  ).toBeVisible();
+  await expect(lineupHeading(page)).toHaveText("Player 8 → New Star");
+  await expect(chip).toHaveAttribute("aria-pressed", "false");
 });
 
 test("an import without played chips offers to load them from FPL", async ({
