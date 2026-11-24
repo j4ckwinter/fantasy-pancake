@@ -34,9 +34,11 @@ describe("affordable squad search", () => {
       ...Array.from({ length: 6 }, (_, i): Spec => [4, 15 + i, 40, 0]),
     ];
     const { players, prices, scores } = market(specs);
-    const squad = bestAffordableSquad(rules, { players, prices, budget: 800 }, [
-      scores,
-    ]);
+    const squad = bestAffordableSquad(
+      rules,
+      { players, prices, budget: 800, kept: new Set() },
+      [scores],
+    );
     expect(squad).not.toBeNull();
     expect(bestLineup(rules, squad!, scores).score).toBe(70);
   });
@@ -84,6 +86,7 @@ describe("affordable squad search", () => {
         players,
         prices: new Map(players.map((p) => [p.id, p.now_cost])),
         budget: 740,
+        kept: new Set(),
       },
       weeks,
     );

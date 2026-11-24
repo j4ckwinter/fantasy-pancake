@@ -44,7 +44,7 @@ function rebuildMarket(context: TransferContext): SquadMarket {
   const budget =
     settings.bank +
     settings.squad.reduce((sum, pick) => sum + pick.sellingPrice, 0);
-  return { players: data.bootstrap.elements, prices, budget };
+  return { players: data.bootstrap.elements, prices, budget, kept: new Set() };
 }
 
 function basePath(context: TransferContext, plans: TransferPlan[]) {
@@ -75,6 +75,10 @@ export function chipPath(
   const { data, weeks, scores } = context;
   const base = basePath(context, plans);
   const market = rebuildMarket(context);
+  const keepingLocks = {
+    ...market,
+    kept: new Set(context.settings.lockedPlayerIds ?? []),
+  };
   const keep = (squad: Player[], from: number, until: number) =>
     scores.slice(from, until).map((week, offset): PathWeek => {
       const lineup = bestLineup(data, squad, week);
@@ -90,7 +94,7 @@ export function chipPath(
     return squad ? keep(squad, index, index + 1)[0] : null;
   });
   const wildcard = cached((index) => {
-    const squad = bestAffordableSquad(data, market, scores.slice(index));
+    const squad = bestAffordableSquad(data, keepingLocks, scores.slice(index));
     return squad ? keep(squad, index, weeks.length) : null;
   });
   const baseTotal = base.reduce((sum, week) => sum + week.points, 0);

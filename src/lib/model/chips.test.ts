@@ -77,6 +77,17 @@ function strongClubSix(data: Data) {
     );
 }
 
+function strongSquadOnEveryClub(data: Data) {
+  for (const club of [1, 2, 3, 4, 5, 6])
+    for (const position of [2, 3])
+      data.bootstrap.elements.push(
+        player(300 + club * 10 + position, position, club, {
+          expected_goals: 9,
+          expected_assists: 6,
+        }),
+      );
+}
+
 function addDouble(data: Data, team: number, week: number) {
   data.fixtures.push({
     id: 1000 + team * 50 + week,
@@ -388,40 +399,50 @@ describe("chip valuation", () => {
     });
   });
 
-  it("values a Wildcard as the rebuilt squad kept to the end of the horizon", () => {
+  it("values a Wildcard as the rebuilt squad kept to the end of the horizon, against the plan", () => {
     const { data, settings } = withChips();
     strongClubSix(data);
-    const locked = {
-      ...settings,
-      lockedPlayerIds: settings.squad.map((pick) => pick.id),
-    };
-    const result = analyze(data, locked);
-    expect(result.plans).toEqual([]);
-    const freeHit = valued(rowsFor(result.chips, "freehit")[0]);
+    const result = analyze(data, settings);
+    const plan = result.plans.find(
+      (candidate) =>
+        candidate.kind === "plan-ahead" && candidate.variant === "best",
+    )!;
     const wildcard = valued(rowsFor(result.chips, "wildcard")[0]);
-    const gain = (options: typeof wildcard.options, week: number) =>
-      options.find((option) => option.week === week)!.gain;
-    expect(gain(freeHit.options, 11)).toBeGreaterThan(0);
-    for (const [week, weeksKept] of [
-      [11, 4],
-      [12, 3],
-      [14, 1],
-    ])
-      expect(gain(wildcard.options, week)).toBeCloseTo(
-        weeksKept * gain(freeHit.options, 11),
+    for (const option of wildcard.options) {
+      const kept = plan.weeks.filter((planned) => planned.week >= option.week);
+      expect(option.coveredWeeks).toEqual(kept.map((planned) => planned.week));
+      expect(option.gain).toBeCloseTo(
+        kept.length * option.lineup.score -
+          kept.reduce((sum, planned) => sum + planned.score - planned.hit, 0),
         1,
       );
-    expect(wildcard.options[0].coveredWeeks).toEqual([11, 12, 13, 14]);
-    expect(wildcard.best.week).toBe(11);
+    }
+  });
+
+  it("keeps locked players in a Wildcard rebuild but not in a Free Hit", () => {
+    const { data, settings } = withChips();
+    strongClubSix(data);
+    setPlayer(data, 3, { expected_goals: 0, expected_assists: 0 });
+    const squadOf = (option: {
+      lineup: { ids: number[] };
+      bench: number[];
+    }) => [...option.lineup.ids, ...option.bench];
+    const open = analyze(data, settings);
+    expect(
+      squadOf(valued(rowsFor(open.chips, "wildcard")[0]).options[0]),
+    ).not.toContain(3);
+    const locked = analyze(data, { ...settings, lockedPlayerIds: [3] });
+    for (const option of valued(rowsFor(locked.chips, "wildcard")[0]).options)
+      expect(squadOf(option)).toContain(3);
+    expect(
+      squadOf(valued(rowsFor(locked.chips, "freehit")[0]).options[0]),
+    ).not.toContain(3);
   });
 
   it("values chips after a Wildcard against the Wildcard squad", () => {
     const { data, settings } = withChips();
-    strongClubSix(data);
-    const result = analyze(data, {
-      ...settings,
-      lockedPlayerIds: settings.squad.map((pick) => pick.id),
-    });
+    strongSquadOnEveryClub(data);
+    const result = analyze(data, settings);
     const wildcard = valued(rowsFor(result.chips, "wildcard")[0]);
     expect(wildcard.recommendation).toMatchObject({ kind: "play", week: 11 });
     const freeHit = valued(rowsFor(result.chips, "freehit")[0]);
@@ -475,25 +496,5 @@ describe("chip valuation", () => {
       .filter((planned) => planned.week >= 12)
       .reduce((sum, planned) => sum + planned.score - planned.hit, 0);
     expect(option.gain).toBeCloseTo(3 * option.lineup.score - planned, 1);
-  });
-
-  it("values a Wildcard against the recommended plan, not against holding", () => {
-    const { data, settings } = withChips();
-    strongClubSix(data);
-    const lockedResult = analyze(data, {
-      ...settings,
-      lockedPlayerIds: settings.squad.map((pick) => pick.id),
-    });
-    const result = analyze(data, settings);
-    const plan = result.plans.find(
-      (candidate) =>
-        candidate.kind === "plan-ahead" && candidate.variant === "best",
-    )!;
-    expect(plan.gain).toBeGreaterThan(0);
-    const holdingGain = valued(rowsFor(lockedResult.chips, "wildcard")[0])
-      .options[0].gain;
-    const planGain = valued(rowsFor(result.chips, "wildcard")[0]).options[0]
-      .gain;
-    expect(planGain).toBeCloseTo(holdingGain - plan.gain, 1);
   });
 });

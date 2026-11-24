@@ -16,13 +16,19 @@ export type SquadMarket = {
   players: readonly Player[];
   prices: ReadonlyMap<number, number>;
   budget: number;
+  kept: ReadonlySet<number>;
 };
 
 type Candidate = { player: Player; points: number; price: number };
 
 type Pools = Record<
   Position,
-  { starters: Candidate[]; bench: Candidate[]; upgrades: Candidate[] }
+  {
+    starters: Candidate[];
+    bench: Candidate[];
+    upgrades: Candidate[];
+    kept: Candidate[];
+  }
 >;
 
 type Partial = {
@@ -57,8 +63,11 @@ function pools(market: SquadMarket, weeks: WeeklyScores) {
       : [{ player, price, points: pointsOver(weeks, player.id) }];
   });
   const forPosition = (position: Position) => {
-    const eligible = candidates.filter(
+    const inPosition = candidates.filter(
       (candidate) => positionOf(candidate.player) === position,
+    );
+    const eligible = inPosition.filter(
+      (candidate) => !market.kept.has(candidate.player.id),
     );
     const starters = new Map(
       [
@@ -72,6 +81,9 @@ function pools(market: SquadMarket, weeks: WeeklyScores) {
       upgrades: [...eligible]
         .sort(byPoints)
         .slice(0, BENCH_UPGRADES_PER_POSITION),
+      kept: inPosition
+        .filter((candidate) => market.kept.has(candidate.player.id))
+        .sort(byPoints),
     };
   };
   return {
@@ -116,16 +128,53 @@ function formations(rules: SquadRules): Formation[] {
   return found;
 }
 
-function benchNeeds(rules: SquadRules, formation: Formation) {
-  return POSITIONS.map((position) => {
-    const type = rules.bootstrap.element_types.find(
+type Need = { position: Position; count: number };
+
+type FormationPlan = {
+  slots: Position[];
+  benchNeeds: Need[];
+  keptBench: Candidate[];
+  start: Partial;
+};
+
+const EMPTY: Partial = {
+  picks: [],
+  points: 0,
+  captain: 0,
+  cost: 0,
+  clubs: new Map(),
+  lastIndex: -1,
+};
+
+function formationPlan(
+  rules: SquadRules,
+  formation: Formation,
+  pool: Pools,
+): FormationPlan | null {
+  let start = EMPTY;
+  const slots: Position[] = [];
+  const benchNeeds: Need[] = [];
+  const keptBench: Candidate[] = [];
+  for (const position of POSITIONS) {
+    const select = rules.bootstrap.element_types.find(
       (candidate) => candidate.id === position,
-    )!;
-    return {
+    )!.squad_select;
+    const starting = formation.starters[position];
+    const kept = pool[position].kept;
+    const keptStarting = kept.slice(0, starting);
+    const keptOnBench = kept.slice(starting);
+    if (keptOnBench.length > select - starting) return null;
+    for (const pick of keptStarting) start = withPick(start, pick, -1);
+    keptBench.push(...keptOnBench);
+    slots.push(
+      ...Array<Position>(starting - keptStarting.length).fill(position),
+    );
+    benchNeeds.push({
       position,
-      count: type.squad_select - formation.starters[position],
-    };
-  });
+      count: select - starting - keptOnBench.length,
+    });
+  }
+  return { slots, benchNeeds, keptBench, start: { ...start, lastIndex: -1 } };
 }
 
 function cheapest(candidates: Candidate[], count: number) {
@@ -150,32 +199,24 @@ function withPick(state: Partial, pick: Candidate, index: number): Partial {
 }
 
 function searchStarters(
-  formation: Formation,
+  plan: FormationPlan,
   pool: Pools,
   budget: number,
   clubLimit: number,
   benchFloor: number,
 ): Partial[] {
-  const floorAfter = formation.slots.map((_, slot) =>
+  const { slots } = plan;
+  const floorAfter = slots.map((_, slot) =>
     POSITIONS.reduce((sum, position) => {
-      const remaining = formation.slots
+      const remaining = slots
         .slice(slot + 1)
         .filter((later) => later === position).length;
       return sum + cheapest(pool[position].starters, remaining);
     }, benchFloor),
   );
-  let beam: Partial[] = [
-    {
-      picks: [],
-      points: 0,
-      captain: 0,
-      cost: 0,
-      clubs: new Map(),
-      lastIndex: -1,
-    },
-  ];
-  formation.slots.forEach((position, slot) => {
-    const continuing = slot > 0 && formation.slots[slot - 1] === position;
+  let beam: Partial[] = [plan.start];
+  slots.forEach((position, slot) => {
+    const continuing = slot > 0 && slots[slot - 1] === position;
     const next: Partial[] = [];
     for (const state of beam) {
       const from = continuing ? state.lastIndex + 1 : 0;
@@ -199,7 +240,7 @@ function searchStarters(
 
 function withBench(
   rules: SquadRules,
-  formation: Formation,
+  plan: FormationPlan,
   pool: Pools,
   state: Partial,
   budget: number,
@@ -209,7 +250,14 @@ function withBench(
   const limit = rules.bootstrap.game_settings.squad_team_limit;
   let cost = state.cost;
   const bench: Player[] = [];
-  for (const { position, count } of benchNeeds(rules, formation)) {
+  for (const { player, price } of plan.keptBench) {
+    if ((clubs.get(player.team) ?? 0) >= limit) return null;
+    chosen.add(player.id);
+    clubs.set(player.team, (clubs.get(player.team) ?? 0) + 1);
+    cost += price;
+    bench.push(player);
+  }
+  for (const { position, count } of plan.benchNeeds) {
     let needed = count;
     for (const candidate of pool[position].bench) {
       if (!needed) break;
@@ -256,6 +304,7 @@ function upgradedBench(
     const spent = members.reduce((sum, player) => sum + priceOf(player), 0);
     let improved = current;
     for (const [slot, outgoing] of current.squad.bench.entries()) {
+      if (market.kept.has(outgoing.id)) continue;
       for (const { player: incoming, price } of pool[positionOf(outgoing)]
         .upgrades) {
         if (ids.has(incoming.id)) continue;
@@ -287,19 +336,24 @@ export function bestAffordableSquad(
   const clubLimit = rules.bootstrap.game_settings.squad_team_limit;
   let best: { squad: Squad; score: number } | null = null;
   for (const formation of formations(rules)) {
-    const benchFloor = benchNeeds(rules, formation).reduce(
-      (sum, { position, count }) => sum + cheapest(pool[position].bench, count),
-      0,
-    );
+    const plan = formationPlan(rules, formation, pool);
+    if (!plan) continue;
+    const benchFloor =
+      plan.keptBench.reduce((sum, candidate) => sum + candidate.price, 0) +
+      plan.benchNeeds.reduce(
+        (sum, { position, count }) =>
+          sum + cheapest(pool[position].bench, count),
+        0,
+      );
     const finalists = searchStarters(
-      formation,
+      plan,
       pool,
       market.budget,
       clubLimit,
       benchFloor,
     );
     for (const state of finalists) {
-      const squad = withBench(rules, formation, pool, state, market.budget);
+      const squad = withBench(rules, plan, pool, state, market.budget);
       if (!squad) continue;
       const score = squadScore(rules, squad, weeks);
       if (!best || score > best.score) best = { squad, score };
