@@ -87,20 +87,31 @@ function assignments(rows: ChipRow[]): Assignment[] {
   return found;
 }
 
+function savedValue(rows: ChipRow[], assignment: Assignment): number {
+  return rows.reduce(
+    (sum, row, index) =>
+      assignment[index] === null && !row.expires ? sum + row.threshold : sum,
+    0,
+  );
+}
+
 function bestAssignment(evaluate: Evaluate, rows: ChipRow[]): Assignment {
-  let best: { assignment: Assignment; gain: number } = {
-    assignment: rows.map(() => null),
-    gain: 0,
+  const none = rows.map(() => null);
+  let best: { assignment: Assignment; value: number } = {
+    assignment: none,
+    value: savedValue(rows, none),
   };
   for (const assignment of assignments(rows)) {
     const gain = gainOf(evaluate, rows, assignment);
-    if (gain === null || gain <= best.gain) continue;
+    if (gain === null) continue;
+    const value = gain + savedValue(rows, assignment);
+    if (value <= best.value) continue;
     const allQualify = assignment.every((week, row) => {
       if (week === null) return true;
       const added = marginal(evaluate, rows, assignment, row);
       return added !== null && qualifies(rows[row], added);
     });
-    if (allQualify) best = { assignment, gain };
+    if (allQualify) best = { assignment, value };
   }
   return best.assignment;
 }

@@ -302,7 +302,7 @@ describe("chip valuation", () => {
     expect(freeHit.valuation).toEqual({ kind: "no-squad" });
   });
 
-  it("gives a shared best week to the chip that gains most and holds the other", () => {
+  it("gives a shared best week to the chip that beats its bar by most, and holds the other", () => {
     const { data, settings } = withChips();
     setPlayer(data, 13, { expected_goals: 12, expected_assists: 6 });
     for (const team of [1, 4, 5]) addDouble(data, team, 13);
@@ -312,15 +312,18 @@ describe("chip valuation", () => {
     expect(captain.best.week).toBe(13);
     expect(boost.best.week).toBe(13);
     expect(boost.best.gain).toBeGreaterThan(captain.best.gain);
-    expect(boost.recommendation).toEqual({
+    expect(captain.best.gain - captain.threshold).toBeGreaterThan(
+      boost.best.gain - boost.threshold,
+    );
+    expect(captain.recommendation).toEqual({
       kind: "play",
       week: 13,
       reason: "clears-bar",
     });
-    expect(captain.recommendation).toEqual({
+    expect(boost.recommendation).toEqual({
       kind: "hold",
       reason: "week-taken",
-      takenBy: "bboost",
+      takenBy: "3xc",
     });
   });
 

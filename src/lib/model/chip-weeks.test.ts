@@ -48,7 +48,7 @@ describe("one chip per gameweek", () => {
   it("moves a chip off its best week when that lets another chip play", () => {
     expect(
       recommendWeeks([
-        row("bboost", { 13: 30, 14: 16 }),
+        row("bboost", { 13: 30, 14: 28 }),
         row("freehit", { 13: 25, 14: 5 }),
       ]),
     ).toEqual([
@@ -80,9 +80,21 @@ describe("one chip per gameweek", () => {
       { kind: "play", week: 19, reason: "clears-bar" },
       { kind: "play", week: 21, reason: "clears-bar" },
     ]);
+  });
+
+  it("uses an expiring chip before one that can still be saved, counting a saved chip at its bar", () => {
     expect(
       recommendWeeks([
         row("freehit", { 19: 25 }, true),
+        row("freehit", { 20: 30 }),
+      ]),
+    ).toEqual([
+      { kind: "play", week: 19, reason: "clears-bar" },
+      { kind: "hold", reason: "next-to-free-hit", freeHitWeek: 19 },
+    ]);
+    expect(
+      recommendWeeks([
+        row("freehit", { 19: 5 }, true),
         row("freehit", { 20: 30 }),
       ]),
     ).toEqual([
