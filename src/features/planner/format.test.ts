@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   accuracyNote,
   displayedLead,
+  planOptimismNote,
+  tenthsAddingUp,
   expectedGainLabel,
   expectedPoints,
   freeTransfersLabel,
@@ -59,6 +61,48 @@ describe("expected points", () => {
     ).toBe(
       "Gains are expected FPL points. Checked against GW7–10 of 2026/27 on 23 Nov 2026, forecasts for players who played were off by 1.9 pts a gameweek on average. Treat big gains with care: replaying the GW3–7 deadlines, top transfers forecast +7.6 pts over four gameweeks but realised +1.4 pts over holding, which is not reliably above zero.",
     );
+  });
+});
+
+describe("plan optimism", () => {
+  it("quotes the dated replay when warning that plans stack optimism", () => {
+    expect(
+      planOptimismNote({
+        measuredOn: "2026-11-23",
+        season: "2026/27",
+        firstValidationGameweek: 7,
+        lastValidationGameweek: 10,
+        firstReplayDeadline: 3,
+        lastReplayDeadline: 7,
+        meanAbsoluteErrorWhenPlaying: 1.9,
+        replayedTopTransferForecastGain: 7.6,
+        replayedTopTransferRealisedGain: 1.4,
+      }),
+    ).toBe(
+      "Plans run optimistic. Replaying the GW3–7 deadlines of 2026/27 on 23 Nov 2026, the best single transfer forecast +7.6 pts over four gameweeks and realised +1.4 pts. Several moves stack that optimism, so make this week's moves and rerun the plan next week.",
+    );
+  });
+});
+
+describe("parts of a total", () => {
+  it("rounds weekly parts so the shown parts add up to the shown total", () => {
+    const parts = [1.04, 1.04, 1.04, 1.04];
+    const shown = tenthsAddingUp(parts, 4.16);
+    expect(shown.map((part) => signed(part))).toEqual([
+      "+1.0",
+      "+1.1",
+      "+1.0",
+      "+1.1",
+    ]);
+    expect(shown.reduce((sum, part) => sum + Math.round(part * 10), 0)).toBe(
+      42,
+    );
+    expect(signed(4.16)).toBe("+4.2");
+  });
+
+  it("anchors the last part to the shown total", () => {
+    const shown = tenthsAddingUp([-0.26, 0.31, -0.06], -0.01);
+    expect(shown.reduce((sum, part) => sum + Math.round(part * 10), 0)).toBe(0);
   });
 });
 

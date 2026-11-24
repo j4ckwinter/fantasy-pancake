@@ -37,15 +37,17 @@ type FormationRules = {
 
 type Formation = Map<Position, { count: number; min: number; max: number }>;
 
+export function captainOrder(expectedPoints: ReadonlyMap<number, number>) {
+  return (a: Pick<Player, "id">, b: Pick<Player, "id">) =>
+    (expectedPoints.get(b.id) ?? 0) - (expectedPoints.get(a.id) ?? 0) ||
+    a.id - b.id;
+}
+
 export function rankCaptains<P extends Pick<Player, "id">>(
   starters: readonly P[],
   expectedPoints: ReadonlyMap<number, number>,
 ): P[] {
-  return [...starters].sort(
-    (a, b) =>
-      (expectedPoints.get(b.id) ?? 0) - (expectedPoints.get(a.id) ?? 0) ||
-      a.id - b.id,
-  );
+  return [...starters].sort(captainOrder(expectedPoints));
 }
 
 export function weekCaptaincy(

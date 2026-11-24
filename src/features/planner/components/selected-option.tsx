@@ -84,7 +84,13 @@ export function SelectedOption({
                     weeks={weeks}
                     baseline={baseline}
                     preview={preview}
-                    hit={option.hit}
+                    hits={
+                      selection.kind === "plan"
+                        ? selection.plan.weeks.map((week) => week.hit)
+                        : weeks.map((_, index) =>
+                            index === 0 ? selection.move.hit : 0,
+                          )
+                    }
                     netGain={option.gain}
                   />
                 </Disclosure>

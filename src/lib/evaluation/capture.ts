@@ -22,7 +22,7 @@ import {
   squadHistoryCoverage,
 } from "./baseline-policies";
 
-export const MODEL_VERSION = "forecast-v6";
+export const MODEL_VERSION = "forecast-v7";
 
 type WeeklyScores = Map<number, number>[];
 
@@ -109,7 +109,8 @@ function analysisPolicies(
   }));
   const planPolicies = analysis.plans.map((plan, index): PolicySpec => ({
     id: `plan-${index + 1}`,
-    label: plan.kind,
+    label:
+      plan.kind === "plan-ahead" ? `${plan.kind}:${plan.variant}` : plan.kind,
     actions: plan.actions,
     hit: plan.hit,
     scores,

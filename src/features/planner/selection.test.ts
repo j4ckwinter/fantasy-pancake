@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { Analysis, Move, TransferPlan } from "@/lib/model";
 import type { Settings } from "@/lib/schemas";
-import { planSelection, reselect, transferSelection } from "./selection";
+import {
+  planSelection,
+  pricesChecked,
+  reselect,
+  selectedPreview,
+  transferSelection,
+} from "./selection";
+import { addPlayer, seasonContext } from "@/lib/model/test-fixtures";
 import { seasonData } from "./test-fixtures";
 
 const data = seasonData();
@@ -33,6 +40,7 @@ function plan(week: number, gain = 4): TransferPlan {
     remainingBank: 0,
     freeTransfersAfterPlan: 1,
     reasons: [],
+    weeks: [],
   };
 }
 
@@ -92,6 +100,26 @@ describe("reselecting after a refresh", () => {
     ).toBeNull();
   });
 
+  it("keeps a plan-ahead alternative rather than switching to a plan with the same moves in other weeks", () => {
+    const ahead = (
+      variant: "best" | "bank-first",
+      week: number,
+    ): TransferPlan => ({
+      ...plan(week),
+      kind: "plan-ahead",
+      variant,
+    });
+    const refreshed = [ahead("best", 10), ahead("bank-first", 11)];
+    expect(
+      reselect(
+        planSelection(ahead("bank-first", 11)),
+        analysis({ plans: refreshed }),
+        data,
+        settings,
+      ),
+    ).toEqual(planSelection(refreshed[1]));
+  });
+
   it("selects nothing when the horizon is empty", () => {
     expect(
       reselect(
@@ -101,5 +129,47 @@ describe("reselecting after a refresh", () => {
         settings,
       ),
     ).toBeNull();
+  });
+});
+
+describe("previewing a plan", () => {
+  it("keeps the bank right when a plan sells a player it bought earlier", () => {
+    const { data: league, settings: squad } = seasonContext();
+    addPlayer(league, { now_cost: 55 });
+    addPlayer(league, { id: 101, now_cost: 52 });
+    squad.bank = 10;
+    const chained: TransferPlan = {
+      kind: "plan-ahead",
+      variant: "best",
+      actions: [
+        { week: 11, outId: 8, inId: 100 },
+        { week: 12, outId: 100, inId: 101 },
+      ],
+      weeks: [],
+      gain: 0,
+      hit: 0,
+      remainingBank: 0,
+      freeTransfersAfterPlan: 0,
+      reasons: [],
+    };
+    const { selection } = selectedPreview(
+      league,
+      squad,
+      planSelection(chained),
+    );
+    expect(selection?.kind === "plan" && selection.plan.remainingBank).toBe(
+      10 + 50 - 55 + 55 - 52,
+    );
+  });
+});
+
+describe("checked selling prices", () => {
+  it("needs only the players owned today, not ones a plan buys and sells again", () => {
+    const actions = [
+      { week: 11, outId: 8, inId: 100 },
+      { week: 12, outId: 100, inId: 101 },
+    ];
+    expect(pricesChecked(actions, [8])).toBe(true);
+    expect(pricesChecked(actions, [])).toBe(false);
   });
 });

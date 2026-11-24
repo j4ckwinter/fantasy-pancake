@@ -30,6 +30,11 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Recommendation orchestration and public model exports             | `src/lib/model.ts`                                               |
 | Scoring, squad rules, scheduling and lineup selection             | `src/lib/model/`                                                 |
 | Hit cost, free-transfer cap and weekly accrual                    | `src/lib/model/transfer-rules.ts`                                |
+| Net-gain threshold a transfer must clear                          | `src/lib/model/transfer-threshold.ts`                            |
+| Which plans are offered, their alternatives and stated limits     | `src/lib/model/planning.ts`                                      |
+| Multi-week beam search and its named bounds                       | `src/lib/model/plan-search.ts`                                   |
+| Incoming candidate pool for plans                                 | `src/lib/model/plan-candidates.ts`                               |
+| A plan's weekly hits, free transfers, bank and gains              | `src/lib/model/plan-accounting.ts`                               |
 | Whether a transfer or batch is legal, and the squad it leaves     | `src/lib/model/transfer-legality.ts`                             |
 | Reasons shown for a single transfer                               | `src/lib/model/transfer-reasons.ts`                              |
 | Risk messages shown for an incoming player                        | `src/lib/model/player-risks.ts`                                  |

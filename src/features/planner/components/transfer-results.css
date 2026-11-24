@@ -28,7 +28,8 @@
 }
 .workspace-section > .card,
 .workspace-section > .transfer-groups,
-.workspace-section > .transfer-plan-grid {
+.workspace-section > .transfer-plan-grid,
+.workspace-section > .plan-ahead {
   margin-top: var(--space-1rem);
 }
 .workspace-squad {
@@ -351,11 +352,13 @@
   }
   .plan-categories {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   .plan-categories button {
-    padding-inline: var(--space-6);
+    padding-inline: var(--space-4);
     font-size: var(--text-12);
+    line-height: 1.15;
+    white-space: normal;
   }
 }
 .options-empty {

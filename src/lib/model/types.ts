@@ -17,15 +17,31 @@ export type Move = {
   fixtures: string[];
 };
 export type TransferAction = { week: number; outId: number; inId: number };
-export type TransferPlan = {
-  kind: "pair-now" | "roll-then-transfer";
+export type PlanWeek = {
+  week: number;
   actions: TransferAction[];
+  hit: number;
+  freeTransfersBefore: number;
+  freeTransfersAfter: number;
+  bank: number;
+  score: number;
+  gain: number;
+};
+export type PlanAccount = {
+  actions: TransferAction[];
+  weeks: PlanWeek[];
   gain: number;
   hit: number;
   remainingBank: number;
   freeTransfersAfterPlan: number;
-  reasons: string[];
 };
+export type PlanVariant =
+  "best" | "no-hits" | "fewer-moves" | "bank-first" | "move-now";
+export type PlanIdentity =
+  | { kind: "plan-ahead"; variant: PlanVariant }
+  | { kind: "pair-now" }
+  | { kind: "roll-then-transfer" };
+export type TransferPlan = PlanAccount & { reasons: string[] } & PlanIdentity;
 export type Analysis = {
   weeks: number[];
   baseline: Lineup[];

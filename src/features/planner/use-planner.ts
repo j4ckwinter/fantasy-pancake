@@ -422,9 +422,9 @@ export function usePlanner() {
   const previewState = useMemo(
     () =>
       data && settings
-        ? selectedPreview(data, settings, selection, result?.baseline ?? [])
+        ? selectedPreview(data, settings, selection)
         : emptyPreview,
-    [data, settings, selection, result],
+    [data, settings, selection],
   );
 
   return {

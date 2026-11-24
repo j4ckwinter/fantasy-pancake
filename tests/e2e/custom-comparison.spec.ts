@@ -58,7 +58,7 @@ test("custom comparisons preview below-threshold moves without changing the squa
     .click();
   await expect(selected.locator(".weekly-breakdown tbody tr")).toHaveCount(4);
   await expect(selected.locator(".weekly-breakdown")).toContainText(
-    "Transfer hit · deducted once",
+    "Transfer hits",
   );
   await selected
     .getByText("Compare players · minutes and attacking threat", {
