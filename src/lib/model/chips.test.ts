@@ -283,11 +283,14 @@ describe("chip valuation", () => {
     expect(squadIds).not.toContain(STAR_ID);
     expect(squad.reduce((sum, member) => sum + member.now_cost, 0)).toBe(750);
     expect(option.lineup.ids).toEqual(expect.arrayContaining([261, 262, 264]));
-    expect(option.gain).toBeCloseTo(
-      option.lineup.score - result.baseline[0].score,
-      1,
+    const plan = result.plans.find(
+      (candidate) =>
+        candidate.kind === "plan-ahead" && candidate.variant === "best",
     );
-    expect(option.gain).toBeGreaterThan(0);
+    const planned = plan
+      ? plan.weeks[0].score - plan.weeks[0].hit
+      : result.baseline[0].score;
+    expect(option.gain).toBeCloseTo(option.lineup.score - planned, 1);
   });
 
   it("reports that no legal Free Hit squad was found instead of a zero gain", () => {
@@ -402,11 +405,45 @@ describe("chip valuation", () => {
       [14, 1],
     ])
       expect(gain(wildcard.options, week)).toBeCloseTo(
-        weeksKept * gain(freeHit.options, week),
+        weeksKept * gain(freeHit.options, 11),
         1,
       );
     expect(wildcard.options[0].coveredWeeks).toEqual([11, 12, 13, 14]);
     expect(wildcard.best.week).toBe(11);
+  });
+
+  it("values chips after a Wildcard against the Wildcard squad", () => {
+    const { data, settings } = withChips();
+    strongClubSix(data);
+    const result = analyze(data, {
+      ...settings,
+      lockedPlayerIds: settings.squad.map((pick) => pick.id),
+    });
+    const wildcard = valued(rowsFor(result.chips, "wildcard")[0]);
+    expect(wildcard.recommendation).toMatchObject({ kind: "play", week: 11 });
+    const freeHit = valued(rowsFor(result.chips, "freehit")[0]);
+    expect(
+      freeHit.options.filter((option) => option.week > 11).map((o) => o.gain),
+    ).toEqual([0, 0, 0]);
+    const boost = valued(rowsFor(result.chips, "bboost")[0]);
+    const later = boost.options.find((option) => option.week === 12)!;
+    const wildcardSquad = [...wildcard.best.lineup.ids, ...wildcard.best.bench];
+    expect([...later.lineup.ids, ...later.bench].sort()).toEqual(
+      wildcardSquad.sort(),
+    );
+    expect(later.gain).toBeCloseTo(
+      later.bench.reduce(
+        (sum, id) =>
+          sum +
+          scorePlayer(
+            data,
+            data.bootstrap.elements.find((member) => member.id === id)!,
+            12,
+          ),
+        0,
+      ),
+      1,
+    );
   });
 
   it("values a later Wildcard against the plan's own weeks from that week on", () => {

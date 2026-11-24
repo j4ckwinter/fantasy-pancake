@@ -44,8 +44,9 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Chance a player appears in a gameweek                             | `src/lib/model/play-chance.ts`                                   |
 | Weekly captaincy for the current or a previewed squad             | `src/lib/model/captaincy-preview.ts`                             |
 | Which chips remain and the weeks each can be played               | `src/lib/model/chip-availability.ts`                             |
-| Chip values, best weeks and hold thresholds                       | `src/lib/model/chip-advice.ts`                                   |
-| One chip per gameweek: which chip plays which week                | `src/lib/model/chip-weeks.ts`                                    |
+| Chip advice and hold thresholds                                   | `src/lib/model/chip-advice.ts`                                   |
+| The path chips are valued along, and what a set of chips adds     | `src/lib/model/chip-paths.ts`                                    |
+| Which chips play which weeks: one a week, bars and hold reasons   | `src/lib/model/chip-weeks.ts`                                    |
 | Best affordable squad rebuilt for one or more weeks               | `src/lib/model/affordable-squad.ts`                              |
 | Position ids; per-position scoring weights and attacking priors   | `src/lib/model/position.ts`; `scoring.ts`, `forecast-history.ts` |
 | Match length, 60-minute appearances and recency half-life         | `src/lib/model/match-minutes.ts`, `recency.ts`                   |

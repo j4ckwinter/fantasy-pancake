@@ -1,17 +1,14 @@
-import type { ChipName, Player } from "../schemas";
+import type { ChipName } from "../schemas";
 import type { Lineup, TransferPlan } from "./types";
 import {
   chipAvailability,
   type ChipAvailability,
   type ChipWindow,
 } from "./chip-availability";
-import { captaincyByWeek } from "./captaincy-preview";
-import { bestAffordableSquad, type SquadMarket } from "./affordable-squad";
-import { bestLineup } from "./lineup";
+import { chipPath, type ChipPath } from "./chip-paths";
+import { bestOption, chooseChips, type ChipOption } from "./chip-weeks";
 import { roundScore } from "./round-score";
-import { isTransferable } from "./transfer-legality";
 import type { TransferContext } from "./transfer-preview";
-import { bestOption, recommendWeeks } from "./chip-weeks";
 
 export const CHIP_PLAY_THRESHOLD_POINTS: Record<ChipName, number> = {
   wildcard: 20,
@@ -61,185 +58,55 @@ export type ChipAdvice =
 
 type Valued = Extract<ChipValuation, { kind: "valued" }>;
 
-type ChipInputs = { context: TransferContext; plans: TransferPlan[] };
-
-function weekIndex(context: TransferContext, week: number) {
-  return context.weeks.indexOf(week);
-}
-
-function benchOf(squad: Player[], lineup: Lineup) {
-  return squad
-    .filter((player) => !lineup.ids.includes(player.id))
-    .map((player) => player.id);
-}
-
-function tripleCaptainWeeks(
-  { context }: ChipInputs,
+function chipWeek(
+  chip: ChipName,
   weeks: number[],
-): ChipWeek[] {
-  const captaincy = captaincyByWeek(
-    context,
-    context.baseline.map((lineup) => ({ squad: context.squad, lineup })),
-  );
-  return weeks.map((week) => {
-    const index = weekIndex(context, week);
-    const lineup = context.baseline[index];
-    return {
-      week,
-      coveredWeeks: [week],
-      gain: captaincy[index].captain.expectedPoints,
-      lineup,
-      bench: benchOf(context.squad, lineup),
-    };
-  });
+  option: ChipOption,
+): ChipWeek {
+  const played = option.path.find((week) => week.week === option.week)!;
+  return {
+    week: option.week,
+    coveredWeeks:
+      chip === "wildcard"
+        ? weeks.filter((week) => week >= option.week)
+        : [option.week],
+    gain: roundScore(option.gain),
+    lineup: { ...played.lineup, score: roundScore(played.lineup.score) },
+    bench: played.squad
+      .filter((player) => !played.lineup.ids.includes(player.id))
+      .map((player) => player.id),
+  };
 }
-
-function benchBoostWeeks({ context }: ChipInputs, weeks: number[]): ChipWeek[] {
-  return weeks.map((week) => {
-    const index = weekIndex(context, week);
-    const lineup = context.baseline[index];
-    const bench = benchOf(context.squad, lineup);
-    const gain = bench.reduce(
-      (sum, id) => sum + (context.scores[index].get(id) ?? 0),
-      0,
-    );
-    return {
-      week,
-      coveredWeeks: [week],
-      gain: roundScore(gain),
-      lineup,
-      bench,
-    };
-  });
-}
-
-function rebuildMarket(context: TransferContext): SquadMarket {
-  const { data, settings } = context;
-  const selling = new Map(
-    settings.squad.map((pick) => [pick.id, pick.sellingPrice]),
-  );
-  const prices = new Map(
-    data.bootstrap.elements.flatMap((player): [number, number][] => {
-      const owned = selling.get(player.id);
-      if (owned !== undefined) return [[player.id, owned]];
-      return isTransferable(player) ? [[player.id, player.now_cost]] : [];
-    }),
-  );
-  const budget =
-    settings.bank +
-    settings.squad.reduce((sum, pick) => sum + pick.sellingPrice, 0);
-  return { players: data.bootstrap.elements, prices, budget };
-}
-
-function freeHitWeeks({ context }: ChipInputs, weeks: number[]): ChipWeek[] {
-  const market = rebuildMarket(context);
-  return weeks.flatMap((week): ChipWeek[] => {
-    const index = weekIndex(context, week);
-    const scores = context.scores[index];
-    const yours = context.baseline[index];
-    const squad = bestAffordableSquad(context.data, market, [scores]);
-    if (!squad) return [];
-    const lineup = bestLineup(context.data, squad, scores);
-    if (lineup.score <= yours.score)
-      return [
-        {
-          week,
-          coveredWeeks: [week],
-          gain: 0,
-          lineup: yours,
-          bench: benchOf(context.squad, yours),
-        },
-      ];
-    return [
-      {
-        week,
-        coveredWeeks: [week],
-        gain: roundScore(lineup.score - yours.score),
-        lineup,
-        bench: benchOf(squad, lineup),
-      },
-    ];
-  });
-}
-
-function plannedPoints({ context, plans }: ChipInputs, from: number) {
-  const plan = plans.find(
-    (candidate) =>
-      candidate.kind === "plan-ahead" && candidate.variant === "best",
-  );
-  return context.weeks
-    .slice(from)
-    .reduce(
-      (sum, _, offset) =>
-        sum +
-        (plan
-          ? plan.weeks[from + offset].score - plan.weeks[from + offset].hit
-          : context.baseline[from + offset].score),
-      0,
-    );
-}
-
-function wildcardWeeks(inputs: ChipInputs, weeks: number[]): ChipWeek[] {
-  const { context } = inputs;
-  const market = rebuildMarket(context);
-  return weeks.flatMap((week): ChipWeek[] => {
-    const index = weekIndex(context, week);
-    const kept = context.scores.slice(index);
-    const squad = bestAffordableSquad(context.data, market, kept);
-    if (!squad) return [];
-    const lineups = kept.map((scores) =>
-      bestLineup(context.data, squad, scores),
-    );
-    const rebuilt = lineups.reduce((sum, lineup) => sum + lineup.score, 0);
-    return [
-      {
-        week,
-        coveredWeeks: context.weeks.slice(index),
-        gain: roundScore(rebuilt - plannedPoints(inputs, index)),
-        lineup: lineups[0],
-        bench: benchOf(squad, lineups[0]),
-      },
-    ];
-  });
-}
-
-const VALUE_WEEKS: Record<
-  ChipName,
-  (inputs: ChipInputs, weeks: number[]) => ChipWeek[]
-> = {
-  wildcard: wildcardWeeks,
-  "3xc": tripleCaptainWeeks,
-  bboost: benchBoostWeeks,
-  freehit: freeHitWeeks,
-};
 
 function valueChips(
-  inputs: ChipInputs,
+  path: ChipPath,
   availability: ChipAvailability[],
 ): ChipStatus[] {
-  const valued = availability.map((row) =>
-    row.status === "available"
-      ? {
-          chip: row.chip,
-          options: VALUE_WEEKS[row.chip](inputs, row.weeks),
-          threshold: CHIP_PLAY_THRESHOLD_POINTS[row.chip],
-          expires: row.expires,
-        }
-      : null,
+  const open = availability.flatMap((row) =>
+    row.status === "available" ? [row] : [],
   );
-  const rows = valued.flatMap((row) => (row?.options.length ? [row] : []));
-  const recommendations = recommendWeeks(rows);
-  return availability.map((row, index): ChipStatus => {
+  const choices = chooseChips(
+    path.evaluate,
+    open.map((row) => ({
+      chip: row.chip,
+      weeks: row.weeks,
+      threshold: CHIP_PLAY_THRESHOLD_POINTS[row.chip],
+      expires: row.expires,
+    })),
+  );
+  return availability.map((row): ChipStatus => {
     if (row.status !== "available") return row;
-    const entry = valued[index];
-    if (!entry?.options.length)
-      return { ...row, valuation: { kind: "no-squad" } };
+    const choice = choices[open.indexOf(row)];
+    if (!choice) return { ...row, valuation: { kind: "no-squad" } };
+    const options = choice.options.map((option) =>
+      chipWeek(row.chip, path.weeks, option),
+    );
     const valuation: Valued = {
       kind: "valued",
-      threshold: entry.threshold,
-      options: entry.options,
-      best: bestOption(entry.options),
-      recommendation: recommendations[rows.indexOf(entry)],
+      threshold: CHIP_PLAY_THRESHOLD_POINTS[row.chip],
+      options,
+      best: chipWeek(row.chip, path.weeks, bestOption(choice.options)),
+      recommendation: choice.recommendation,
     };
     return { ...row, valuation };
   });
@@ -262,6 +129,6 @@ export function adviseChips(
   return {
     status: "known",
     weeks: context.weeks,
-    chips: valueChips({ context, plans }, availability),
+    chips: valueChips(chipPath(context, plans), availability),
   };
 }

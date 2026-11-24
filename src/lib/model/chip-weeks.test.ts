@@ -1,30 +1,47 @@
 import { describe, expect, it } from "vitest";
 import type { ChipName } from "../schemas";
-import { recommendWeeks, type ValuedRow } from "./chip-weeks";
+import type { ChipPlay } from "./chip-paths";
+import { chooseChips } from "./chip-weeks";
 
-const BARS: Record<Exclude<ChipName, "wildcard">, number> = {
+const BARS: Record<ChipName, number> = {
+  wildcard: 20,
   freehit: 20,
   bboost: 15,
   "3xc": 8,
 };
 
+type Row = { chip: ChipName; gains: Record<number, number>; expires: boolean };
+
 function row(
-  chip: Exclude<ChipName, "wildcard">,
+  chip: ChipName,
   gains: Record<number, number>,
   expires = false,
-): ValuedRow {
-  return {
-    chip,
-    threshold: BARS[chip],
-    expires,
-    options: Object.entries(gains).map(([week, gain]) => ({
-      week: Number(week),
-      coveredWeeks: [Number(week)],
-      gain,
-      lineup: { score: 0, ids: [], captain: 0 },
-      bench: [],
+): Row {
+  return { chip, gains, expires };
+}
+
+function recommendWeeks(rows: Row[]) {
+  const evaluate = (plays: readonly ChipPlay[]) => ({
+    gain: plays.reduce(
+      (sum, play) =>
+        sum +
+        (rows.find(
+          (candidate) =>
+            candidate.chip === play.chip && play.week in candidate.gains,
+        )?.gains[play.week] ?? 0),
+      0,
+    ),
+    weeks: [],
+  });
+  return chooseChips(
+    evaluate,
+    rows.map(({ chip, gains, expires }) => ({
+      chip,
+      weeks: Object.keys(gains).map(Number),
+      threshold: BARS[chip],
+      expires,
     })),
-  };
+  ).map((choice) => choice?.recommendation);
 }
 
 describe("one chip per gameweek", () => {
