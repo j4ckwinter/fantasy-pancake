@@ -17,6 +17,7 @@ import {
   chipOptimismNote,
   chipSummaries,
   chipsFromSaveText,
+  chipsRefreshWarning,
   chipsUnknownText,
 } from "../chips";
 import { gameweekRange } from "../format";
@@ -34,6 +35,7 @@ export function ChipPanel({
   weeks,
   previewKey,
   fromSave,
+  savedPlan,
   busy,
   onPreview,
   onRefresh,
@@ -42,6 +44,7 @@ export function ChipPanel({
   weeks: number[];
   previewKey: string | null;
   fromSave: boolean;
+  savedPlan: boolean;
   busy: boolean;
   onPreview: (key: string, week: number) => void;
   onRefresh: () => void;
@@ -59,12 +62,15 @@ export function ChipPanel({
       </div>
       {advice.status === "unknown" ? (
         <div className="chip-panel__unknown">
-          <p>{chipsUnknownText[advice.missing]}</p>
+          <p>{chipsUnknownText(advice.missing, savedPlan)}</p>
           {advice.missing === "played-chips" && (
-            <Button variant="outline" disabled={busy} onClick={onRefresh}>
-              <RefreshCwIcon data-icon="inline-start" aria-hidden="true" />
-              Refresh from FPL
-            </Button>
+            <>
+              <Button variant="outline" disabled={busy} onClick={onRefresh}>
+                <RefreshCwIcon data-icon="inline-start" aria-hidden="true" />
+                Refresh from FPL
+              </Button>
+              <p className="chip-panel__warning">{chipsRefreshWarning}</p>
+            </>
           )}
         </div>
       ) : (

@@ -104,6 +104,10 @@
   font-size: var(--text-13);
   line-height: 1.5;
 }
+.chip-panel__unknown .chip-panel__warning {
+  flex-basis: 100%;
+  font-size: var(--text-12);
+}
 .chip-panel__note {
   display: flex;
   gap: var(--space-6);

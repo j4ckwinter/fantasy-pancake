@@ -68,6 +68,7 @@ export function TransferResults({
   chipPreviewKey,
   chipPreview,
   chipsFromSave,
+  savedPlan,
   onPreviewChip,
   onRefreshFromFpl,
 }: {
@@ -101,6 +102,7 @@ export function TransferResults({
   chipPreviewKey: string | null;
   chipPreview: ChipPreview | null;
   chipsFromSave: boolean;
+  savedPlan: boolean;
   onPreviewChip: (key: string, week: number) => void;
   onRefreshFromFpl: () => void;
 }) {
@@ -263,6 +265,7 @@ export function TransferResults({
             weeks={result.weeks}
             previewKey={chipPreviewKey}
             fromSave={chipsFromSave}
+            savedPlan={savedPlan}
             busy={!idle}
             onPreview={onPreviewChip}
             onRefresh={onRefreshFromFpl}

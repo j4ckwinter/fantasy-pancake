@@ -262,7 +262,11 @@ test("an import without played chips offers to load them from FPL", async ({
   await importTeam(page);
   await expect(shortlistHeading(page)).toBeVisible();
   await expect(chipsPanel(page)).toContainText(
-    "doesn’t know which chips you’ve played",
+    "FPL didn’t send the chips you’ve played.",
+  );
+  await expect(chipsPanel(page)).not.toContainText("saved plan");
+  await expect(chipsPanel(page)).toContainText(
+    "Refreshing re-imports your squad, bank and free transfers",
   );
   await routeImport(
     page,

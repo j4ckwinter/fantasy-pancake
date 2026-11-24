@@ -147,14 +147,22 @@ export function chipSummaries(
   return advice.chips.map(summaryOf);
 }
 
-export const chipsUnknownText: Record<
-  Extract<ChipAdvice, { status: "unknown" }>["missing"],
-  string
-> = {
-  "played-chips":
-    "This saved plan doesn’t know which chips you’ve played. Refresh from FPL to load them.",
-  "chip-rules": "FPL hasn’t published this season’s chip rules yet.",
-};
+export function chipsUnknownText(
+  missing: Extract<ChipAdvice, { status: "unknown" }>["missing"],
+  savedPlan: boolean,
+): string {
+  switch (missing) {
+    case "played-chips":
+      return savedPlan
+        ? "This saved plan doesn’t know which chips you’ve played, and FPL couldn’t be reached to check."
+        : "FPL didn’t send the chips you’ve played.";
+    case "chip-rules":
+      return "FPL hasn’t published this season’s chip rules yet.";
+  }
+}
+
+export const chipsRefreshWarning =
+  "Refreshing re-imports your squad, bank and free transfers from FPL, replacing edits, confirmed prices and the free transfers you set.";
 
 export const chipsFromSaveText =
   "Chip status is from when this plan was saved, because FPL couldn’t be reached. Refresh from FPL to update it.";
