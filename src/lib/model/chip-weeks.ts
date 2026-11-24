@@ -13,6 +13,21 @@ type Assignment = { total: number; weeks: (ChipWeek | null)[] };
 const qualifies = (row: ValuedRow, option: ChipWeek) =>
   row.expires ? option.gain > 0 : option.gain > row.threshold;
 
+function nextToFreeHit(
+  rows: ValuedRow[],
+  chosen: (ChipWeek | null)[],
+  row: ValuedRow,
+  week: number,
+): number | undefined {
+  if (row.chip !== "freehit") return undefined;
+  return chosen.find(
+    (option, index) =>
+      option &&
+      rows[index].chip === "freehit" &&
+      Math.abs(option.week - week) === 1,
+  )?.week;
+}
+
 function bestAssignment(rows: ValuedRow[]): (ChipWeek | null)[] {
   const best: Assignment = { total: -Infinity, weeks: [] };
   const search = (
@@ -27,7 +42,11 @@ function bestAssignment(rows: ValuedRow[]): (ChipWeek | null)[] {
     const row = rows[index];
     const taken = new Set(chosen.map((option) => option?.week));
     for (const option of row.options)
-      if (qualifies(row, option) && !taken.has(option.week))
+      if (
+        qualifies(row, option) &&
+        !taken.has(option.week) &&
+        !nextToFreeHit(rows, chosen, row, option.week)
+      )
         search(index + 1, [...chosen, option], total + option.gain);
     search(index + 1, [...chosen, null], total);
   };
@@ -57,9 +76,14 @@ export function recommendWeeks(rows: ValuedRow[]): ChipRecommendation[] {
         reason: option.gain > row.threshold ? "clears-bar" : "expires",
       };
     const best = bestOption(row.options);
-    const takenBy = qualifies(row, best) ? weekOwner.get(best.week) : undefined;
-    return takenBy
-      ? { kind: "hold", reason: "week-taken", takenBy }
-      : { kind: "hold", reason: "below-threshold" };
+    if (!qualifies(row, best))
+      return { kind: "hold", reason: "below-threshold" };
+    const takenBy = weekOwner.get(best.week);
+    if (takenBy) return { kind: "hold", reason: "week-taken", takenBy };
+    const others = assigned.map((other, i) => (i === index ? null : other));
+    const freeHitWeek = nextToFreeHit(rows, others, row, best.week);
+    return freeHitWeek === undefined
+      ? { kind: "hold", reason: "below-threshold" }
+      : { kind: "hold", reason: "next-to-free-hit", freeHitWeek };
   });
 }

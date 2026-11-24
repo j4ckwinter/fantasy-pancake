@@ -51,4 +51,25 @@ describe("one chip per gameweek", () => {
       takenBy: "freehit",
     });
   });
+
+  it("does not advise Free Hits in consecutive gameweeks", () => {
+    expect(
+      recommendWeeks([
+        row("freehit", { 19: 25 }, true),
+        row("freehit", { 20: 30, 21: 22 }),
+      ]),
+    ).toEqual([
+      { kind: "play", week: 19, reason: "clears-bar" },
+      { kind: "play", week: 21, reason: "clears-bar" },
+    ]);
+    expect(
+      recommendWeeks([
+        row("freehit", { 19: 25 }, true),
+        row("freehit", { 20: 30 }),
+      ]),
+    ).toEqual([
+      { kind: "hold", reason: "next-to-free-hit", freeHitWeek: 20 },
+      { kind: "play", week: 20, reason: "clears-bar" },
+    ]);
+  });
 });

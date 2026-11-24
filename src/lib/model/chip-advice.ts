@@ -31,7 +31,8 @@ export type ChipWeek = {
 export type ChipRecommendation =
   | { kind: "play"; week: number; reason: "clears-bar" | "expires" }
   | { kind: "hold"; reason: "below-threshold" }
-  | { kind: "hold"; reason: "week-taken"; takenBy: ChipName };
+  | { kind: "hold"; reason: "week-taken"; takenBy: ChipName }
+  | { kind: "hold"; reason: "next-to-free-hit"; freeHitWeek: number };
 
 export type ChipValuation =
   | { kind: "pending" }

@@ -3,6 +3,7 @@ import {
   PLANNING_HORIZON_WEEKS,
   type Analysis,
   type ChipAdvice,
+  type ChipRecommendation,
   type ChipStatus,
   type ChipWeek,
 } from "@/lib/model";
@@ -43,6 +44,20 @@ export function chipKey(row: ChipStatus): string {
     : row.chip;
 }
 
+type Hold = Extract<ChipRecommendation, { kind: "hold" }>;
+
+function holdReason(hold: Hold, best: ChipWeek, bar: string): string {
+  const quoted = `Best GW${best.week} ${signedPoints(best.gain)}`;
+  switch (hold.reason) {
+    case "below-threshold":
+      return `${quoted}, under ${bar}.`;
+    case "week-taken":
+      return `${quoted}, but ${chipLabels[hold.takenBy]} gains more that week. One chip per gameweek.`;
+    case "next-to-free-hit":
+      return `${quoted}, but the other Free Hit is advised for GW${hold.freeHitWeek}. FPL’s data doesn’t say whether back-to-back Free Hits are allowed, so the planner won’t advise them.`;
+  }
+}
+
 function availableSummary(
   row: Extract<ChipStatus, { status: "available" }>,
 ): Omit<ChipSummary, "key" | "chip" | "label"> {
@@ -79,10 +94,7 @@ function availableSummary(
           return {
             badge: "Hold",
             tone: "neutral",
-            detail:
-              recommendation.reason === "week-taken"
-                ? `Best GW${best.week} ${signedPoints(best.gain)}, but ${chipLabels[recommendation.takenBy]} gains more that week. One chip per gameweek.`
-                : `Best GW${best.week} ${signedPoints(best.gain)}, under ${bar}.${expiry}`,
+            detail: `${holdReason(recommendation, best, bar)}${expiry}`,
             previewWeek: best.week,
           };
       }
