@@ -307,7 +307,6 @@ export function usePlanner() {
   function previewChip(key: string, week: number) {
     const index = result?.weeks.indexOf(week) ?? -1;
     if (index < 0) return;
-    operation.invalidate();
     dispatch(
       session.chipPreview === key
         ? { type: "selection-cleared" }

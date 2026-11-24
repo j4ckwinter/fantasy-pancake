@@ -11,7 +11,9 @@ import {
 } from "./support/fixtures";
 import {
   compareTransfer,
+  expireData,
   expectNoHorizontalOverflow,
+  focusWindow,
   gate,
   importTeam,
   shortlistHeading,
@@ -298,6 +300,37 @@ test("a restored plan refreshes its chips, or says they are from the save", asyn
   await expect(chipsPanel(page)).toContainText(
     "Chip status is from when this plan was saved",
   );
+});
+
+test("previewing a chip during a refresh lets the refresh finish", async ({
+  page,
+}) => {
+  const refresh = gate();
+  let expired = false;
+  await page.route("**/api/data", async (route) => {
+    if (!expired) return route.fulfill({ json: withChipRules(fixtureData()) });
+    await refresh.opened;
+    return route.fulfill({
+      json: withChipRules(fixtureData(), [
+        ["3xc", 1, 10],
+        ["3xc", 20, 38],
+      ]),
+    });
+  });
+  await routeImport(page, importResponse({ chipsPlayed: [] }));
+  await importTeam(page);
+  await expect(shortlistHeading(page)).toBeVisible();
+  expired = true;
+  await expireData(page);
+  await focusWindow(page);
+  const eyebrow = page.locator(".workspace-heading .eyebrow");
+  await expect(eyebrow).toContainText("REFRESHING");
+  await page
+    .getByRole("button", { name: /Preview Triple Captain in GW/ })
+    .click();
+  refresh.release();
+  await expect(eyebrow).toContainText("THE NEXT MOVE");
+  await expect(chipRow(page, "3xc")).toContainText("Expires after GW10");
 });
 
 test("an import without played chips offers to load them from FPL", async ({
