@@ -11,6 +11,7 @@ import { bestLineup } from "./lineup";
 import { roundScore } from "./round-score";
 import { isTransferable } from "./transfer-legality";
 import type { TransferContext } from "./transfer-preview";
+import { recommendWeeks } from "./chip-weeks";
 
 export type ValuedChip = Exclude<ChipName, "wildcard">;
 
@@ -164,73 +165,6 @@ function bestOption(options: ChipWeek[]): ChipWeek {
   );
 }
 
-type ValuedRow = {
-  chip: ChipName;
-  options: ChipWeek[];
-  threshold: number;
-  expires: boolean;
-};
-
-type Assignment = { total: number; weeks: (ChipWeek | null)[] };
-
-const qualifies = (row: ValuedRow, option: ChipWeek) =>
-  row.expires ? option.gain > 0 : option.gain > row.threshold;
-
-function bestAssignment(rows: ValuedRow[]): (ChipWeek | null)[] {
-  const best: Assignment = { total: -Infinity, weeks: [] };
-  const search = (
-    index: number,
-    chosen: (ChipWeek | null)[],
-    total: number,
-  ) => {
-    if (index === rows.length) {
-      if (total > best.total) Object.assign(best, { total, weeks: chosen });
-      return;
-    }
-    const row = rows[index];
-    const taken = new Set(chosen.map((option) => option?.week));
-    for (const option of row.options)
-      if (qualifies(row, option) && !taken.has(option.week))
-        search(index + 1, [...chosen, option], total + option.gain);
-    search(index + 1, [...chosen, null], total);
-  };
-  search(0, [], 0);
-  return best.weeks;
-}
-
-function assignWeeks(rows: ValuedRow[]): Map<number, ChipRecommendation> {
-  const assigned = bestAssignment(rows);
-  const weekOwner = new Map(
-    assigned.flatMap((option, index) =>
-      option ? [[option.week, rows[index].chip] as const] : [],
-    ),
-  );
-  return new Map(
-    rows.map((row, index): [number, ChipRecommendation] => {
-      const option = assigned[index];
-      if (option)
-        return [
-          index,
-          {
-            kind: "play",
-            week: option.week,
-            reason: option.gain > row.threshold ? "clears-bar" : "expires",
-          },
-        ];
-      const takenBy = row.options
-        .filter((candidate) => qualifies(row, candidate))
-        .map((candidate) => weekOwner.get(candidate.week))
-        .find((owner) => owner !== undefined);
-      return [
-        index,
-        takenBy
-          ? { kind: "hold", reason: "week-taken", takenBy }
-          : { kind: "hold", reason: "below-threshold" },
-      ];
-    }),
-  );
-}
-
 function valueChips(
   context: TransferContext,
   availability: ChipAvailability[],
@@ -246,7 +180,7 @@ function valueChips(
       : null,
   );
   const rows = valued.flatMap((row) => (row ? [row] : []));
-  const recommendations = assignWeeks(rows);
+  const recommendations = recommendWeeks(rows);
   return availability.map((row, index): ChipStatus => {
     if (row.status !== "available") return row;
     const entry = valued[index];
@@ -256,7 +190,7 @@ function valueChips(
       threshold: entry.threshold,
       options: entry.options,
       best: bestOption(entry.options),
-      recommendation: recommendations.get(rows.indexOf(entry))!,
+      recommendation: recommendations[rows.indexOf(entry)],
     };
     return { ...row, valuation };
   });
