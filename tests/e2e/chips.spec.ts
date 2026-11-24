@@ -231,6 +231,30 @@ test("a chip preview ends when you show a week outside the chip's window", async
   );
 });
 
+test("a restored plan refreshes its chips, or says they are from the save", async ({
+  page,
+}) => {
+  await importWithChips(page, [{ name: "3xc", event: 4 }]);
+  await routeImport(
+    page,
+    importResponse({
+      chipsPlayed: [
+        { name: "3xc", event: 4 },
+        { name: "bboost", event: 8 },
+      ],
+    }),
+  );
+  await page.reload();
+  await expect(chipRow(page, "bboost")).toContainText("Used GW8");
+  await expect(chipsPanel(page)).not.toContainText("from when this plan");
+  await routeImport(page, { error: "Unavailable" }, 503);
+  await page.reload();
+  await expect(chipRow(page, "bboost")).toContainText("Used GW8");
+  await expect(chipsPanel(page)).toContainText(
+    "Chip status is from when this plan was saved",
+  );
+});
+
 test("an import without played chips offers to load them from FPL", async ({
   page,
 }) => {

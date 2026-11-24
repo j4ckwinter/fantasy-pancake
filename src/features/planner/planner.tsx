@@ -148,6 +148,7 @@ export default function Planner() {
           onClosePlayer={planner.closePlayer}
           chipPreviewKey={planner.chipPreviewKey}
           chipPreview={planner.chipPreview}
+          chipsFromSave={planner.chipsFromSave}
           onPreviewChip={planner.previewChip}
           onRefreshFromFpl={planner.refreshSavedTeam}
         />

@@ -156,6 +156,9 @@ export const chipsUnknownText: Record<
   "chip-rules": "FPL hasn’t published this season’s chip rules yet.",
 };
 
+export const chipsFromSaveText =
+  "Chip status is from when this plan was saved, because FPL couldn’t be reached. Refresh from FPL to update it.";
+
 export const chipHorizonNote = (weeks: number[]) =>
   `Chip advice looks ${PLANNING_HORIZON_WEEKS} gameweeks ahead (${gameweekRange(weeks)}) using your current squad. A chip’s value outside that horizon is unknown, so “hold” means nothing here clears the bar.`;
 

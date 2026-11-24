@@ -53,4 +53,75 @@ describe("restoring a saved team", () => {
       notice: "settings-not-saved",
     });
   });
+
+  async function restoreWith(
+    saved: Settings,
+    fetcher: () => Promise<Response>,
+  ) {
+    vi.stubGlobal("fetch", vi.fn(fetcher));
+    const actions: SessionAction[] = [];
+    const writes: string[] = [];
+    await restoreSavedTeam(seasonData(), {
+      storage: {
+        getItem: () => JSON.stringify(saved),
+        setItem: (_key, value) => {
+          writes.push(value);
+        },
+      },
+      isActive: () => true,
+      dispatch: (action) => actions.push(action),
+      showBusy: () => {},
+      enriched: () => {},
+    });
+    return {
+      restored: actions.find((action) => action.type === "restored"),
+      writes,
+    };
+  }
+
+  it("refreshes the chips a saved team has played since it was saved", async () => {
+    const saved = { ...unnamed, teamName: "Pancake XI", chipsPlayed: [] };
+    const { restored, writes } = await restoreWith(saved, async () =>
+      Response.json({
+        teamName: "Pancake XI",
+        active_chip: null,
+        entry_history: { event: 9, bank: 9 },
+        picks: Array.from({ length: 15 }, (_, i) => ({ element: i + 20 })),
+        chipsPlayed: [{ name: "3xc", event: 9 }],
+        fetchedAt: "2026-10-31T18:00:00Z",
+      }),
+    );
+    expect(restored).toMatchObject({
+      type: "restored",
+      chipsFromSave: false,
+      settings: {
+        chipsPlayed: [{ name: "3xc", event: 9 }],
+        bank: unnamed.bank,
+      },
+    });
+    expect(
+      restored?.type === "restored" &&
+        restored.settings.squad.map((pick) => pick.id),
+    ).toEqual(unnamed.squad.map((pick) => pick.id));
+    expect(JSON.parse(writes[0]).chipsPlayed).toEqual([
+      { name: "3xc", event: 9 },
+    ]);
+  });
+
+  it("keeps the saved chips and says so when FPL cannot be reached", async () => {
+    const saved = {
+      ...unnamed,
+      teamName: "Pancake XI",
+      chipsPlayed: [{ name: "wildcard" as const, event: 3 }],
+    };
+    const { restored } = await restoreWith(
+      saved,
+      async () => new Response("", { status: 503 }),
+    );
+    expect(restored).toMatchObject({
+      type: "restored",
+      chipsFromSave: true,
+      settings: { chipsPlayed: [{ name: "wildcard", event: 3 }] },
+    });
+  });
 });

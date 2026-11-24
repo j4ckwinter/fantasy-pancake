@@ -22,6 +22,16 @@
   font-size: var(--text-12);
   font-variant-numeric: tabular-nums;
 }
+.chip-panel__stale {
+  margin: 0 0 var(--space-8);
+  padding: var(--space-8) var(--space-10);
+  border: 1px solid var(--color-warning-line);
+  border-radius: var(--radius-8);
+  background: var(--color-warning-surface);
+  color: var(--color-warning-text);
+  font-size: var(--text-12);
+  line-height: 1.5;
+}
 .chip-panel__list {
   display: grid;
   margin: 0;

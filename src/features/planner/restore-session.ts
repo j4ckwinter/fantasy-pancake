@@ -3,6 +3,7 @@ import type { Data, Settings } from "@/lib/schemas";
 import { errorMessage } from "@/lib/error-message";
 import { loadTeamPicks } from "./api";
 import {
+  knownChips,
   restoreSettings,
   saveSettings,
   type SettingsStorage,
@@ -11,13 +12,21 @@ import { prepareComparison } from "./comparison";
 import { checkTeamSettings, comparingPlans, restoringTeam } from "./messages";
 import type { SessionAction } from "./session";
 
-async function withTeamName(settings: Settings) {
-  if (settings.teamName) return settings;
+async function withImportedDetails(settings: Settings) {
   try {
     const imported = await loadTeamPicks(String(settings.entryId));
-    return { ...settings, teamName: imported.teamName };
+    const chipsPlayed =
+      imported.chipsPlayed && knownChips(imported.chipsPlayed);
+    return {
+      settings: {
+        ...settings,
+        teamName: settings.teamName || imported.teamName,
+        chipsPlayed: chipsPlayed ?? settings.chipsPlayed,
+      },
+      chipsFromSave: !chipsPlayed,
+    };
   } catch {
-    return settings;
+    return { settings, chipsFromSave: true };
   }
 }
 
@@ -44,10 +53,12 @@ export async function restoreSavedTeam(
   }
   if (restored.status !== "restored") return;
   showBusy(restoringTeam);
-  const saved = await withTeamName(restored.settings);
+  const { settings: saved, chipsFromSave } = await withImportedDetails(
+    restored.settings,
+  );
   if (!isActive()) return;
-  dispatch({ type: "restored", settings: saved });
-  if (saved !== restored.settings) {
+  dispatch({ type: "restored", settings: saved, chipsFromSave });
+  if (JSON.stringify(saved) !== JSON.stringify(restored.settings)) {
     try {
       saveSettings(storage, saved);
     } catch {

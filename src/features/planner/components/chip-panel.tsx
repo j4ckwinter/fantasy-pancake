@@ -16,6 +16,7 @@ import {
   chipHorizonNote,
   chipOptimismNote,
   chipSummaries,
+  chipsFromSaveText,
   chipsUnknownText,
 } from "../chips";
 import { gameweekRange } from "../format";
@@ -32,6 +33,7 @@ export function ChipPanel({
   advice,
   weeks,
   previewKey,
+  fromSave,
   busy,
   onPreview,
   onRefresh,
@@ -39,6 +41,7 @@ export function ChipPanel({
   advice: ChipAdvice;
   weeks: number[];
   previewKey: string | null;
+  fromSave: boolean;
   busy: boolean;
   onPreview: (key: string, week: number) => void;
   onRefresh: () => void;
@@ -65,45 +68,50 @@ export function ChipPanel({
           )}
         </div>
       ) : (
-        <ul className="chip-panel__list">
-          {chipSummaries(advice).map((summary) => {
-            const Icon = chipIcons[summary.chip];
-            const active = previewKey === summary.key;
-            return (
-              <li
-                key={summary.key}
-                className={`chip-row${active ? " chip-row--active" : ""}`}
-                data-testid={`chip-${summary.chip}`}
-              >
-                <span className="chip-row__icon" aria-hidden="true">
-                  <Icon className="size-4" />
-                </span>
-                <div className="chip-row__copy">
-                  <h3>{summary.label}</h3>
-                  <p>{summary.detail}</p>
-                </div>
-                <div className="chip-row__actions">
-                  <StatusBadge tone={summary.tone}>{summary.badge}</StatusBadge>
-                  {summary.previewWeek !== null && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="preview-toggle"
-                      aria-pressed={active}
-                      aria-label={`Preview ${summary.label} in GW${summary.previewWeek}`}
-                      onClick={() =>
-                        onPreview(summary.key, summary.previewWeek!)
-                      }
-                    >
-                      <EyeIcon data-icon="inline-start" aria-hidden="true" />
-                      Preview GW{summary.previewWeek}
-                    </Button>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          {fromSave && <p className="chip-panel__stale">{chipsFromSaveText}</p>}
+          <ul className="chip-panel__list">
+            {chipSummaries(advice).map((summary) => {
+              const Icon = chipIcons[summary.chip];
+              const active = previewKey === summary.key;
+              return (
+                <li
+                  key={summary.key}
+                  className={`chip-row${active ? " chip-row--active" : ""}`}
+                  data-testid={`chip-${summary.chip}`}
+                >
+                  <span className="chip-row__icon" aria-hidden="true">
+                    <Icon className="size-4" />
+                  </span>
+                  <div className="chip-row__copy">
+                    <h3>{summary.label}</h3>
+                    <p>{summary.detail}</p>
+                  </div>
+                  <div className="chip-row__actions">
+                    <StatusBadge tone={summary.tone}>
+                      {summary.badge}
+                    </StatusBadge>
+                    {summary.previewWeek !== null && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="preview-toggle"
+                        aria-pressed={active}
+                        aria-label={`Preview ${summary.label} in GW${summary.previewWeek}`}
+                        onClick={() =>
+                          onPreview(summary.key, summary.previewWeek!)
+                        }
+                      >
+                        <EyeIcon data-icon="inline-start" aria-hidden="true" />
+                        Preview GW{summary.previewWeek}
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
       <p className="chip-panel__note">
         <InfoIcon aria-hidden="true" className="size-4" />

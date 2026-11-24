@@ -56,7 +56,7 @@ export function settingsFromImport(
   };
 }
 
-function knownChips(chips: NonNullable<ImportedTeam["chipsPlayed"]>) {
+export function knownChips(chips: NonNullable<ImportedTeam["chipsPlayed"]>) {
   return chips.flatMap((chip): PlayedChip[] => {
     const name = chipNameSchema.safeParse(chip.name);
     return name.success ? [{ name: name.data, event: chip.event }] : [];

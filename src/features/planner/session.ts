@@ -20,6 +20,7 @@ export type Session = {
   result: Analysis | null;
   selection: Selection | null;
   chipPreview: string | null;
+  chipsFromSave: boolean;
   planCategory: PlanCategory;
   lineupIndex: number;
   confirmedPrices: number[];
@@ -37,7 +38,7 @@ export type SessionAction =
   | { type: "noticed"; notice: Notice }
   | { type: "saved" }
   | { type: "failed"; error: string }
-  | { type: "restored"; settings: Settings }
+  | { type: "restored"; settings: Settings; chipsFromSave: boolean }
   | { type: "restore-compared"; result: Analysis }
   | { type: "import-started" }
   | {
@@ -91,6 +92,7 @@ export const initialSession: Session = {
   result: null,
   selection: null,
   chipPreview: null,
+  chipsFromSave: false,
   planCategory: "singles",
   lineupIndex: 0,
   confirmedPrices: [],
@@ -140,6 +142,7 @@ export function sessionReducer(
         ...session,
         savedPlan: true,
         settings: action.settings,
+        chipsFromSave: action.chipsFromSave,
         teamId: String(action.settings.entryId),
         notice: "restored",
       };
@@ -161,6 +164,7 @@ export function sessionReducer(
         result: action.result,
         selection: null,
         chipPreview: null,
+        chipsFromSave: false,
         customError: "",
         reviewSnapshot: null,
         planCategory: "singles",

@@ -470,6 +470,7 @@ export function usePlanner() {
     priceConfirmed: session.priceConfirmed,
     lineupIndex: session.lineupIndex,
     chipPreviewKey: session.chipPreview,
+    chipsFromSave: session.chipsFromSave,
     chipPreview: result
       ? previewedChip(result, session.chipPreview, session.lineupIndex)
       : null,
