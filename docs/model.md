@@ -84,7 +84,7 @@ This search is bounded and can miss the best plan: a player outside the pool, a 
 **Valuation** values every chip along one path (`chip-paths.ts`). The base path is the recommended plan-ahead plan, or holding when no plan qualifies: each horizon week's squad, best XI with captain, and points less that week's hits. Playing chips changes the path:
 
 - **Wildcard** in week w rebuilds the squad and keeps it from w to the end of the horizon. Plan moves from w on are not made, so their hits go too; moves before w stay.
-- **Free Hit** in week w replaces that one week's squad with a rebuilt one, then the path returns to the squad it would otherwise have.
+- **Free Hit** in week w replaces that one week's squad with a rebuilt one, then the path returns to the squad it would otherwise have. The plan's moves in week w still count from the next week, so the week keeps the plan's hit for them.
 - **Bench Boost** adds the expected points of the four players left on that week's bench, from whatever squad the path has then.
 - **Triple Captain** adds that week's captain's expected points once more, from whatever XI the path has then. `bestLineup` takes its captain from the captaincy ranking above.
 

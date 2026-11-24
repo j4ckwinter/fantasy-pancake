@@ -298,9 +298,7 @@ describe("chip valuation", () => {
       (candidate) =>
         candidate.kind === "plan-ahead" && candidate.variant === "best",
     );
-    const planned = plan
-      ? plan.weeks[0].score - plan.weeks[0].hit
-      : result.baseline[0].score;
+    const planned = plan ? plan.weeks[0].score : result.baseline[0].score;
     expect(option.gain).toBeCloseTo(option.lineup.score - planned, 1);
   });
 

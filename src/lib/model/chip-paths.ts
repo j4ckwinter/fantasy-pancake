@@ -10,6 +10,7 @@ export type PathWeek = {
   squad: Player[];
   lineup: Lineup;
   points: number;
+  hit: number;
 };
 
 export type ChipPlay = { chip: ChipName; week: number };
@@ -58,6 +59,7 @@ function basePath(context: TransferContext, plans: TransferPlan[]) {
       squad,
       lineup,
       points: lineup.score - (plan?.weeks[index].hit ?? 0),
+      hit: plan?.weeks[index].hit ?? 0,
     }),
   );
 }
@@ -87,6 +89,7 @@ export function chipPath(
         squad,
         lineup,
         points: lineup.score,
+        hit: 0,
       };
     });
   const freeHit = cached((index) => {
@@ -114,8 +117,11 @@ export function chipPath(
       const kept = permanent
         ? permanent.weeks[index - permanent.from]
         : base[index];
-      const week = chip === "freehit" ? freeHit(index) : kept;
-      if (!week) return null;
+      const rebuilt = chip === "freehit" ? freeHit(index) : null;
+      if (chip === "freehit" && !rebuilt) return null;
+      const week = rebuilt
+        ? { ...rebuilt, points: rebuilt.points - kept.hit, hit: kept.hit }
+        : kept;
       const extra =
         chip === "bboost"
           ? benchPoints(week, scores[index])
