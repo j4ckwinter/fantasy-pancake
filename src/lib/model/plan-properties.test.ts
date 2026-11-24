@@ -51,6 +51,7 @@ function expectLegalEveryWeek(
   data: Data,
   settings: Settings,
   plan: TransferPlan,
+  scores: ReadonlyMap<number, number>[],
 ) {
   const byId = new Map(data.bootstrap.elements.map((p) => [p.id, p]));
   const cap = freeTransferCap(data.bootstrap.game_settings);
@@ -60,8 +61,11 @@ function expectLegalEveryWeek(
   let bank = settings.bank;
   let free = settings.freeTransfers;
   let hits = 0;
+  let net = 0;
+  let freeAfterPlan = settings.freeTransfers;
+  const start = settings.squad.map((pick) => byId.get(pick.id)!);
   expect(plan.weeks.flatMap((week) => week.actions)).toEqual(plan.actions);
-  for (const week of plan.weeks) {
+  for (const [index, week] of plan.weeks.entries()) {
     expect(week.freeTransfersBefore).toBe(free);
     expect(week.actions.length).toBeLessThanOrEqual(2);
     for (const { outId, inId } of week.actions) {
@@ -92,10 +96,25 @@ function expectLegalEveryWeek(
     const hit = freeTransferCost(week.actions.length, free);
     expect(week.hit).toBe(hit);
     hits += hit;
-    free = Math.min(cap, Math.max(0, free - week.actions.length) + 1);
+    const left = Math.max(0, free - week.actions.length);
+    expect(week.freeTransfersAfter).toBe(left);
+    if (week.actions.length) freeAfterPlan = left;
+    const players = squad.map((id) => byId.get(id)!);
+    const weekGain =
+      bestLineup(data, players, scores[index]).score -
+      bestLineup(data, start, scores[index]).score -
+      hit;
+    expect(Math.abs(week.gain - weekGain)).toBeLessThanOrEqual(0.0101);
+    net += weekGain;
+    free = Math.min(cap, left + 1);
   }
   expect(plan.hit).toBe(hits);
   expect(plan.remainingBank).toBe(bank);
+  expect(plan.freeTransfersAfterPlan).toBe(freeAfterPlan);
+  expect(plan.gain).toBe(Math.round(net * 100) / 100);
+  expect(
+    plan.weeks.reduce((sum, week) => sum + Math.round(week.gain * 100), 0),
+  ).toBe(Math.round(plan.gain * 100));
 }
 
 describe("plan properties over generated squads", () => {
@@ -104,13 +123,11 @@ describe("plan properties over generated squads", () => {
     for (let seed = 1; seed <= GENERATED_CASES; seed++) {
       const { data, settings } = generatedCase(seed);
       const result = analyze(data, settings);
-      const holding = result.baseline.reduce((sum, l) => sum + l.score, 0);
+      const scores = scoresFor(data, result.weeks);
       for (const plan of result.plans) {
         planCount++;
-        expectLegalEveryWeek(data, settings, plan);
+        expectLegalEveryWeek(data, settings, plan, scores);
         expect(plan.gain).toBeGreaterThan(0);
-        const total = plan.weeks.reduce((sum, week) => sum + week.score, 0);
-        expect(plan.gain).toBeCloseTo(total - holding - plan.hit, 1);
       }
     }
     expect(planCount).toBeGreaterThan(GENERATED_CASES);

@@ -61,7 +61,9 @@ describe("planning ahead", () => {
     addPlayer(data, { id: 101, ...STRONG });
     settings.freeTransfers = 0;
     const cap = freeTransferCap(data.bootstrap.game_settings);
-    for (const plan of analyze(data, settings).plans) {
+    const plans = analyze(data, settings).plans;
+    expect(plans.length).toBeGreaterThan(0);
+    for (const plan of plans) {
       let free = settings.freeTransfers;
       for (const week of plan.weeks) {
         expect(week.freeTransfersBefore).toBe(free);
@@ -145,7 +147,9 @@ describe("planning ahead", () => {
     addPlayer(data, { team: 1, ...STRONG });
     addPlayer(data, { id: 101, element_type: 2, team: 1, ...STRONG });
     const byId = new Map(data.bootstrap.elements.map((p) => [p.id, p]));
-    for (const plan of planAhead(analyze(data, settings).plans)) {
+    const plans = planAhead(analyze(data, settings).plans);
+    expect(plans.length).toBeGreaterThan(0);
+    for (const plan of plans) {
       let squad = settings.squad.map((pick) => pick.id);
       for (const week of plan.weeks) {
         for (const action of week.actions)
@@ -169,6 +173,7 @@ describe("planning ahead", () => {
     settings.freeTransfers = 0;
     const result = analyze(data, settings);
     const holding = result.baseline.reduce((sum, l) => sum + l.score, 0);
+    expect(result.plans.length).toBeGreaterThan(0);
     for (const plan of result.plans) {
       const previewed = previewTransfers(data, settings, plan.actions);
       const total = previewed.reduce((sum, lineup) => sum + lineup.score, 0);
