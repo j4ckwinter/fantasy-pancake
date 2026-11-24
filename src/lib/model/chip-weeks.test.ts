@@ -20,7 +20,7 @@ function row(
   return { chip, gains, expires };
 }
 
-function recommendWeeks(rows: Row[]) {
+function choose(rows: Row[]) {
   const evaluate = (plays: readonly ChipPlay[]) => ({
     gain: plays.reduce(
       (sum, play) =>
@@ -41,7 +41,11 @@ function recommendWeeks(rows: Row[]) {
       threshold: BARS[chip],
       expires,
     })),
-  ).map((choice) => choice?.recommendation);
+  );
+}
+
+function recommendWeeks(rows: Row[]) {
+  return choose(rows).map((choice) => choice?.recommendation);
 }
 
 describe("one chip per gameweek", () => {
@@ -110,5 +114,10 @@ describe("one chip per gameweek", () => {
     expect(recommendWeeks([row("bboost", { 11: 0.04 }, true)])).toEqual([
       { kind: "hold", reason: "below-threshold" },
     ]);
+  });
+
+  it("never shows a chip as worth less than not playing it", () => {
+    const [wildcard] = choose([row("wildcard", { 12: -0.6, 13: 0.12 })]);
+    expect(wildcard?.options.map((option) => option.gain)).toEqual([0, 0.12]);
   });
 });

@@ -130,7 +130,7 @@ function optionsFor(
     const value = evaluate(playsOf(rows, trial));
     const added = marginal(evaluate, rows, trial, row);
     return value && added !== null
-      ? [{ week, gain: added, path: value.weeks }]
+      ? [{ week, gain: Math.max(0, added), path: value.weeks }]
       : [];
   });
 }
