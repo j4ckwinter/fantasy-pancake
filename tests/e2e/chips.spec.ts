@@ -250,6 +250,21 @@ test("pressing a chip preview again turns it off", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("pressing a chip preview after switching weeks goes back to its week", async ({
+  page,
+}) => {
+  await importWithChips(page, [], 11);
+  const chip = page.getByRole("button", {
+    name: "Preview Bench Boost in GW11",
+  });
+  await chip.click();
+  await page.getByRole("button", { name: "Show lineup GW12" }).click();
+  await expect(lineupHeading(page)).toHaveText("Bench Boost · GW12");
+  await chip.click();
+  await expect(chip).toHaveAttribute("aria-pressed", "true");
+  await expect(lineupHeading(page)).toHaveText("Bench Boost · GW11");
+});
+
 test("a chip preview ends when you show a week outside the chip's window", async ({
   page,
 }) => {

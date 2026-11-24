@@ -308,7 +308,7 @@ export function usePlanner() {
     const index = result?.weeks.indexOf(week) ?? -1;
     if (index < 0) return;
     dispatch(
-      session.chipPreview === key
+      session.chipPreview === key && session.lineupIndex === index
         ? { type: "selection-cleared" }
         : { type: "chip-previewed", key, index },
     );
