@@ -16,13 +16,18 @@ function emptyHistory() {
   return Response.json({ history: [] });
 }
 
+const squadPicks = {
+  active_chip: null,
+  entry_history: { event: 8, bank: 7 },
+  picks: Array.from({ length: 15 }, (_, i) => ({ element: i + 1 })),
+};
+
+function entryHistory(chips: { name: string; event: number }[] = []) {
+  return Response.json({ current: [], past: [], chips });
+}
+
 describe("FPL boundary", () => {
   it("imports the latest published squad, skipping only 404s", async () => {
-    const picks = {
-      active_chip: null,
-      entry_history: { event: 8, bank: 7 },
-      picks: Array.from({ length: 15 }, (_, i) => ({ element: i + 1 })),
-    };
     const { client, fetcher } = fakeClient(
       Response.json({
         name: "The Pancake XI",
@@ -30,7 +35,8 @@ describe("FPL boundary", () => {
         started_event: 8,
       }),
       new Response("", { status: 404 }),
-      Response.json(picks),
+      Response.json(squadPicks),
+      entryHistory(),
     );
     const result = await client.importTeam(3333);
     expect(result.teamName).toBe("The Pancake XI");
@@ -39,7 +45,35 @@ describe("FPL boundary", () => {
     expect(fetcher.mock.calls[2][0]).toContain("/event/8/picks/");
     fetcher.mockResolvedValueOnce(new Response("", { status: 404 }));
     expect((await client.importTeam(3333)).entry_history.event).toBe(8);
-    expect(fetcher).toHaveBeenCalledTimes(4);
+    expect(fetcher).toHaveBeenCalledTimes(5);
+  });
+
+  it("imports the chips the manager has played with their gameweeks", async () => {
+    const { client, fetcher } = fakeClient(
+      Response.json({ current_event: 8, started_event: 1 }),
+      Response.json(squadPicks),
+      entryHistory([
+        { name: "bboost", event: 2 },
+        { name: "wildcard", event: 3 },
+      ]),
+    );
+    const result = await client.importTeam(3333);
+    expect(fetcher.mock.calls[2][0]).toContain("entry/3333/history/");
+    expect(result.chipsPlayed).toEqual([
+      { name: "bboost", event: 2 },
+      { name: "wildcard", event: 3 },
+    ]);
+  });
+
+  it("still imports the squad when the chip history is unavailable", async () => {
+    const { client } = fakeClient(
+      Response.json({ current_event: 8, started_event: 1 }),
+      Response.json(squadPicks),
+      new Response("", { status: 503 }),
+    );
+    const result = await client.importTeam(3333);
+    expect(result.entry_history.event).toBe(8);
+    expect(result.chipsPlayed).toBeUndefined();
   });
 
   it("does not hide outages by falling back to older picks", async () => {

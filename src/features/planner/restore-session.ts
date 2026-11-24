@@ -1,23 +1,40 @@
 import type { Dispatch } from "react";
-import type { Data, Settings } from "@/lib/schemas";
+import type { Analysis } from "@/lib/model";
+import type { Data, ImportedTeam, Settings } from "@/lib/schemas";
 import { errorMessage } from "@/lib/error-message";
-import { loadTeamPicks } from "./api";
 import {
+  STORAGE_KEY,
+  knownChips,
   restoreSettings,
   saveSettings,
   type SettingsStorage,
 } from "./settings";
-import { prepareComparison } from "./comparison";
 import { checkTeamSettings, comparingPlans, restoringTeam } from "./messages";
-import type { SessionAction } from "./session";
+import type { ChipsStatus, SessionAction } from "./session";
 
-async function withTeamName(settings: Settings) {
-  if (settings.teamName) return settings;
+type CheckedChips = {
+  settings: Settings;
+  chipsStatus: Exclude<ChipsStatus, "checking">;
+};
+
+async function checkChips(
+  settings: Settings,
+  loadTeam: (entryId: string) => Promise<ImportedTeam>,
+): Promise<CheckedChips> {
   try {
-    const imported = await loadTeamPicks(String(settings.entryId));
-    return { ...settings, teamName: imported.teamName };
+    const imported = await loadTeam(String(settings.entryId));
+    const chipsPlayed =
+      imported.chipsPlayed && knownChips(imported.chipsPlayed);
+    return {
+      settings: {
+        ...settings,
+        teamName: settings.teamName || imported.teamName,
+        chipsPlayed: chipsPlayed ?? settings.chipsPlayed,
+      },
+      chipsStatus: chipsPlayed ? "current" : "no-history",
+    };
   } catch {
-    return settings;
+    return { settings, chipsStatus: "unreachable" };
   }
 }
 
@@ -29,36 +46,39 @@ export async function restoreSavedTeam(
     dispatch,
     showBusy,
     enriched,
+    loadTeam,
+    compare,
   }: {
     storage: SettingsStorage;
     isActive: () => boolean;
     dispatch: Dispatch<SessionAction>;
     showBusy: (message: string) => void;
     enriched: (data: Data) => void;
+    loadTeam: (entryId: string) => Promise<ImportedTeam>;
+    compare: (
+      data: Data,
+      settings: Settings,
+    ) => Promise<{ data: Data; result: Analysis }>;
   },
 ) {
+  const savedText = storage.getItem(STORAGE_KEY);
   const restored = restoreSettings(storage, loaded);
   if (restored.status === "invalid") {
     dispatch({ type: "noticed", notice: "settings-invalid" });
     return;
   }
   if (restored.status !== "restored") return;
+  const saved = restored.settings;
   showBusy(restoringTeam);
-  const saved = await withTeamName(restored.settings);
-  if (!isActive()) return;
-  dispatch({ type: "restored", settings: saved });
-  if (saved !== restored.settings) {
-    try {
-      saveSettings(storage, saved);
-    } catch {
-      dispatch({ type: "noticed", notice: "settings-not-saved" });
-    }
-  }
+  dispatch({ type: "restored", settings: saved, chipsStatus: "checking" });
+  const checking = checkChips(saved, loadTeam);
   showBusy(comparingPlans);
+  let compared: Data | null = null;
   try {
-    const comparison = await prepareComparison(loaded, saved);
+    const comparison = await compare(loaded, saved);
     if (!isActive()) return;
     enriched(comparison.data);
+    compared = comparison.data;
     dispatch({ type: "restore-compared", result: comparison.result });
   } catch (reason) {
     if (isActive())
@@ -68,5 +88,29 @@ export async function restoreSavedTeam(
       });
   } finally {
     if (isActive()) showBusy("");
+  }
+  const checked = await checking;
+  if (!isActive()) return;
+  const changed = JSON.stringify(checked.settings) !== JSON.stringify(saved);
+  const result =
+    changed && compared
+      ? await compare(compared, checked.settings).then(
+          (comparison) => comparison.result,
+          () => undefined,
+        )
+      : undefined;
+  if (!isActive()) return;
+  dispatch({
+    type: "chips-checked",
+    from: saved,
+    settings: checked.settings,
+    chipsStatus: checked.chipsStatus,
+    result,
+  });
+  if (!changed || storage.getItem(STORAGE_KEY) !== savedText) return;
+  try {
+    saveSettings(storage, checked.settings);
+  } catch {
+    dispatch({ type: "noticed", notice: "settings-not-saved" });
   }
 }

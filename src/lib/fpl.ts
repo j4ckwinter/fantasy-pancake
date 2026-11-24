@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   bootstrapSchema,
+  entryHistorySchema,
   fixtureSchema,
   historySchema,
   picksSchema,
@@ -120,6 +121,7 @@ export function createFplClient({ fetch, now }: FplClientOptions) {
         return {
           ...picks.value,
           teamName: entry.value.name || undefined,
+          chipsPlayed: await chipsPlayed(id),
           fetchedAt: picks.fetchedAt,
         };
       } catch (error) {
@@ -127,6 +129,19 @@ export function createFplClient({ fetch, now }: FplClientOptions) {
       }
     }
     throw new FplError("This team has no published gameweek squad yet.", 404);
+  }
+
+  async function chipsPlayed(id: number) {
+    try {
+      const history = await request(
+        `entry/${id}/history/`,
+        entryHistorySchema,
+        TEAM_NOT_FOUND,
+      );
+      return history.value.chips;
+    } catch {
+      return undefined;
+    }
   }
 
   async function getHistory(id: number) {

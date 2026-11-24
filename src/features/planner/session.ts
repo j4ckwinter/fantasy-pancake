@@ -13,12 +13,22 @@ type ReviewSnapshot = {
   lineupIndex: number;
 };
 
+export type ChipsStatus =
+  | "current"
+  | "checking"
+  | "unreachable"
+  | "no-history"
+  | "unapplied"
+  | "uncompared";
+
 export type Session = {
   settings: Settings | null;
   teamId: string;
   savedPlan: boolean;
   result: Analysis | null;
   selection: Selection | null;
+  chipPreview: string | null;
+  chipsStatus: ChipsStatus;
   planCategory: PlanCategory;
   lineupIndex: number;
   confirmedPrices: number[];
@@ -36,7 +46,14 @@ export type SessionAction =
   | { type: "noticed"; notice: Notice }
   | { type: "saved" }
   | { type: "failed"; error: string }
-  | { type: "restored"; settings: Settings }
+  | { type: "restored"; settings: Settings; chipsStatus: ChipsStatus }
+  | {
+      type: "chips-checked";
+      from: Settings;
+      settings: Settings;
+      chipsStatus: ChipsStatus;
+      result: Analysis | undefined;
+    }
   | { type: "restore-compared"; result: Analysis }
   | { type: "import-started" }
   | {
@@ -73,6 +90,7 @@ export type SessionAction =
     }
   | { type: "lock-toggled"; settings: Settings; result: Analysis }
   | { type: "selected"; selection: Selection }
+  | { type: "chip-previewed"; key: string; index: number }
   | { type: "selection-cleared" }
   | { type: "category-changed"; category: PlanCategory }
   | { type: "lineup-selected"; index: number }
@@ -88,6 +106,8 @@ export const initialSession: Session = {
   savedPlan: false,
   result: null,
   selection: null,
+  chipPreview: null,
+  chipsStatus: "current",
   planCategory: "singles",
   lineupIndex: 0,
   confirmedPrices: [],
@@ -137,9 +157,32 @@ export function sessionReducer(
         ...session,
         savedPlan: true,
         settings: action.settings,
+        chipsStatus: action.chipsStatus,
         teamId: String(action.settings.entryId),
         notice: "restored",
       };
+    case "chips-checked": {
+      if (session.chipsStatus !== "checking") return session;
+      const untouched =
+        JSON.stringify(session.settings) === JSON.stringify(action.from);
+      const changed =
+        JSON.stringify(action.settings) !== JSON.stringify(action.from);
+      const resultCurrent = !changed || !session.result || !!action.result;
+      if (!untouched)
+        return {
+          ...session,
+          chipsStatus:
+            action.chipsStatus === "current" ? "unapplied" : action.chipsStatus,
+        };
+      if (!resultCurrent) return { ...session, chipsStatus: "uncompared" };
+      return {
+        ...session,
+        settings: action.settings,
+        chipsStatus: action.chipsStatus,
+        result:
+          action.result && session.result ? action.result : session.result,
+      };
+    }
     case "restore-compared":
       return {
         ...session,
@@ -157,6 +200,8 @@ export function sessionReducer(
         savedPlan: false,
         result: action.result,
         selection: null,
+        chipPreview: null,
+        chipsStatus: "current",
         customError: "",
         reviewSnapshot: null,
         planCategory: "singles",
@@ -177,6 +222,7 @@ export function sessionReducer(
         confirmedPrices: action.confirmedPrices,
         result: action.result,
         selection: action.selection,
+        chipPreview: action.selection ? null : session.chipPreview,
         lineupIndex: lineupFor(session, action.result),
         priceConfirmed: session.priceConfirmed && action.selection !== null,
       };
@@ -188,6 +234,7 @@ export function sessionReducer(
         priceConfirmed: false,
         settings: action.settings,
         result: action.result,
+        chipPreview: null,
         lineupIndex: 0,
         reviewSnapshot: null,
         planCategory: "singles",
@@ -210,6 +257,7 @@ export function sessionReducer(
         result: action.result,
         lineupIndex: lineupFor(session, action.result),
         selection: action.selection,
+        chipPreview: null,
       };
     case "custom-comparison-failed":
       return {
@@ -263,9 +311,27 @@ export function sessionReducer(
         customError: "",
       };
     case "selected":
-      return { ...session, selection: action.selection, priceConfirmed: false };
+      return {
+        ...session,
+        selection: action.selection,
+        chipPreview: null,
+        priceConfirmed: false,
+      };
+    case "chip-previewed":
+      return {
+        ...session,
+        chipPreview: action.key,
+        lineupIndex: action.index,
+        selection: null,
+        priceConfirmed: false,
+      };
     case "selection-cleared":
-      return { ...session, selection: null, priceConfirmed: false };
+      return {
+        ...session,
+        selection: null,
+        chipPreview: null,
+        priceConfirmed: false,
+      };
     case "category-changed":
       if (session.planCategory === action.category) return session;
       return {
@@ -292,6 +358,7 @@ export function sessionReducer(
         reviewOpen: true,
         result: null,
         selection: null,
+        chipPreview: null,
       };
     case "edit-cancelled": {
       const snapshot = session.reviewSnapshot;

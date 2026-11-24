@@ -84,4 +84,36 @@ describe("saved settings", () => {
       })),
     });
   });
+
+  it("keeps the chips played at import and skips chips it does not know", () => {
+    const settings = settingsFromImport(seasonData(), 123, {
+      active_chip: null,
+      entry_history: { event: 8, bank: 5 },
+      picks: Array.from({ length: 15 }, (_, i) => ({ element: i + 1 })),
+      chipsPlayed: [
+        { name: "bboost", event: 2 },
+        { name: "manager", event: 4 },
+        { name: "3xc", event: 6 },
+      ],
+    });
+    expect(settings.chipsPlayed).toEqual([
+      { name: "bboost", event: 2 },
+      { name: "3xc", event: 6 },
+    ]);
+  });
+
+  it("restores version-1 settings saved before chips were recorded, and with them", () => {
+    const withChips = {
+      ...savedVersion1,
+      chipsPlayed: [{ name: "wildcard", event: 3 }],
+    };
+    const restore = (saved: object) =>
+      restoreSettings(memoryStorage(JSON.stringify(saved)), seasonData());
+    expect(restore(savedVersion1)).toMatchObject({ status: "restored" });
+    expect(JSON.stringify(restore(savedVersion1))).not.toContain("chips");
+    expect(restore(withChips)).toMatchObject({
+      status: "restored",
+      settings: { chipsPlayed: [{ name: "wildcard", event: 3 }] },
+    });
+  });
 });

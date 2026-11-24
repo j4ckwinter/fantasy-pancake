@@ -4,6 +4,9 @@
   gap: var(--space-8);
   margin: 0;
 }
+.metrics--pair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 .metric {
   min-width: 0;
   padding: var(--space-10) var(--space-12);

@@ -53,6 +53,7 @@ function analysis(overrides: Partial<Analysis>): Analysis {
     plans: [],
     threshold: 2,
     rollReason: "",
+    chips: { status: "unknown", missing: "played-chips" },
     ...overrides,
   };
 }

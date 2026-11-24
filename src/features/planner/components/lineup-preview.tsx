@@ -12,7 +12,8 @@ import { Toggle } from "@/components/ui/toggle";
 import { mobileLayoutQuery } from "@/app/breakpoints";
 import type { Captaincy, Lineup } from "@/lib/model";
 import type { Data } from "@/lib/schemas";
-import { PreviewMetrics } from "./preview-metrics";
+import { ChipMetrics, PreviewMetrics } from "./preview-metrics";
+import type { ChipPreview } from "../chips";
 import { PitchBoard } from "./pitch-board";
 import { CaptainPick } from "./captain-pick";
 import { PlayerLink } from "./player-link";
@@ -36,6 +37,7 @@ export function LineupPreview({
   onPlayerSelect,
   captaincy,
   previewCaptaincy,
+  chipPreview,
 }: {
   transferDetails: ReactNode;
   data: Data;
@@ -53,10 +55,11 @@ export function LineupPreview({
   onPlayerSelect: (id: number) => void;
   captaincy: Captaincy[];
   previewCaptaincy: Captaincy[] | null;
+  chipPreview: ChipPreview | null;
 }) {
   const [mode, setMode] = useState<"before" | "after">("after");
   const previewPanel = useRef<HTMLElement>(null);
-  const hasPreview = !!preview;
+  const hasPreview = !!preview || !!chipPreview;
   useEffect(() => {
     if (hasPreview && window.matchMedia(mobileLayoutQuery).matches) {
       previewPanel.current?.focus({ preventScroll: true });
@@ -67,9 +70,10 @@ export function LineupPreview({
     }
   }, [hasPreview]);
   const baseline = baselines[lineupIndex];
-  const changed = preview?.[lineupIndex];
+  const changed = chipPreview ? undefined : preview?.[lineupIndex];
   const after = mode === "after" && !!changed;
-  const lineup = after ? changed : baseline;
+  const chipView = chipPreview && chipLineup(chipPreview, baseline);
+  const lineup = chipView?.lineup ?? (after ? changed : baseline);
   if (!lineup || !baseline) return null;
   const name = (id: number) =>
     findPlayer(data.bootstrap.elements, id)?.web_name ?? "None";
@@ -77,9 +81,12 @@ export function LineupPreview({
   const exited = baseline.ids.filter(
     (id) => changed && !changed.ids.includes(id),
   );
-  const picks = after
-    ? previewCaptaincy?.[lineupIndex]
-    : captaincy[lineupIndex];
+  const picks =
+    chipPreview?.chip === "freehit" || chipPreview?.chip === "wildcard"
+      ? undefined
+      : after
+        ? previewCaptaincy?.[lineupIndex]
+        : captaincy[lineupIndex];
   return (
     <aside
       ref={previewPanel}
@@ -157,9 +164,10 @@ export function LineupPreview({
         data={data}
         lineup={lineup}
         week={weeks[lineupIndex]}
-        variant={after ? "after" : "before"}
-        highlightIds={after ? entered : []}
+        variant={after || chipView ? "after" : "before"}
+        highlightIds={chipView?.highlightIds ?? (after ? entered : [])}
         onPlayerSelect={onPlayerSelect}
+        chip={chipPreview?.chip ?? null}
       />
       {picks && (
         <CaptainPick
@@ -168,13 +176,26 @@ export function LineupPreview({
           onPlayerSelect={onPlayerSelect}
         />
       )}
-      {preview && (
+      {(preview || chipPreview) && (
         <div className="lineup-preview__selection">
-          <h3 aria-live="polite">{selectedLabel}</h3>
+          <h3 aria-live="polite">
+            {chipPreview
+              ? `${chipPreview.label} · GW${chipPreview.option.week}`
+              : selectedLabel}
+          </h3>
           <p>Preview only. Your FPL team is unchanged.</p>
         </div>
       )}
-      {preview && option && (
+      {chipPreview && (
+        <div className="lineup-preview__summary">
+          <ChipMetrics
+            gain={chipPreview.option.gain}
+            weeks={chipPreview.option.coveredWeeks}
+            threshold={chipPreview.threshold}
+          />
+        </div>
+      )}
+      {preview && option && !chipPreview && (
         <div className="lineup-preview__summary">
           <PreviewMetrics
             {...option}
@@ -221,7 +242,7 @@ export function LineupPreview({
               </p>
             </>
           )}
-          {picks && (
+          {picks && chipPreview?.chip !== "bboost" && (
             <div className="lineup-preview__bench">
               <strong id="bench-order-title">Bench order</strong>
               <div className="lineup-preview__bench-slots">
@@ -272,4 +293,28 @@ export function LineupPreview({
       </details>
     </aside>
   );
+}
+
+function chipLineup(preview: ChipPreview, baseline: Lineup) {
+  const { chip, option } = preview;
+  switch (chip) {
+    case "bboost":
+      return {
+        lineup: {
+          ...option.lineup,
+          ids: [...option.lineup.ids, ...option.bench],
+        },
+        highlightIds: option.bench,
+      };
+    case "freehit":
+    case "wildcard":
+      return {
+        lineup: option.lineup,
+        highlightIds: option.lineup.ids.filter(
+          (id) => !baseline.ids.includes(id),
+        ),
+      };
+    case "3xc":
+      return { lineup: option.lineup, highlightIds: [] };
+  }
 }

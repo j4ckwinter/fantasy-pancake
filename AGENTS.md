@@ -18,6 +18,7 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Money, expected-points gain, accuracy note and label formatting   | `src/features/planner/format.ts`                                 |
 | Browser HTTP requests and response validation                     | `src/features/planner/api.ts`                                    |
 | Saved-settings compatibility, import defaults and price estimates | `src/features/planner/settings.ts`                               |
+| Chip names, advice wording and which chip week is previewed       | `src/features/planner/chips.ts`                                  |
 | Selections, their labels and plan categories                      | `src/features/planner/selection.ts`                              |
 | Planner status, notice and error messages                         | `src/features/planner/messages.ts`                               |
 | Rendering and local UI interactions                               | `src/features/planner/components/`                               |
@@ -42,6 +43,11 @@ Read the Code structure section of [README.md](README.md#code-structure) before 
 | Captain ranking, vice-captain and bench order                     | `src/lib/model/captaincy.ts`                                     |
 | Chance a player appears in a gameweek                             | `src/lib/model/play-chance.ts`                                   |
 | Weekly captaincy for the current or a previewed squad             | `src/lib/model/captaincy-preview.ts`                             |
+| Which chips remain and the weeks each can be played               | `src/lib/model/chip-availability.ts`                             |
+| Chip advice and hold thresholds                                   | `src/lib/model/chip-advice.ts`                                   |
+| The path chips are valued along, and what a set of chips adds     | `src/lib/model/chip-paths.ts`                                    |
+| Which chips play which weeks: one a week, bars and hold reasons   | `src/lib/model/chip-weeks.ts`                                    |
+| Best affordable squad rebuilt for one or more weeks               | `src/lib/model/affordable-squad.ts`                              |
 | Position ids; per-position scoring weights and attacking priors   | `src/lib/model/position.ts`; `scoring.ts`, `forecast-history.ts` |
 | Match length, 60-minute appearances and recency half-life         | `src/lib/model/match-minutes.ts`, `recency.ts`                   |
 | Fitted forecast parameters and their uncalibrated reference       | `src/lib/model/calibrated-parameters.ts`                         |

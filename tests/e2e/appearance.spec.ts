@@ -1,8 +1,25 @@
 import type { Page } from "@playwright/test";
-import { expect, test } from "./support/fixtures";
+import {
+  expect,
+  fixtureData,
+  importResponse,
+  routeData,
+  routeImport,
+  test,
+  withChipRules,
+  withDoubleGameweek,
+} from "./support/fixtures";
 import { importTeam, shortlistHeading } from "./support/planner";
 
 const TOUCH_TARGET = 40;
+
+async function routeChips(page: Page) {
+  await routeData(page, withDoubleGameweek(withChipRules(fixtureData()), 11));
+  await routeImport(
+    page,
+    importResponse({ chipsPlayed: [{ name: "freehit", event: 3 }] }),
+  );
+}
 
 async function smallTouchTargets(page: Page) {
   const small: string[] = [];
@@ -91,6 +108,7 @@ test.describe("on a touch screen", () => {
   test("buttons are at least 40px tall on the landing page, shortlist and team review", async ({
     page,
   }) => {
+    await routeChips(page);
     await page.goto("/");
     expect(await smallTouchTargets(page)).toEqual([]);
     await importTeam(page);
@@ -100,6 +118,10 @@ test.describe("on a touch screen", () => {
     await expect(
       page.getByRole("article", { name: "Recommended plan" }),
     ).toBeVisible();
+    expect(await smallTouchTargets(page)).toEqual([]);
+    await page
+      .getByRole("button", { name: "Preview Bench Boost in GW11" })
+      .click();
     expect(await smallTouchTargets(page)).toEqual([]);
     await page.getByRole("button", { name: "Edit team details" }).click();
     await page.getByRole("button", { name: "Edit team", exact: true }).click();
@@ -112,6 +134,7 @@ for (const scheme of ["light", "dark"] as const) {
     page,
   }) => {
     await page.emulateMedia({ colorScheme: scheme });
+    await routeChips(page);
     await page.goto("/");
     expect(await lowContrastText(page)).toEqual([]);
     await importTeam(page);
@@ -131,6 +154,15 @@ for (const scheme of ["light", "dark"] as const) {
       .click();
     await page.getByText("How this plan was found · limits").click();
     expect(await lowContrastText(page)).toEqual([]);
+    for (const chip of ["Bench Boost", "Triple Captain", "Wildcard"]) {
+      await page
+        .getByRole("button", { name: new RegExp(`Preview ${chip} in GW`) })
+        .click();
+      await expect(
+        page.getByRole("complementary", { name: `${chip} preview lineup` }),
+      ).toBeVisible();
+      expect(await lowContrastText(page)).toEqual([]);
+    }
     await page.getByRole("button", { name: "Edit team details" }).click();
     await page.getByRole("button", { name: "Edit team", exact: true }).click();
     expect(await lowContrastText(page)).toEqual([]);

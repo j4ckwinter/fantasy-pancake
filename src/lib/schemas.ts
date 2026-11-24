@@ -46,6 +46,23 @@ export const fixtureSchema = z.object({
   finished: z.boolean(),
   kickoff_time: z.string().nullable(),
 });
+export const CHIP_NAMES = ["wildcard", "freehit", "bboost", "3xc"] as const;
+export const chipNameSchema = z.enum(CHIP_NAMES);
+export const chipDefinitionSchema = z.object({
+  id: z.number().int(),
+  name: z.string(),
+  number: z.number().int().positive(),
+  start_event: z.number().int().positive(),
+  stop_event: z.number().int().positive(),
+  chip_type: z.string(),
+});
+export const playedChipSchema = z.object({
+  name: z.string(),
+  event: z.number().int().positive(),
+});
+export const entryHistorySchema = z.object({
+  chips: z.array(playedChipSchema),
+});
 export const bootstrapSchema = z.object({
   elements: z.array(playerSchema),
   teams: z.array(
@@ -84,6 +101,7 @@ export const bootstrapSchema = z.object({
     squad_team_limit: z.number().int(),
     max_extra_free_transfers: z.number().int(),
   }),
+  chips: z.array(chipDefinitionSchema).optional(),
 });
 export const historySchema = z.object({
   history: z.array(
@@ -117,6 +135,10 @@ export const picksSchema = z.object({
   entry_history: z.object({ event: z.number().int(), bank: nonnegative.int() }),
   picks: z.array(z.object({ element: z.number().int() })).length(SQUAD_SIZE),
 });
+export const importedTeamSchema = picksSchema.extend({
+  chipsPlayed: z.array(playedChipSchema).optional(),
+  fetchedAt: z.string(),
+});
 const availabilityScenarioSchema = z.enum(["persistent", "recover-next-week"]);
 export const settingsSchema = z.object({
   version: z.literal(1),
@@ -132,6 +154,9 @@ export const settingsSchema = z.object({
     )
     .optional(),
   availabilityScenario: availabilityScenarioSchema.optional(),
+  chipsPlayed: z
+    .array(playedChipSchema.extend({ name: chipNameSchema }))
+    .optional(),
   bank: nonnegative.int().max(1000),
   freeTransfers: nonnegative.int().max(5),
   squad: z
@@ -151,6 +176,10 @@ export const dataSchema = z.object({
 });
 export type AvailabilityScenario = z.infer<typeof availabilityScenarioSchema>;
 export type Player = z.infer<typeof playerSchema>;
+export type ChipName = z.infer<typeof chipNameSchema>;
+export type ChipDefinition = z.infer<typeof chipDefinitionSchema>;
+export type PlayedChip = NonNullable<Settings["chipsPlayed"]>[number];
+export type ImportedTeam = z.infer<typeof importedTeamSchema>;
 export type Fixture = z.infer<typeof fixtureSchema>;
 export type Settings = z.infer<typeof settingsSchema>;
 export type Data = z.infer<typeof dataSchema>;

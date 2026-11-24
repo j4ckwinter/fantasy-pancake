@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { Analysis } from "@/lib/model";
 import type { Settings } from "@/lib/schemas";
-import { initialSession, sessionReducer, type Session } from "./session";
+import {
+  initialSession,
+  sessionReducer,
+  type Session,
+  type SessionAction,
+} from "./session";
 import { planSelection, transferSelection } from "./selection";
 
 const settings: Settings = {
@@ -26,6 +31,7 @@ function analysis(weeks: number[]): Analysis {
     plans: [],
     threshold: 2,
     rollReason: "",
+    chips: { status: "unknown", missing: "played-chips" },
   };
 }
 
@@ -86,6 +92,138 @@ describe("planner session", () => {
     ] as const;
     for (const action of moves)
       expect(sessionReducer(confirmed, action).priceConfirmed).toBe(false);
+  });
+
+  it("previews a chip in its week in place of any transfer preview", () => {
+    const plan = planSelection({
+      kind: "pair-now",
+      actions: [],
+      gain: 3,
+      hit: 0,
+      remainingBank: 0,
+      freeTransfersAfterPlan: 0,
+      reasons: [],
+      weeks: [],
+    });
+    const previewing = sessionReducer(
+      session({ selection: plan, priceConfirmed: true }),
+      { type: "chip-previewed", key: "bboost-1", index: 2 },
+    );
+    expect(previewing).toMatchObject({
+      chipPreview: "bboost-1",
+      lineupIndex: 2,
+      selection: null,
+      priceConfirmed: false,
+    });
+    expect(
+      sessionReducer(previewing, { type: "selected", selection: plan }),
+    ).toMatchObject({ chipPreview: null, selection: plan });
+    for (const action of [
+      { type: "selection-cleared" },
+      { type: "evaluated", settings, result: analysis([9]) },
+      { type: "edit-started" },
+      { type: "team-switched" },
+    ] as const)
+      expect(sessionReducer(previewing, action).chipPreview).toBeNull();
+  });
+
+  it("gives way to any transfer preview that takes over from a chip preview", () => {
+    const previewing = session({ chipPreview: "bboost-1", lineupIndex: 2 });
+    const custom = transferSelection(
+      [],
+      9,
+      {
+        outId: 8,
+        inId: 16,
+        cost: 0,
+        remainingBank: 0,
+        hit: 0,
+        gain: 1,
+        immediateGain: 1,
+        grossGain: 1,
+        reasons: [],
+        risks: [],
+        fixtures: [],
+      },
+      true,
+    );
+    const result = analysis([9, 10, 11, 12]);
+    expect(
+      sessionReducer(previewing, {
+        type: "custom-compared",
+        settings,
+        result,
+        selection: custom,
+      }).chipPreview,
+    ).toBeNull();
+    expect(
+      sessionReducer(previewing, {
+        type: "refreshed",
+        settings,
+        confirmedPrices: [],
+        result,
+        selection: custom,
+      }).chipPreview,
+    ).toBeNull();
+    const keeping: SessionAction[] = [
+      {
+        type: "refreshed",
+        settings,
+        confirmedPrices: [],
+        result,
+        selection: null,
+      },
+      { type: "lock-toggled", settings, result },
+      { type: "price-confirmed", settings, id: 8, result },
+    ];
+    for (const action of keeping)
+      expect(sessionReducer(previewing, action).chipPreview).toBe("bboost-1");
+  });
+
+  it("applies chips checked after a restore only to the plan they were checked for", () => {
+    const fresh = {
+      ...settings,
+      chipsPlayed: [{ name: "3xc" as const, event: 9 }],
+    };
+    const result = analysis([9, 10, 11, 12]);
+    const checked: SessionAction = {
+      type: "chips-checked",
+      from: settings,
+      settings: fresh,
+      chipsStatus: "current",
+      result,
+    };
+    const restored = session({ chipsStatus: "checking" });
+    expect(sessionReducer(restored, checked)).toMatchObject({
+      settings: fresh,
+      result,
+      chipsStatus: "current",
+    });
+    const edited = session({
+      settings: { ...settings, bank: 99 },
+      chipsStatus: "checking",
+    });
+    expect(sessionReducer(edited, checked)).toMatchObject({
+      settings: { bank: 99 },
+      chipsStatus: "unapplied",
+    });
+    expect(
+      sessionReducer(restored, { ...checked, result: undefined }),
+    ).toMatchObject({ settings, chipsStatus: "uncompared" });
+  });
+
+  it("ignores a chip check that arrives after a fresh import", () => {
+    const imported = session({ chipsStatus: "current" });
+    for (const chipsStatus of ["current", "unreachable", "no-history"] as const)
+      expect(
+        sessionReducer(imported, {
+          type: "chips-checked",
+          from: settings,
+          settings: { ...settings, bank: 7 },
+          chipsStatus,
+          result: analysis([9, 10, 11, 12]),
+        }),
+      ).toBe(imported);
   });
 
   it("clears the unsaved-settings warning after a later save works", () => {
