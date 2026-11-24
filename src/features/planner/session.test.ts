@@ -180,6 +180,38 @@ describe("planner session", () => {
       expect(sessionReducer(previewing, action).chipPreview).toBe("bboost-1");
   });
 
+  it("applies chips checked after a restore only to the plan they were checked for", () => {
+    const fresh = {
+      ...settings,
+      chipsPlayed: [{ name: "3xc" as const, event: 9 }],
+    };
+    const result = analysis([9, 10, 11, 12]);
+    const checked: SessionAction = {
+      type: "chips-checked",
+      from: settings,
+      settings: fresh,
+      chipsStatus: "current",
+      result,
+    };
+    const restored = session({ chipsStatus: "checking" });
+    expect(sessionReducer(restored, checked)).toMatchObject({
+      settings: fresh,
+      result,
+      chipsStatus: "current",
+    });
+    const edited = session({
+      settings: { ...settings, bank: 99 },
+      chipsStatus: "checking",
+    });
+    expect(sessionReducer(edited, checked)).toMatchObject({
+      settings: { bank: 99 },
+      chipsStatus: "unapplied",
+    });
+    expect(
+      sessionReducer(restored, { ...checked, result: undefined }),
+    ).toMatchObject({ settings, chipsStatus: "unapplied" });
+  });
+
   it("clears the unsaved-settings warning after a later save works", () => {
     const warned = session({ notice: "settings-not-saved" });
     expect(sessionReducer(warned, { type: "saved" }).notice).toBeNull();

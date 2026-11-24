@@ -16,11 +16,12 @@ import {
   chipHorizonNote,
   chipOptimismNote,
   chipSummaries,
-  chipsFromSaveText,
+  chipsStatusText,
   chipsRefreshWarning,
   chipsUnknownText,
 } from "../chips";
 import { gameweekRange } from "../format";
+import type { ChipsStatus } from "../session";
 import "./chip-panel.css";
 
 const chipIcons: Record<ChipName, LucideIcon> = {
@@ -34,7 +35,7 @@ export function ChipPanel({
   advice,
   weeks,
   previewKey,
-  fromSave,
+  chipsStatus,
   savedPlan,
   busy,
   onPreview,
@@ -43,7 +44,7 @@ export function ChipPanel({
   advice: ChipAdvice;
   weeks: number[];
   previewKey: string | null;
-  fromSave: boolean;
+  chipsStatus: ChipsStatus;
   savedPlan: boolean;
   busy: boolean;
   onPreview: (key: string, week: number) => void;
@@ -75,7 +76,11 @@ export function ChipPanel({
         </div>
       ) : (
         <>
-          {fromSave && <p className="chip-panel__stale">{chipsFromSaveText}</p>}
+          {chipsStatus !== "current" && (
+            <p className="chip-panel__stale" role="status">
+              {chipsStatusText[chipsStatus]}
+            </p>
+          )}
           <ul className="chip-panel__list">
             {chipSummaries(advice).map((summary) => {
               const Icon = chipIcons[summary.chip];

@@ -74,6 +74,8 @@ export function usePlanner() {
             dispatch,
             showBusy: setBusy,
             enriched: dataEnriched,
+            loadTeam: loadTeamPicks,
+            compare: prepareComparison,
           });
         } catch {
           dispatch({ type: "noticed", notice: "storage-unavailable" });
@@ -470,7 +472,7 @@ export function usePlanner() {
     priceConfirmed: session.priceConfirmed,
     lineupIndex: session.lineupIndex,
     chipPreviewKey: session.chipPreview,
-    chipsFromSave: session.chipsFromSave,
+    chipsStatus: session.chipsStatus,
     chipPreview: result
       ? previewedChip(result, session.chipPreview, session.lineupIndex)
       : null,

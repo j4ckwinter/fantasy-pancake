@@ -77,7 +77,7 @@ This search is bounded and can miss the best plan: a player outside the pool, a 
 
 ## Chips
 
-`Analysis.chips` advises on the chips you have left. It needs FPL's chip rules from `bootstrap-static` and the chips you have played from your entry history, both read at import. Settings saved before chips were recorded have no played chips, so the planner asks you to refresh from FPL rather than guess.
+`Analysis.chips` advises on the chips you have left. It needs FPL's chip rules from `bootstrap-static` and the chips you have played from your entry history, both read at import. Settings saved before chips were recorded have no played chips, so the planner asks you to refresh from FPL rather than guess. Reopening a saved plan shows it straight away and asks FPL for the chips played since in the background; the answer is applied only if you haven't changed the plan meanwhile, and the panel says when chip status comes from the save instead.
 
 **Availability** (`chip-availability.ts`) reads each chip definition as a window, `start_event` to `stop_event`. FPL publishes two of each chip this season, one per half (GW1–19 or GW2–19, then GW20–38). A played chip uses up the window its gameweek falls in. A chip is available when an unused window overlaps the horizon, and only the horizon weeks inside that window are offered. When the horizon spans both halves and neither is used, each half's chip is listed separately. Otherwise the chip is used (with the gameweek, and the next window if there is one) or outside its window. Chips FPL adds that the planner does not know are ignored.
 

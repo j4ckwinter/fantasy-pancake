@@ -8,6 +8,7 @@ import {
   type ChipWeek,
 } from "@/lib/model";
 import type { ChipName } from "@/lib/schemas";
+import type { ChipsStatus } from "./session";
 import { expectedPoints, gameweekRange, signedPoints } from "./format";
 
 export const chipLabels: Record<ChipName, string> = {
@@ -196,8 +197,18 @@ export function chipsUnknownText(
 export const chipsRefreshWarning =
   "Refreshing re-imports your squad, bank and free transfers from FPL, replacing edits, confirmed prices and the free transfers you set.";
 
-export const chipsFromSaveText =
-  "Chip status is from when this plan was saved, because FPL couldn’t be reached. Refresh from FPL to update it.";
+export const chipsStatusText: Record<
+  Exclude<ChipsStatus, "current">,
+  string
+> = {
+  checking: "Checking FPL for chips you’ve played since this plan was saved…",
+  unreachable:
+    "Chip status is from when this plan was saved, because FPL couldn’t be reached. Refresh from FPL to update it.",
+  "no-history":
+    "Chip status is from when this plan was saved, because FPL didn’t send your chip history. Refresh from FPL to try again.",
+  unapplied:
+    "Chip status is from when this plan was saved: FPL’s answer arrived after you changed the plan. Refresh from FPL to update it.",
+};
 
 export const chipHorizonNote = (weeks: number[]) =>
   `Chip advice looks ${PLANNING_HORIZON_WEEKS} gameweeks ahead (${gameweekRange(weeks)}) along your recommended plan, or your current squad if no plan qualifies. A chip’s value outside that horizon is unknown, so “hold” means nothing here clears the bar.`;

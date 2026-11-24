@@ -13,6 +13,9 @@ type ReviewSnapshot = {
   lineupIndex: number;
 };
 
+export type ChipsStatus =
+  "current" | "checking" | "unreachable" | "no-history" | "unapplied";
+
 export type Session = {
   settings: Settings | null;
   teamId: string;
@@ -20,7 +23,7 @@ export type Session = {
   result: Analysis | null;
   selection: Selection | null;
   chipPreview: string | null;
-  chipsFromSave: boolean;
+  chipsStatus: ChipsStatus;
   planCategory: PlanCategory;
   lineupIndex: number;
   confirmedPrices: number[];
@@ -38,7 +41,14 @@ export type SessionAction =
   | { type: "noticed"; notice: Notice }
   | { type: "saved" }
   | { type: "failed"; error: string }
-  | { type: "restored"; settings: Settings; chipsFromSave: boolean }
+  | { type: "restored"; settings: Settings; chipsStatus: ChipsStatus }
+  | {
+      type: "chips-checked";
+      from: Settings;
+      settings: Settings;
+      chipsStatus: ChipsStatus;
+      result: Analysis | undefined;
+    }
   | { type: "restore-compared"; result: Analysis }
   | { type: "import-started" }
   | {
@@ -92,7 +102,7 @@ export const initialSession: Session = {
   result: null,
   selection: null,
   chipPreview: null,
-  chipsFromSave: false,
+  chipsStatus: "current",
   planCategory: "singles",
   lineupIndex: 0,
   confirmedPrices: [],
@@ -142,10 +152,30 @@ export function sessionReducer(
         ...session,
         savedPlan: true,
         settings: action.settings,
-        chipsFromSave: action.chipsFromSave,
+        chipsStatus: action.chipsStatus,
         teamId: String(action.settings.entryId),
         notice: "restored",
       };
+    case "chips-checked": {
+      const untouched =
+        JSON.stringify(session.settings) === JSON.stringify(action.from);
+      const changed =
+        JSON.stringify(action.settings) !== JSON.stringify(action.from);
+      const resultCurrent = !changed || !session.result || !!action.result;
+      if (!untouched || !resultCurrent)
+        return {
+          ...session,
+          chipsStatus:
+            action.chipsStatus === "current" ? "unapplied" : action.chipsStatus,
+        };
+      return {
+        ...session,
+        settings: action.settings,
+        chipsStatus: action.chipsStatus,
+        result:
+          action.result && session.result ? action.result : session.result,
+      };
+    }
     case "restore-compared":
       return {
         ...session,
@@ -164,7 +194,7 @@ export function sessionReducer(
         result: action.result,
         selection: null,
         chipPreview: null,
-        chipsFromSave: false,
+        chipsStatus: "current",
         customError: "",
         reviewSnapshot: null,
         planCategory: "singles",

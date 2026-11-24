@@ -35,6 +35,7 @@ import { RollOption } from "./roll-option";
 import { MobilePlannerNav } from "./mobile-planner-nav";
 import { ChipPanel } from "./chip-panel";
 import type { ChipPreview } from "../chips";
+import type { ChipsStatus } from "../session";
 import "./transfer-results.css";
 
 export function TransferResults({
@@ -67,7 +68,7 @@ export function TransferResults({
   onClosePlayer,
   chipPreviewKey,
   chipPreview,
-  chipsFromSave,
+  chipsStatus,
   savedPlan,
   onPreviewChip,
   onRefreshFromFpl,
@@ -101,7 +102,7 @@ export function TransferResults({
   onClosePlayer: () => void;
   chipPreviewKey: string | null;
   chipPreview: ChipPreview | null;
-  chipsFromSave: boolean;
+  chipsStatus: ChipsStatus;
   savedPlan: boolean;
   onPreviewChip: (key: string, week: number) => void;
   onRefreshFromFpl: () => void;
@@ -264,7 +265,7 @@ export function TransferResults({
             advice={result.chips}
             weeks={result.weeks}
             previewKey={chipPreviewKey}
-            fromSave={chipsFromSave}
+            chipsStatus={chipsStatus}
             savedPlan={savedPlan}
             busy={!idle}
             onPreview={onPreviewChip}

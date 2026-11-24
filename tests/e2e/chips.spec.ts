@@ -12,6 +12,7 @@ import {
 import {
   compareTransfer,
   expectNoHorizontalOverflow,
+  gate,
   importTeam,
   shortlistHeading,
 } from "./support/planner";
@@ -270,16 +271,25 @@ test("a restored plan refreshes its chips, or says they are from the save", asyn
   page,
 }) => {
   await importWithChips(page, [{ name: "3xc", event: 4 }]);
-  await routeImport(
-    page,
-    importResponse({
-      chipsPlayed: [
-        { name: "3xc", event: 4 },
-        { name: "bboost", event: 8 },
-      ],
-    }),
-  );
+  const answer = gate();
+  await page.route("**/api/import?*", async (route) => {
+    await answer.opened;
+    await route.fulfill({
+      json: importResponse({
+        chipsPlayed: [
+          { name: "3xc", event: 4 },
+          { name: "bboost", event: 8 },
+        ],
+      }),
+    });
+  });
   await page.reload();
+  await expect(shortlistHeading(page)).toBeVisible();
+  await expect(chipsPanel(page)).toContainText(
+    "Checking FPL for chips you’ve played",
+  );
+  await expect(chipRow(page, "bboost")).not.toContainText("Used");
+  answer.release();
   await expect(chipRow(page, "bboost")).toContainText("Used GW8");
   await expect(chipsPanel(page)).not.toContainText("from when this plan");
   await routeImport(page, { error: "Unavailable" }, 503);
